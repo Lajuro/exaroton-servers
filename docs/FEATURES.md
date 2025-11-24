@@ -47,9 +47,12 @@ Este documento descreve em detalhes todas as funcionalidades implementadas no Ex
 ### Visualização
 - ✅ Lista de servidores acessíveis
 - ✅ Status em tempo real (online, offline, iniciando, etc.)
+- ✅ **Atualização automática via WebSocket/SSE** (sem refresh manual)
+- ✅ Indicador visual "Ao vivo" quando conectado
 - ✅ Informações do servidor (nome, endereço)
-- ✅ Contagem de jogadores online
+- ✅ Contagem de jogadores online atualizada em tempo real
 - ✅ Indicadores visuais de status (cores)
+- ✅ Reconexão automática em caso de falhas
 
 ### Controle de Servidores
 
@@ -275,6 +278,31 @@ POST /api/users/[id]/server-access   - Concede/revoga acesso individual
 - ⏳ Monitoramento e alertas
 - ⏳ Rate limiting
 - ⏳ Audit logs
+
+## Sistema de Atualização em Tempo Real
+
+### Tecnologia
+- ✅ **Server-Sent Events (SSE)** para comunicação cliente-servidor
+- ✅ **WebSocket do Exaroton** para receber eventos do servidor
+- ✅ Arquitetura híbrida eficiente e escalável
+
+### Funcionalidades
+- ✅ **Atualização instantânea** de status dos servidores
+- ✅ **Contagem de jogadores em tempo real** sem polling
+- ✅ **Badge "Ao vivo"** indicando conexão ativa
+- ✅ **Reconexão automática** (5s) em caso de falha
+- ✅ **Cleanup automático** de recursos ao sair
+- ✅ **Múltiplas conexões simultâneas** (uma por servidor)
+
+### Benefícios
+- 🚀 **Performance**: Sem necessidade de polling constante
+- ⚡ **Latência baixa**: Eventos propagados instantaneamente
+- 💪 **Confiável**: Reconexão automática mantém UX fluida
+- 🎯 **UX aprimorada**: Usuário vê mudanças sem refresh manual
+- 📊 **Escalável**: SSE é leve e suporta muitas conexões
+
+### Detalhes Técnicos
+Consulte [REALTIME_UPDATES.md](./REALTIME_UPDATES.md) para documentação técnica completa.
 
 ## Conclusão
 

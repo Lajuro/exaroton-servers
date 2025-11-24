@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Allow accessing dev server via your LAN IP without warnings
 };
 
 export default nextConfig;

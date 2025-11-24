@@ -5,6 +5,9 @@ export const dynamic = 'force-dynamic';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, Server } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,33 +29,40 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-900 dark:border-zinc-50 mx-auto"></div>
-          <p className="mt-4 text-zinc-600 dark:text-zinc-400">Carregando...</p>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-zinc-800 rounded-lg shadow-lg">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-            Exaroton Servers
-          </h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Gerenciador de servidores Minecraft
-          </p>
-        </div>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-4 text-center">
+          <div className="flex justify-center">
+            <div className="rounded-full bg-primary/10 p-3">
+              <Server className="h-8 w-8 text-primary" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <CardTitle className="text-3xl font-bold">Exaroton Servers</CardTitle>
+            <CardDescription className="text-base">
+              Gerenciador de servidores Minecraft
+            </CardDescription>
+          </div>
+        </CardHeader>
         
-        <div className="mt-8">
-          <button
+        <CardContent>
+          <Button
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 text-zinc-900 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-50 dark:hover:bg-zinc-600 transition-colors"
+            variant="outline"
+            size="lg"
+            className="w-full"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -71,9 +81,9 @@ export default function LoginPage() {
               />
             </svg>
             Entrar com Google
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

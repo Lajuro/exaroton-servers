@@ -19,7 +19,15 @@ function initAdmin(): App {
       }),
     };
     
-    return initializeApp(firebaseAdminConfig);
+    const app = initializeApp(firebaseAdminConfig);
+    // Safe init log to help diagnose project mismatch during setup
+    console.log('[firebase-admin] Initialized:');
+    console.log('  admin.project_id:', process.env.FIREBASE_ADMIN_PROJECT_ID);
+    console.log('  admin.client_email:', process.env.FIREBASE_ADMIN_CLIENT_EMAIL);
+    if (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+      console.log('  client.project_id:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
+    }
+    return app;
   }
   return getApps()[0];
 }

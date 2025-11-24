@@ -20,29 +20,32 @@ export async function getServers() {
 
 export async function getServer(serverId: string) {
   const client = getExarotonClient();
-  return await client.getServer(serverId);
+  const server = (client as any).server(serverId);
+  await server.get();
+  return server;
 }
 
 export async function startServer(serverId: string) {
   const client = getExarotonClient();
-  const server = await client.getServer(serverId);
+  const server = (client as any).server(serverId);
   return await server.start();
 }
 
 export async function stopServer(serverId: string) {
   const client = getExarotonClient();
-  const server = await client.getServer(serverId);
+  const server = (client as any).server(serverId);
   return await server.stop();
 }
 
 export async function restartServer(serverId: string) {
   const client = getExarotonClient();
-  const server = await client.getServer(serverId);
+  const server = (client as any).server(serverId);
   return await server.restart();
 }
 
 export async function getServerPlayers(serverId: string) {
   const client = getExarotonClient();
-  const server = await client.getServer(serverId);
+  const server = (client as any).server(serverId);
+  await server.get();
   return server.players?.list || [];
 }
