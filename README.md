@@ -81,10 +81,6 @@ FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE K
 
 # Exaroton API
 EXAROTON_API_KEY=sua_exaroton_api_key
-
-# NextAuth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=gere_um_secret_aleatorio
 ```
 
 5. Execute o projeto em modo de desenvolvimento:
