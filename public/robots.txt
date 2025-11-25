@@ -1,0 +1,14 @@
+# Sitemap
+Sitemap: https://mineservermanager.online/sitemap.xml
+
+# Robots
+User-agent: *
+Allow: /
+
+# Block admin and API routes from indexing
+Disallow: /admin
+Disallow: /api/
+
+# Allow important pages
+Allow: /login
+Allow: /dashboard
