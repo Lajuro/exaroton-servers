@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServer } from '@/lib/exaroton';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminDb, getCachedServer, setCachedServer } from '@/lib/firebase-admin';
 
 export async function GET(
   request: NextRequest,
@@ -34,9 +34,29 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const server = await getServer(id);
+    // Verificar se deve usar cache
+    const forceRefresh = request.nextUrl.searchParams.get('forceRefresh') === 'true';
     
-    return NextResponse.json({ server });
+    let server;
+    let fromCache = false;
+    
+    if (!forceRefresh) {
+      // Tentar buscar do cache
+      server = await getCachedServer(id);
+      if (server) {
+        fromCache = true;
+      }
+    }
+    
+    if (!server) {
+      // Cache miss ou force refresh - buscar da API
+      server = await getServer(id);
+      
+      // Atualizar cache
+      await setCachedServer(id, server);
+    }
+    
+    return NextResponse.json({ server, fromCache });
   } catch (error) {
     console.error('Error fetching server:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch server';

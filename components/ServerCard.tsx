@@ -37,6 +37,7 @@ interface ServerCardProps {
   server: Server;
   isAdmin: boolean;
   onUpdate: () => void;
+  iconUrl?: string; // Ícone customizado do servidor
 }
 
 type CommandType = 'custom' | 'message' | 'time' | 'weather' | 'gamemode';
@@ -61,7 +62,7 @@ const STATUS_NAMES: { [key: number]: string } = {
   10: 'Preparando',
 };
 
-export default function ServerCard({ server: initialServer, isAdmin, onUpdate }: ServerCardProps) {
+export default function ServerCard({ server: initialServer, isAdmin, onUpdate, iconUrl }: ServerCardProps) {
   const [server, setServer] = useState(initialServer);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -405,16 +406,31 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate }:
       
       <CardHeader className="pb-3">
         <div className="flex items-start gap-2 sm:gap-3">
-          <div className={cn(
-            "p-2 sm:p-2.5 rounded-xl flex-shrink-0 transition-all duration-300",
-            server.status === 1 ? "bg-green-500/10 group-hover:bg-green-500/20" : "bg-muted group-hover:bg-muted/80"
-          )}>
-            {server.status === 1 ? (
-              <Wifi className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
-            ) : (
-              <WifiOff className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            )}
-          </div>
+          {iconUrl ? (
+            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
+              <img 
+                src={iconUrl} 
+                alt={`${server.name} icon`}
+                className="w-full h-full object-cover"
+              />
+              {/* Status indicator overlay */}
+              <div className={cn(
+                "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background",
+                server.status === 1 ? "bg-green-500" : server.status === 0 ? "bg-gray-500" : "bg-yellow-500 animate-pulse"
+              )} />
+            </div>
+          ) : (
+            <div className={cn(
+              "p-2 sm:p-2.5 rounded-xl flex-shrink-0 transition-all duration-300",
+              server.status === 1 ? "bg-green-500/10 group-hover:bg-green-500/20" : "bg-muted group-hover:bg-muted/80"
+            )}>
+              {server.status === 1 ? (
+                <Wifi className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+              ) : (
+                <WifiOff className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+              )}
+            </div>
+          )}
           <div className="flex-1 min-w-0 space-y-2 sm:space-y-2.5">
             <CardTitle className="truncate text-base sm:text-lg font-bold leading-tight">{server.name}</CardTitle>
             <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 pb-4">
@@ -499,6 +515,16 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate }:
             <span className="flex-1">{error}</span>
           </div>
         )}
+
+        <Button
+          onClick={() => window.location.href = `/servers/${server.id}`}
+          variant="outline"
+          className="w-full gap-2"
+          size="sm"
+        >
+          <Info className="h-4 w-4" />
+          Ver Detalhes
+        </Button>
       </CardContent>
 
       <CardFooter className="flex gap-1.5 sm:gap-2 pt-3 sm:pt-4">

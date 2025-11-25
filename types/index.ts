@@ -46,3 +46,45 @@ export interface AuthUser {
   role: UserRole;
   serverAccess: string[];
 }
+
+// Cache do servidor com TTL de 5 minutos
+export interface ServerCache {
+  serverId: string;
+  data: ExarotonServer;
+  cachedAt: Date;
+  expiresAt: Date;
+  lastFetched: Date;
+}
+
+// Documento customizado de conteúdo do servidor
+export interface ServerDocument {
+  id: string;
+  name: string;
+  url: string;
+  uploadedAt: Date;
+  uploadedBy: string; // userId
+  size: number;
+  type: string;
+}
+
+export interface ServerContent {
+  serverId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastEditedBy: string; // userId
+  
+  // Conteúdo customizável
+  accessInstructions?: string; // Markdown ou rich text
+  bannerUrl?: string;
+  bannerPosition?: number; // 0-100, posição vertical da imagem (default: 50)
+  iconUrl?: string;
+  coverImageUrl?: string;
+  
+  // Documentos (PDFs, etc)
+  documents: ServerDocument[];
+  
+  // Metadados adicionais
+  tags?: string[];
+  description?: string;
+  customFields?: Record<string, any>;
+}

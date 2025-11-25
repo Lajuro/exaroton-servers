@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServers } from '@/lib/exaroton';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminDb, getCachedServer, setCachedServer } from '@/lib/firebase-admin';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,8 +24,42 @@ export async function GET(request: NextRequest) {
 
     const userData = userDoc.data();
     
-    // Get all servers from Exaroton
-    const allServers = await getServers();
+    // Verificar se deve usar cache (query param forceRefresh=true bypassa cache)
+    const forceRefresh = request.nextUrl.searchParams.get('forceRefresh') === 'true';
+    
+    // Get all servers from Exaroton ou cache
+    let allServers;
+    
+    if (!forceRefresh) {
+      // Tentar buscar servidores do cache
+      const cachedServers = await Promise.all(
+        (userData?.isAdmin ? [] : userData?.serverAccess || [])
+          .map((id: string) => getCachedServer(id))
+      );
+      
+      // Se todos os servidores necessários estão no cache, usar cache
+      const allCached = cachedServers.every(s => s !== null);
+      
+      if (allCached && cachedServers.length > 0) {
+        allServers = cachedServers.filter(s => s !== null);
+      } else {
+        // Cache miss - buscar da API
+        allServers = await getServers();
+        
+        // Cachear cada servidor individualmente
+        await Promise.all(
+          allServers.map((server: any) => setCachedServer(server.id, server))
+        );
+      }
+    } else {
+      // Force refresh - buscar direto da API
+      allServers = await getServers();
+      
+      // Atualizar cache
+      await Promise.all(
+        allServers.map((server: any) => setCachedServer(server.id, server))
+      );
+    }
     
     // Filter servers based on user access
     let servers = allServers;

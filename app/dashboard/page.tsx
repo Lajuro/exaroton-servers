@@ -27,10 +27,15 @@ interface Server {
   };
 }
 
+interface ServerIconMap {
+  [serverId: string]: string | undefined;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
   const [servers, setServers] = useState<Server[]>([]);
+  const [serverIcons, setServerIcons] = useState<ServerIconMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,6 +83,9 @@ export default function DashboardPage() {
       }
 
       setServers(data.servers || []);
+      
+      // Buscar ícones dos servidores
+      fetchServerIcons(data.servers || []);
     } catch (err) {
       // Diferenciar erros de rede de erros de API
       const isNetworkError = err instanceof TypeError;
@@ -97,6 +105,40 @@ export default function DashboardPage() {
       fetchServers();
     }
   }, [user]);
+
+  // Fetch server icons from serverContent collection
+  const fetchServerIcons = async (serversList: Server[]) => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+
+      const icons: ServerIconMap = {};
+      
+      // Buscar conteúdo de cada servidor em paralelo
+      await Promise.all(
+        serversList.map(async (server) => {
+          try {
+            const response = await fetch(`/api/servers/${server.id}/content`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              if (data.content?.iconUrl) {
+                icons[server.id] = data.content.iconUrl;
+              }
+            }
+          } catch {
+            // Ignorar erros individuais
+          }
+        })
+      );
+
+      setServerIcons(icons);
+    } catch (error) {
+      console.error('Error fetching server icons:', error);
+    }
+  };
 
   // Filter and sort servers
   const filteredAndSortedServers = useMemo(() => {
@@ -395,6 +437,7 @@ export default function DashboardPage() {
                   server={server}
                   isAdmin={user.isAdmin}
                   onUpdate={fetchServers}
+                  iconUrl={serverIcons[server.id]}
                 />
               ))}
             </div>

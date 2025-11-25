@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stopServer, getServerPlayers } from '@/lib/exaroton';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminDb, invalidateServerCache } from '@/lib/firebase-admin';
 
 export async function POST(
   request: NextRequest,
@@ -47,6 +47,9 @@ export async function POST(
 
     // Stop the server
     await stopServer(id);
+    
+    // Invalidar cache do servidor
+    await invalidateServerCache(id);
     
     return NextResponse.json({ success: true, message: 'Server stopping' });
   } catch (error) {

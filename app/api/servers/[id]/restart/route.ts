@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { restartServer } from '@/lib/exaroton';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminDb, invalidateServerCache } from '@/lib/firebase-admin';
 
 export async function POST(
   request: NextRequest,
@@ -36,6 +36,9 @@ export async function POST(
 
     // Restart the server
     await restartServer(id);
+    
+    // Invalidar cache do servidor
+    await invalidateServerCache(id);
     
     return NextResponse.json({ success: true, message: 'Server restarting' });
   } catch (error) {
