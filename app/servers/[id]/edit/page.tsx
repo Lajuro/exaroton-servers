@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
+import { GlobalLoading } from '@/components/GlobalLoading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { 
   ArrowLeft, 
   Upload, 
@@ -292,17 +294,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
   };
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-muted-foreground">Carregando...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <GlobalLoading message="Carregando editor" />;
   }
 
   return (
@@ -390,11 +382,11 @@ export default function ServerEditPage({ params }: EditPageProps) {
           )}
         </div>
 
-        {/* Botão voltar */}
+        {/* Botão voltar com estilo acrílico */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 left-4 bg-white/90 hover:bg-white text-black z-10"
+          className="absolute top-4 left-4 bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/10 z-10"
           onClick={() => {
             if (hasUnsavedChanges) {
               if (confirm('Você tem alterações não salvas. Deseja sair mesmo assim?')) {
@@ -521,20 +513,30 @@ export default function ServerEditPage({ params }: EditPageProps) {
             <CardHeader>
               <CardTitle>Instruções de Acesso</CardTitle>
               <CardDescription>
-                Informações importantes para os jogadores (regras, comandos, etc.)
+                Informações importantes para os jogadores. Suporta Markdown para formatação rica.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Textarea
+              <MarkdownEditor
                 value={accessInstructions}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange(setAccessInstructions)(e.target.value)}
-                placeholder={`Ex:\n\n📌 Como conectar:\n1. Abra o Minecraft na versão 1.20.1\n2. Adicione o servidor: play.meuservidor.com\n3. Conecte-se e divirta-se!\n\n📜 Regras:\n• Respeite outros jogadores\n• Não use hacks ou exploits\n• Divirta-se!`}
-                rows={12}
-                className="resize-none font-mono text-sm"
+                onChange={(value) => handleFieldChange(setAccessInstructions)(value)}
+                placeholder={`# 📌 Como conectar
+
+1. Abra o Minecraft na versão **1.20.1**
+2. Adicione o servidor: \`play.meuservidor.com\`
+3. Conecte-se e divirta-se!
+
+---
+
+# 📜 Regras
+
+- Respeite outros jogadores
+- Não use hacks ou exploits
+- Divirta-se!
+
+> **Dica:** Use /help para ver todos os comandos disponíveis.`}
+                minHeight="350px"
               />
-              <p className="text-xs text-muted-foreground mt-2">
-                Quebras de linha serão preservadas
-              </p>
             </CardContent>
           </Card>
 

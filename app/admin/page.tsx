@@ -2,420 +2,649 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
+import { AdminSkeleton } from '@/components/AdminSkeleton';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
-import { Loader2, Shield, Server, AlertCircle, Search } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import { 
+  AlertCircle, 
+  Loader2, 
+  RefreshCw, 
+  Users, 
+  Shield, 
+  Server as ServerIcon, 
+  Search, 
+  Settings, 
+  UserCog,
+  Crown,
+  User,
+  Pencil,
+  Check,
+  X,
+  ChevronDown,
+  ShieldCheck,
+  UserCheck,
+  BarChart3,
+  ArrowDownAZ
+} from 'lucide-react';
 
 interface User {
-  uid: string;
+  id: string;
   email: string;
-  displayName: string;
+  name: string;
   photoURL?: string;
   isAdmin: boolean;
+  createdAt: string;
   serverAccess: string[];
 }
 
 interface Server {
   id: string;
   name: string;
+  address: string;
 }
 
 export default function AdminPage() {
   const router = useRouter();
-  const { user: currentUser, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  
   const [users, setUsers] = useState<User[]>([]);
   const [servers, setServers] = useState<Server[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { toast } = useToast();
+  const [sortBy, setSortBy] = useState<'name' | 'role' | 'servers'>('name');
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'user'>('user');
+  const [selectedServers, setSelectedServers] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
+  // Check admin access
   useEffect(() => {
-    if (!authLoading && (!currentUser || !currentUser.isAdmin)) {
+    if (!authLoading && !user) {
+      router.push('/login');
+    } else if (!authLoading && user && !user.isAdmin) {
       router.push('/dashboard');
     }
-  }, [currentUser, authLoading, router]);
+  }, [user, authLoading, router]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
       const token = await auth.currentUser?.getIdToken();
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
+      if (!token) throw new Error('Not authenticated');
 
-      const [usersResponse, serversResponse] = await Promise.all([
+      const [usersRes, serversRes] = await Promise.all([
         fetch('/api/users', {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         }),
         fetch('/api/servers', {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
-      const usersData = await usersResponse.json();
-      const serversData = await serversResponse.json();
+      if (!usersRes.ok) throw new Error('Falha ao buscar usuários');
+      if (!serversRes.ok) throw new Error('Falha ao buscar servidores');
 
-      if (!usersResponse.ok) {
-        throw new Error(usersData.error || 'Failed to fetch users');
-      }
-      if (!serversResponse.ok) {
-        throw new Error(serversData.error || 'Failed to fetch servers');
-      }
+      const usersData = await usersRes.json();
+      const serversData = await serversRes.json();
 
       setUsers(usersData.users || []);
       setServers(serversData.servers || []);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
-      setError(message);
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (currentUser?.isAdmin) {
+    if (user?.isAdmin) {
       fetchData();
     }
-  }, [currentUser]);
+  }, [user?.isAdmin, fetchData]);
 
-  // Filter users by search query
-  const filteredUsers = useMemo(() => {
-    if (!searchQuery) return users;
-    
-    const query = searchQuery.toLowerCase();
-    return users.filter(user =>
-      user.email.toLowerCase().includes(query) ||
-      user.displayName.toLowerCase().includes(query)
-    );
-  }, [users, searchQuery]);
+  // Filter and sort users
+  const filteredAndSortedUsers = useMemo(() => {
+    let filtered = users;
 
-  const toggleUserRole = async (userId: string, currentIsAdmin: boolean) => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(u =>
+        u.name?.toLowerCase().includes(query) ||
+        u.email?.toLowerCase().includes(query)
+      );
+    }
+
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'role':
+          if (a.isAdmin !== b.isAdmin) {
+            return a.isAdmin ? -1 : 1;
+          }
+          return (a.name || '').localeCompare(b.name || '');
+        
+        case 'servers':
+          const aServers = a.serverAccess?.length || 0;
+          const bServers = b.serverAccess?.length || 0;
+          if (aServers !== bServers) {
+            return bServers - aServers;
+          }
+          return (a.name || '').localeCompare(b.name || '');
+        
+        case 'name':
+        default:
+          return (a.name || '').localeCompare(b.name || '');
+      }
+    });
+
+    return sorted;
+  }, [users, searchQuery, sortBy]);
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setSelectedRole(user.isAdmin ? 'admin' : 'user');
+    setSelectedServers(user.serverAccess || []);
+  };
+
+  const handleSaveUser = async () => {
+    if (!editingUser) return;
+
+    setIsSaving(true);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
 
-      const response = await fetch(`/api/users/${userId}/role`, {
+      // Update role
+      const roleRes = await fetch(`/api/users/${editingUser.id}/role`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ isAdmin: !currentIsAdmin }),
+        body: JSON.stringify({ isAdmin: selectedRole === 'admin' }),
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update user role');
-      }
+      if (!roleRes.ok) throw new Error('Falha ao atualizar role');
 
-      toast({
-        title: 'Sucesso!',
-        description: `Permissão de ${currentIsAdmin ? 'admin removida' : 'admin concedida'}.`,
-      });
-
-      fetchData();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
-      toast({
-        title: 'Erro',
-        description: message,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const toggleServerAccess = async (userId: string, serverId: string, hasAccess: boolean) => {
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-
-      const response = await fetch(`/api/users/${userId}/server-access`, {
-        method: 'POST',
+      // Update server access
+      const accessRes = await fetch(`/api/users/${editingUser.id}/server-access`, {
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          serverId,
-          action: hasAccess ? 'revoke' : 'grant',
-        }),
+        body: JSON.stringify({ serverAccess: selectedServers }),
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update server access');
-      }
+      if (!accessRes.ok) throw new Error('Falha ao atualizar acesso');
 
       toast({
-        title: 'Sucesso!',
-        description: `Acesso ao servidor ${hasAccess ? 'removido' : 'concedido'}.`,
+        title: 'Usuário atualizado',
+        description: `As permissões de ${editingUser.name} foram atualizadas com sucesso.`,
       });
 
+      setEditingUser(null);
       fetchData();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
       toast({
-        title: 'Erro',
-        description: message,
+        title: 'Erro ao atualizar',
+        description: err instanceof Error ? err.message : 'Ocorreu um erro',
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  if (authLoading || !currentUser || !currentUser.isAdmin) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
-    );
+  const getInitials = (name: string) => {
+    return name
+      ?.split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || '?';
+  };
+
+  const getServerName = (serverId: string) => {
+    return servers.find(s => s.id === serverId)?.name || serverId;
+  };
+
+  // Stats
+  const totalUsers = users.length;
+  const adminCount = users.filter(u => u.isAdmin).length;
+  const totalServers = servers.length;
+
+  if (authLoading || !user?.isAdmin) {
+    return <AdminSkeleton />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8 space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            Administração
-          </h2>
-          <p className="text-muted-foreground">
-            Controle as permissões e acessos dos usuários do sistema.
-          </p>
+      <main className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header Section - Compact */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Settings className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight">Administração</h2>
+              <p className="text-xs text-muted-foreground">Gerencie usuários e permissões do sistema</p>
+            </div>
+          </div>
+          <Button
+            onClick={fetchData}
+            variant="outline"
+            size="sm"
+            disabled={loading}
+            className="group gap-2"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
+            )}
+            <span className="hidden sm:inline">Atualizar</span>
+          </Button>
         </div>
 
-        {loading ? (
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-32 mt-2" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4 flex-1">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="space-y-2 flex-1">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-3 w-48" />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-6 w-24" />
-                      <Skeleton className="h-9 w-28" />
-                      <Skeleton className="h-9 w-20" />
-                    </div>
+        {/* Search and Filter */}
+        {!loading && users.length > 0 && (
+          <div className="flex gap-2 sm:gap-3">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Buscar usuário..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 sm:pl-10 h-9 sm:h-10 text-sm border-muted-foreground/20 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+              />
+            </div>
+            <Select value={sortBy} onValueChange={(value: 'name' | 'role' | 'servers') => setSortBy(value)}>
+              <SelectTrigger className="w-[100px] sm:w-[140px] h-9 sm:h-10 text-xs sm:text-sm border-muted-foreground/20 hover:border-primary/50 transition-colors">
+                <SelectValue placeholder="Ordenar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">
+                  <div className="flex items-center gap-2">
+                    <ArrowDownAZ className="h-3.5 w-3.5" />
+                    <span className="text-xs sm:text-sm">Nome</span>
                   </div>
-                ))}
+                </SelectItem>
+                <SelectItem value="role">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    <span className="text-xs sm:text-sm">Cargo</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="servers">
+                  <div className="flex items-center gap-2">
+                    <ServerIcon className="h-3.5 w-3.5" />
+                    <span className="text-xs sm:text-sm">Servidores</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        {!loading && (
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+            <Card className="relative border hover:border-blue-500/50 transition-all hover:shadow-lg hover:shadow-blue-500/10 group overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardContent className="relative p-2.5 sm:p-3 md:p-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500/20 to-blue-500/5 rounded-lg flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left min-w-0 space-y-0.5 sm:space-y-1">
+                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">Usuários</p>
+                    <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent">{totalUsers}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="relative border hover:border-amber-500/50 transition-all hover:shadow-lg hover:shadow-amber-500/10 group overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              {adminCount > 0 && (
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/50 via-yellow-500/50 to-amber-500/50" />
+              )}
+              <CardContent className="relative p-2.5 sm:p-3 md:p-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3">
+                  <div className="p-2 bg-gradient-to-br from-amber-500/20 to-amber-500/5 rounded-lg flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left min-w-0 space-y-0.5 sm:space-y-1">
+                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">Admins</p>
+                    <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-amber-500 to-amber-600 bg-clip-text text-transparent">{adminCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="relative border hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10 group overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardContent className="relative p-2.5 sm:p-3 md:p-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3">
+                  <div className="p-2 bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-lg flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <ServerIcon className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left min-w-0 space-y-0.5 sm:space-y-1">
+                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">Servidores</p>
+                    <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-purple-500 to-purple-600 bg-clip-text text-transparent">{totalServers}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Content */}
+        {loading ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 px-1">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Carregando dados...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <Card className="border-destructive/50 bg-destructive/5">
+            <CardContent className="pt-6">
+              <div className="text-center py-12 space-y-4">
+                <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+                  <AlertCircle className="h-8 w-8 text-destructive" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-lg font-medium text-destructive">Erro ao carregar dados</p>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">{error}</p>
+                </div>
+                <Button
+                  onClick={fetchData}
+                  variant="destructive"
+                  className="gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Tentar novamente
+                </Button>
               </div>
             </CardContent>
           </Card>
-        ) : error ? (
-          <Card className="border-destructive">
+        ) : users.length === 0 ? (
+          <Card className="border-dashed border-2">
             <CardContent className="pt-6">
-              <div className="flex items-start gap-4">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-destructive">{error}</p>
+              <div className="text-center py-16 space-y-4">
+                <div className="mx-auto w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+                  <Users className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xl font-medium">Nenhum usuário encontrado</p>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    Os usuários aparecerão aqui assim que fizerem login pela primeira vez.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : filteredAndSortedUsers.length === 0 ? (
+          <Card className="border-dashed border-2">
+            <CardContent className="pt-6">
+              <div className="text-center py-12 space-y-4">
+                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <Search className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-lg font-medium">Nenhum usuário encontrado</p>
+                  <p className="text-sm text-muted-foreground">
+                    Não encontramos resultados para &quot;{searchQuery}&quot;
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setSearchQuery('')}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Limpar busca
+                </Button>
               </div>
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Usuários do Sistema</CardTitle>
-              <CardDescription>
-                {users.length} {users.length === 1 ? 'usuário cadastrado' : 'usuários cadastrados'}
-              </CardDescription>
-              <div className="relative mt-4 group">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-muted-foreground/20 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
-                />
+          <div className="space-y-4">
+            {/* Results counter */}
+            {(searchQuery || sortBy !== 'name') && (
+              <div className="flex items-center justify-between px-1">
+                <p className="text-sm text-muted-foreground">
+                  Exibindo <span className="font-medium text-foreground">{filteredAndSortedUsers.length}</span> de <span className="font-medium text-foreground">{users.length}</span> usuário{users.length !== 1 && 's'}
+                </p>
+                {searchQuery && (
+                  <Button
+                    onClick={() => setSearchQuery('')}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 gap-1 text-xs"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    Limpar filtros
+                  </Button>
+                )}
               </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Função</TableHead>
-                    <TableHead>Servidores com Acesso</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                        {searchQuery ? `Nenhum usuário encontrado com "${searchQuery}"` : 'Nenhum usuário cadastrado'}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredUsers.map((user) => (
-                    <TableRow key={user.uid}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          {user.photoURL && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={user.photoURL}
-                              alt={user.displayName}
-                              className="w-8 h-8 rounded-full"
-                            />
-                          )}
-                          <span className="font-medium">{user.displayName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                      <TableCell>
-                        <Badge variant={user.isAdmin ? 'default' : 'secondary'}>
-                          {user.isAdmin ? (
-                            <>
-                              <Shield className="h-3 w-3 mr-1" />
-                              Administrador
-                            </>
-                          ) : (
-                            'Usuário'
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {user.isAdmin ? (
-                          <Badge variant="outline" className="text-xs">
-                            Acesso Total
-                          </Badge>
-                        ) : user.serverAccess.length === 0 ? (
-                          <span className="text-xs text-muted-foreground italic">Nenhum servidor</span>
-                        ) : (
-                          <div className="flex items-center gap-1 flex-wrap max-w-[200px]">
-                            {user.serverAccess.slice(0, 2).map((serverId) => {
-                              const server = servers.find(s => s.id === serverId);
-                              return server ? (
-                                <Badge 
-                                  key={serverId} 
-                                  variant="secondary" 
-                                  className="text-xs px-2 py-0.5"
-                                >
-                                  {server.name}
-                                </Badge>
-                              ) : null;
-                            })}
-                            {user.serverAccess.length > 2 && (
-                              <Badge 
-                                variant="outline" 
-                                className="text-xs px-2 py-0.5 cursor-help"
-                                title={`E mais ${user.serverAccess.length - 2} servidor(es)`}
-                              >
-                                +{user.serverAccess.length - 2}
+            )}
+
+            {/* User List */}
+            <Card>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border">
+                  {filteredAndSortedUsers.map((userItem, index) => (
+                    <div 
+                      key={userItem.id} 
+                      className="p-4 hover:bg-muted/50 transition-colors"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
+                          <AvatarImage src={userItem.photoURL} alt={userItem.name} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-medium">
+                            {getInitials(userItem.name)}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium truncate">{userItem.name}</p>
+                            {userItem.isAdmin && (
+                              <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20">
+                                <Crown className="h-3 w-3" />
+                                Admin
                               </Badge>
                             )}
                           </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            onClick={() => toggleUserRole(user.uid, user.isAdmin)}
-                            disabled={user.uid === currentUser.uid}
-                            variant={user.isAdmin ? 'destructive' : 'default'}
-                            size="sm"
-                          >
-                            {user.isAdmin ? 'Remover Admin' : 'Tornar Admin'}
-                          </Button>
-                          {!user.isAdmin && (
-                            <Dialog open={dialogOpen && selectedUser?.uid === user.uid} onOpenChange={(open) => {
-                              setDialogOpen(open);
-                              if (!open) setSelectedUser(null);
-                            }}>
-                              <DialogTrigger asChild>
-                                <Button
-                                  onClick={() => {
-                                    setSelectedUser(user);
-                                    setDialogOpen(true);
-                                  }}
-                                  variant="outline"
-                                  size="sm"
-                                >
-                                  <Server className="h-4 w-4 mr-2" />
-                                  Acessos
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="sm:max-w-[525px]">
-                                <DialogHeader>
-                                  <DialogTitle>Gerenciar Acessos</DialogTitle>
-                                  <DialogDescription>
-                                    Controle quais servidores {user.displayName} pode acessar
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <Separator />
-                                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                                  {servers.map((server) => {
-                                    const hasAccess = user.serverAccess.includes(server.id);
-                                    return (
-                                      <div
-                                        key={server.id}
-                                        className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                                      >
-                                        <div className="flex items-center gap-2">
-                                          <Server className="h-4 w-4 text-muted-foreground" />
-                                          <span className="font-medium">{server.name}</span>
-                                        </div>
-                                        <Button
-                                          onClick={() => toggleServerAccess(user.uid, server.id, hasAccess)}
-                                          variant={hasAccess ? 'destructive' : 'default'}
-                                          size="sm"
-                                        >
-                                          {hasAccess ? 'Remover' : 'Conceder'}
-                                        </Button>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                                <DialogFooter>
-                                  <Button onClick={() => {
-                                    setDialogOpen(false);
-                                    setSelectedUser(null);
-                                  }} variant="outline">
-                                    Fechar
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
+                          <p className="text-sm text-muted-foreground truncate">{userItem.email}</p>
+                        </div>
+
+                        <div className="hidden sm:flex items-center gap-2 flex-wrap justify-end max-w-[300px] lg:max-w-[400px]">
+                          {userItem.isAdmin ? (
+                            <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                              <Shield className="h-3 w-3 mr-1" />
+                              Acesso total
+                            </Badge>
+                          ) : userItem.serverAccess?.length > 0 ? (
+                            userItem.serverAccess.map(serverId => (
+                              <Badge key={serverId} variant="outline" className="text-xs gap-1">
+                                <ServerIcon className="h-3 w-3" />
+                                {getServerName(serverId)}
+                              </Badge>
+                            ))
+                          ) : (
+                            <Badge variant="outline" className="text-xs text-muted-foreground">
+                              Sem acesso
+                            </Badge>
                           )}
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  )))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1.5"
+                              onClick={() => handleEditUser(userItem)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">Editar</span>
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={editingUser?.photoURL} />
+                                  <AvatarFallback>{editingUser && getInitials(editingUser.name)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <span>{editingUser?.name}</span>
+                                  <p className="text-sm font-normal text-muted-foreground">{editingUser?.email}</p>
+                                </div>
+                              </DialogTitle>
+                            </DialogHeader>
+                            
+                            <div className="space-y-6 py-4">
+                              {/* Role Selection */}
+                              <div className="space-y-3">
+                                <Label className="text-sm font-medium">Cargo</Label>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedRole('user')}
+                                    className={`p-3 rounded-lg border-2 transition-all ${
+                                      selectedRole === 'user'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-muted hover:border-muted-foreground/50'
+                                    }`}
+                                  >
+                                    <User className="h-5 w-5 mx-auto mb-1" />
+                                    <p className="text-sm font-medium">Usuário</p>
+                                    <p className="text-xs text-muted-foreground">Acesso limitado</p>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedRole('admin')}
+                                    className={`p-3 rounded-lg border-2 transition-all ${
+                                      selectedRole === 'admin'
+                                        ? 'border-amber-500 bg-amber-500/5'
+                                        : 'border-muted hover:border-muted-foreground/50'
+                                    }`}
+                                  >
+                                    <Crown className="h-5 w-5 mx-auto mb-1 text-amber-500" />
+                                    <p className="text-sm font-medium">Admin</p>
+                                    <p className="text-xs text-muted-foreground">Acesso total</p>
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Server Access */}
+                              {selectedRole === 'user' && (
+                                <div className="space-y-3">
+                                  <Label className="text-sm font-medium">Acesso aos Servidores</Label>
+                                  <div className="space-y-2 max-h-48 overflow-y-auto rounded-lg border p-3">
+                                    {servers.length === 0 ? (
+                                      <p className="text-sm text-muted-foreground text-center py-2">
+                                        Nenhum servidor disponível
+                                      </p>
+                                    ) : (
+                                      servers.map(server => (
+                                        <label
+                                          key={server.id}
+                                          className="flex items-center gap-3 p-2 rounded-md hover:bg-muted cursor-pointer"
+                                        >
+                                          <Checkbox
+                                            checked={selectedServers.includes(server.id)}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                setSelectedServers([...selectedServers, server.id]);
+                                              } else {
+                                                setSelectedServers(selectedServers.filter(id => id !== server.id));
+                                              }
+                                            }}
+                                          />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium truncate">{server.name}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{server.address}</p>
+                                          </div>
+                                        </label>
+                                      ))
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {selectedServers.length} servidor{selectedServers.length !== 1 && 'es'} selecionado{selectedServers.length !== 1 && 's'}
+                                  </p>
+                                </div>
+                              )}
+
+                              {selectedRole === 'admin' && (
+                                <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3">
+                                  <div className="flex gap-2">
+                                    <Shield className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Acesso Administrativo</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Administradores têm acesso total a todos os servidores e configurações do sistema.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <DialogFooter className="gap-2 sm:gap-0">
+                              <DialogClose asChild>
+                                <Button variant="outline" disabled={isSaving}>
+                                  Cancelar
+                                </Button>
+                              </DialogClose>
+                              <Button onClick={handleSaveUser} disabled={isSaving}>
+                                {isSaving ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Salvando...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check className="h-4 w-4 mr-2" />
+                                    Salvar alterações
+                                  </>
+                                )}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </main>
     </div>

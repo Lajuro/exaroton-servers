@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { FileText } from 'lucide-react';
 
 interface AccessInstructionsProps {
@@ -35,13 +36,7 @@ export function AccessInstructions({ content }: AccessInstructionsProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-          {/* Renderizar como markdown ou HTML sanitizado */}
-          <div 
-            className="whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        </div>
+        <MarkdownRenderer content={content} />
       </CardContent>
     </Card>
   );

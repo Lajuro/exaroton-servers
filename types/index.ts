@@ -34,6 +34,9 @@ export interface ExarotonServer {
     name: string;
     version: string;
   };
+  ram?: number; // RAM em GB
+  credits?: number; // Créditos restantes
+  shared?: boolean; // Se o servidor é compartilhado
 }
 
 export type UserRole = 'admin' | 'user';

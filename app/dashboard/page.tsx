@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import ServerCard from '@/components/ServerCard';
 import { ServerCardSkeleton } from '@/components/ServerCardSkeleton';
+import { DashboardSkeleton } from '@/components/DashboardSkeleton';
 import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -190,14 +191,7 @@ export default function DashboardPage() {
   };
 
   if (authLoading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
