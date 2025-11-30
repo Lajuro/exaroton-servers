@@ -23,13 +23,14 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CreditsHoverCard } from '@/components/CreditsHoverCard';
+import { CreditReportDialog } from '@/components/CreditReportDialog';
+import { OnlineStatus } from '@/components/PWAInstallPrompt';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 import { 
   LogOut, 
   Shield, 
-  Coins, 
-  RefreshCw, 
-  Loader2, 
   Crown,
   LayoutDashboard
 } from 'lucide-react';
@@ -38,9 +39,8 @@ export default function Navbar() {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [credits, setCredits] = useState<number | null>(null);
-  const [loadingCredits, setLoadingCredits] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   // Detectar scroll para efeito de backdrop
   useEffect(() => {
@@ -65,35 +65,6 @@ export default function Navbar() {
       .toUpperCase()
       .slice(0, 2);
   };
-
-  const fetchCredits = async () => {
-    if (!user?.isAdmin) return;
-    
-    setLoadingCredits(true);
-    try {
-      const token = await auth.currentUser?.getIdToken(true);
-      if (!token) return;
-
-      const response = await fetch('/api/account', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCredits(data.credits);
-      }
-    } catch (error) {
-      console.error('Error fetching credits:', error);
-    } finally {
-      setLoadingCredits(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user?.isAdmin) {
-      fetchCredits();
-    }
-  }, [user?.isAdmin]);
 
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -184,54 +155,16 @@ export default function Navbar() {
                 </Tooltip>
               )}
 
-              {/* Credits Display */}
-              {user?.isAdmin && credits === null && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20">
-                  <Skeleton className="h-4 w-4 rounded-full" />
-                  <Skeleton className="h-4 w-12" />
-                  <Skeleton className="h-3 w-3 rounded-full" />
-                </div>
+              {/* Credits Display with HoverCard */}
+              {user?.isAdmin && (
+                <CreditsHoverCard onGenerateReport={() => setReportDialogOpen(true)} />
               )}
-              {user?.isAdmin && credits !== null && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button 
-                      onClick={fetchCredits}
-                      disabled={loadingCredits}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-full",
-                        "bg-gradient-to-r from-emerald-500/10 to-green-500/10",
-                        "border border-emerald-500/20 hover:border-emerald-500/40",
-                        "transition-all duration-300 group"
-                      )}
-                    >
-                      <div className="relative">
-                        <Coins className="h-4 w-4 text-emerald-500" />
-                        {!loadingCredits && (
-                          <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                        {loadingCredits ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          credits.toFixed(2)
-                        )}
-                      </span>
-                      <RefreshCw className={cn(
-                        "h-3 w-3 text-emerald-500/50 group-hover:text-emerald-500 transition-all",
-                        loadingCredits && "animate-spin"
-                      )} />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">Créditos Exaroton • Clique para atualizar</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+
+              {/* Offline Status Indicator */}
+              <OnlineStatus />
+
+              {/* Language Switcher */}
+              <LanguageSwitcher />
 
               {/* Theme Toggle */}
               <ThemeToggle />
@@ -331,6 +264,9 @@ export default function Navbar() {
         {/* Progress bar effect - optional visual flair */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       </nav>
+
+      {/* Credit Report Dialog */}
+      <CreditReportDialog open={reportDialogOpen} onOpenChange={setReportDialogOpen} />
     </TooltipProvider>
   );
 }

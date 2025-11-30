@@ -1,0 +1,217 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "refresh": "Refresh",
+    "download": "Download",
+    "upload": "Upload",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "yes": "Yes",
+    "no": "No",
+    "online": "Online",
+    "offline": "Offline",
+    "noResults": "No results found",
+    "somethingWentWrong": "Something went wrong"
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "loginWithGoogle": "Sign in with Google",
+    "welcomeBack": "Welcome back!",
+    "pleaseLogin": "Please sign in to continue",
+    "accessDenied": "Access denied",
+    "noPermission": "You don't have permission to access this page",
+    "sessionExpired": "Your session has expired. Please sign in again."
+  },
+  "navbar": {
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "controlPanel": "Control Panel",
+    "adminPrivileges": "You have administrator privileges"
+  },
+  "credits": {
+    "title": "Credits",
+    "balance": "Balance",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "today": "Today",
+    "last3Days": "Last 3 days",
+    "lastWeek": "Last week",
+    "thisMonth": "This month",
+    "noData": "No spending data",
+    "realTimeMode": "Real-time mode",
+    "realTimeEnabled": "Real-time active",
+    "start": "Start",
+    "current": "Current",
+    "spentRealTime": "Spent",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "generateReport": "Generate Report",
+    "report": {
+      "title": "Credits Report",
+      "description": "Generate a detailed credit consumption report",
+      "dateRange": "Date Range",
+      "from": "From",
+      "to": "To",
+      "preview": "Preview",
+      "generating": "Generating...",
+      "downloadPdf": "Download PDF",
+      "summary": "Summary",
+      "totalSpent": "Total spent",
+      "averageDaily": "Daily average",
+      "serverUsage": "Server usage",
+      "dailyBreakdown": "Daily breakdown"
+    }
+  },
+  "servers": {
+    "title": "Servers",
+    "myServers": "My Servers",
+    "noServers": "No servers found",
+    "noServersDescription": "You don't have access to any servers yet",
+    "serverDetails": "Server Details",
+    "status": {
+      "offline": "Offline",
+      "online": "Online",
+      "starting": "Starting",
+      "stopping": "Stopping",
+      "restarting": "Restarting",
+      "saving": "Saving",
+      "loading": "Loading",
+      "crashed": "Crashed",
+      "pending": "Pending",
+      "preparing": "Preparing"
+    },
+    "actions": {
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "starting": "Starting...",
+      "stopping": "Stopping...",
+      "restarting": "Restarting..."
+    },
+    "info": {
+      "players": "Players",
+      "playersOnline": "{count} player(s) online",
+      "noPlayers": "No players",
+      "ram": "RAM",
+      "version": "Version",
+      "software": "Software",
+      "address": "Address",
+      "port": "Port",
+      "motd": "MOTD",
+      "lastPlayed": "Last played"
+    },
+    "console": {
+      "title": "Console",
+      "placeholder": "Enter a command...",
+      "send": "Send",
+      "clear": "Clear",
+      "download": "Download logs",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "connecting": "Connecting to console...",
+      "connected": "Console connected",
+      "disconnected": "Console disconnected",
+      "reconnecting": "Reconnecting...",
+      "noLogs": "No logs available",
+      "commandHistory": "Command history"
+    },
+    "content": {
+      "title": "Content",
+      "description": "Additional server information",
+      "noContent": "No content available"
+    },
+    "access": {
+      "title": "Access",
+      "howToConnect": "How to connect",
+      "copyAddress": "Copy address",
+      "addressCopied": "Address copied!"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}!",
+    "overview": "Overview",
+    "totalServers": "Total Servers",
+    "onlineServers": "Servers Online",
+    "totalPlayers": "Players Online",
+    "quickActions": "Quick Actions"
+  },
+  "admin": {
+    "title": "Administration",
+    "users": {
+      "title": "Users",
+      "manage": "Manage users",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "lastLogin": "Last login",
+      "actions": "Actions",
+      "makeAdmin": "Make admin",
+      "removeAdmin": "Remove admin",
+      "grantAccess": "Grant access",
+      "revokeAccess": "Revoke access"
+    },
+    "serverAccess": {
+      "title": "Server Access",
+      "description": "Manage which users have access to which servers"
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "Install MineServerManager",
+      "description": "Install the app for quick access and better experience",
+      "button": "Install App",
+      "quickAccess": "Quick access",
+      "quickAccessDesc": "Open directly from your home screen",
+      "nativeExperience": "Native experience",
+      "nativeExperienceDesc": "Works like a real app, without browser bars",
+      "offlineFeatures": "Offline features",
+      "offlineFeaturesDesc": "View cached information even without internet",
+      "install": "Install",
+      "later": "Later",
+      "uninstallNote": "Don't worry, you can uninstall at any time"
+    },
+    "offline": {
+      "title": "You are offline",
+      "description": "Some features may be unavailable"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or has been moved",
+      "goHome": "Go home"
+    },
+    "serverError": {
+      "title": "Server error",
+      "description": "An error occurred while processing your request",
+      "tryAgain": "Try again"
+    },
+    "networkError": {
+      "title": "Connection error",
+      "description": "Check your internet connection"
+    }
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{count} minute(s) ago",
+    "hoursAgo": "{count} hour(s) ago",
+    "daysAgo": "{count} day(s) ago",
+    "weeksAgo": "{count} week(s) ago"
+  }
+}

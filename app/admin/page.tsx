@@ -37,8 +37,10 @@ import {
   ShieldCheck,
   UserCheck,
   BarChart3,
-  ArrowDownAZ
+  ArrowDownAZ,
+  Clock
 } from 'lucide-react';
+import { ActionHistory } from '@/components/ActionHistory';
 
 interface User {
   id: string;
@@ -644,6 +646,11 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Action History Section */}
+            <div className="mt-8">
+              <ActionHistory limit={10} />
+            </div>
           </div>
         )}
       </main>

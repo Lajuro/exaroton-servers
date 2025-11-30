@@ -13,6 +13,7 @@ declare module 'exaroton' {
     status: number;
     host: string;
     port: number;
+    ram: number;
     players: {
       max: number;
       count: number;

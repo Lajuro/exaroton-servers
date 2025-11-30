@@ -1,0 +1,217 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "search": "Pesquisar",
+    "filter": "Filtrar",
+    "clear": "Limpar",
+    "refresh": "Atualizar",
+    "download": "Baixar",
+    "upload": "Upload",
+    "copy": "Copiar",
+    "copied": "Copiado!",
+    "yes": "Sim",
+    "no": "Não",
+    "online": "Online",
+    "offline": "Offline",
+    "noResults": "Nenhum resultado encontrado",
+    "somethingWentWrong": "Algo deu errado"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "loginWithGoogle": "Entrar com Google",
+    "welcomeBack": "Bem-vindo de volta!",
+    "pleaseLogin": "Faça login para continuar",
+    "accessDenied": "Acesso negado",
+    "noPermission": "Você não tem permissão para acessar esta página",
+    "sessionExpired": "Sua sessão expirou. Por favor, faça login novamente."
+  },
+  "navbar": {
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "controlPanel": "Painel de Controle",
+    "adminPrivileges": "Você tem privilégios de administrador"
+  },
+  "credits": {
+    "title": "Créditos",
+    "balance": "Saldo",
+    "spent": "Gasto",
+    "remaining": "Restante",
+    "today": "Hoje",
+    "last3Days": "Últimos 3 dias",
+    "lastWeek": "Última semana",
+    "thisMonth": "Este mês",
+    "noData": "Sem dados de gasto",
+    "realTimeMode": "Modo tempo real",
+    "realTimeEnabled": "Tempo real ativo",
+    "start": "Início",
+    "current": "Atual",
+    "spentRealTime": "Gasto",
+    "pin": "Fixar",
+    "unpin": "Desafixar",
+    "generateReport": "Gerar Relatório",
+    "report": {
+      "title": "Relatório de Créditos",
+      "description": "Gere um relatório detalhado do consumo de créditos",
+      "dateRange": "Período",
+      "from": "De",
+      "to": "Até",
+      "preview": "Visualizar",
+      "generating": "Gerando...",
+      "downloadPdf": "Baixar PDF",
+      "summary": "Resumo",
+      "totalSpent": "Total gasto",
+      "averageDaily": "Média diária",
+      "serverUsage": "Uso por servidor",
+      "dailyBreakdown": "Detalhamento diário"
+    }
+  },
+  "servers": {
+    "title": "Servidores",
+    "myServers": "Meus Servidores",
+    "noServers": "Nenhum servidor encontrado",
+    "noServersDescription": "Você ainda não tem acesso a nenhum servidor",
+    "serverDetails": "Detalhes do Servidor",
+    "status": {
+      "offline": "Offline",
+      "online": "Online",
+      "starting": "Iniciando",
+      "stopping": "Parando",
+      "restarting": "Reiniciando",
+      "saving": "Salvando",
+      "loading": "Carregando",
+      "crashed": "Travou",
+      "pending": "Pendente",
+      "preparing": "Preparando"
+    },
+    "actions": {
+      "start": "Iniciar",
+      "stop": "Parar",
+      "restart": "Reiniciar",
+      "starting": "Iniciando...",
+      "stopping": "Parando...",
+      "restarting": "Reiniciando..."
+    },
+    "info": {
+      "players": "Jogadores",
+      "playersOnline": "{count} jogador(es) online",
+      "noPlayers": "Sem jogadores",
+      "ram": "RAM",
+      "version": "Versão",
+      "software": "Software",
+      "address": "Endereço",
+      "port": "Porta",
+      "motd": "MOTD",
+      "lastPlayed": "Última vez jogado"
+    },
+    "console": {
+      "title": "Console",
+      "placeholder": "Digite um comando...",
+      "send": "Enviar",
+      "clear": "Limpar",
+      "download": "Baixar logs",
+      "expand": "Expandir",
+      "collapse": "Minimizar",
+      "connecting": "Conectando ao console...",
+      "connected": "Console conectado",
+      "disconnected": "Console desconectado",
+      "reconnecting": "Reconectando...",
+      "noLogs": "Nenhum log disponível",
+      "commandHistory": "Histórico de comandos"
+    },
+    "content": {
+      "title": "Conteúdo",
+      "description": "Informações adicionais do servidor",
+      "noContent": "Sem conteúdo disponível"
+    },
+    "access": {
+      "title": "Acesso",
+      "howToConnect": "Como conectar",
+      "copyAddress": "Copiar endereço",
+      "addressCopied": "Endereço copiado!"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Bem-vindo, {name}!",
+    "overview": "Visão Geral",
+    "totalServers": "Total de Servidores",
+    "onlineServers": "Servidores Online",
+    "totalPlayers": "Jogadores Online",
+    "quickActions": "Ações Rápidas"
+  },
+  "admin": {
+    "title": "Administração",
+    "users": {
+      "title": "Usuários",
+      "manage": "Gerenciar usuários",
+      "email": "E-mail",
+      "role": "Função",
+      "status": "Status",
+      "lastLogin": "Último login",
+      "actions": "Ações",
+      "makeAdmin": "Tornar admin",
+      "removeAdmin": "Remover admin",
+      "grantAccess": "Conceder acesso",
+      "revokeAccess": "Revogar acesso"
+    },
+    "serverAccess": {
+      "title": "Acesso aos Servidores",
+      "description": "Gerencie quais usuários têm acesso a quais servidores"
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "Instalar MineServerManager",
+      "description": "Instale o app para acesso rápido e melhor experiência",
+      "button": "Instalar App",
+      "quickAccess": "Acesso rápido",
+      "quickAccessDesc": "Abra direto da sua tela inicial",
+      "nativeExperience": "Experiência nativa",
+      "nativeExperienceDesc": "Funciona como um app de verdade, sem barras do navegador",
+      "offlineFeatures": "Recursos offline",
+      "offlineFeaturesDesc": "Visualize informações em cache mesmo sem internet",
+      "install": "Instalar",
+      "later": "Depois",
+      "uninstallNote": "Não se preocupe, você pode desinstalar a qualquer momento"
+    },
+    "offline": {
+      "title": "Você está offline",
+      "description": "Alguns recursos podem estar indisponíveis"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Página não encontrada",
+      "description": "A página que você procura não existe ou foi movida",
+      "goHome": "Voltar ao início"
+    },
+    "serverError": {
+      "title": "Erro do servidor",
+      "description": "Ocorreu um erro ao processar sua solicitação",
+      "tryAgain": "Tentar novamente"
+    },
+    "networkError": {
+      "title": "Erro de conexão",
+      "description": "Verifique sua conexão com a internet"
+    }
+  },
+  "time": {
+    "justNow": "Agora mesmo",
+    "minutesAgo": "há {count} minuto(s)",
+    "hoursAgo": "há {count} hora(s)",
+    "daysAgo": "há {count} dia(s)",
+    "weeksAgo": "há {count} semana(s)"
+  }
+}

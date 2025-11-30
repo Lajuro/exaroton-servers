@@ -15,6 +15,7 @@ import { ServerIcon } from '@/components/ServerIcon';
 import { AccessInstructions } from '@/components/AccessInstructions';
 import { DocumentList } from '@/components/DocumentList';
 import { ServerControls } from '@/components/ServerControls';
+import { ServerConsole } from '@/components/ServerConsole';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   Users, 
@@ -429,6 +430,16 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
           <div className="lg:col-span-2 space-y-6">
             {/* Instruções de Acesso */}
             <AccessInstructions content={content?.accessInstructions} />
+
+            {/* Console do Servidor (apenas para admins) */}
+            {user?.isAdmin && (
+              <ServerConsole
+                serverId={serverId}
+                serverName={server.name}
+                serverStatus={server.status}
+                isAdmin={user?.isAdmin || false}
+              />
+            )}
           </div>
 
           {/* Sidebar */}
