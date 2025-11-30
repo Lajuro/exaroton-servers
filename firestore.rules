@@ -1,0 +1,15 @@
+// Firestore Rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // Usuário pode ler seu próprio doc
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Permite criar o próprio doc na primeira vez
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // Atualizações/remoções só por admins
+      allow update, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+  }
+}

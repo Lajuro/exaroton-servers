@@ -30,10 +30,18 @@ export async function GET(request: NextRequest) {
 
     // Get all users
     const usersSnapshot = await adminDb().collection('users').get();
-    const users = usersSnapshot.docs.map(doc => ({
-      uid: doc.id,
-      ...doc.data(),
-    }));
+    const users = usersSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        email: data.email,
+        name: data.displayName || data.name || '',
+        photoURL: data.photoURL,
+        isAdmin: data.isAdmin || false,
+        createdAt: data.createdAt,
+        serverAccess: data.serverAccess || [],
+      };
+    });
 
     return NextResponse.json({ users });
   } catch (error) {
