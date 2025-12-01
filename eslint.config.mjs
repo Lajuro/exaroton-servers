@@ -29,6 +29,10 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/purity": "off",
       "react-hooks/immutability": "off",
+      "jsx-a11y/alt-text": ["warn", {
+        elements: ["img"],
+        img: ["Image"],
+      }],
     },
   },
 ]);

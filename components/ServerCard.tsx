@@ -245,7 +245,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
         description: t('actions.addressCopied'),
       });
       setTimeout(() => setAddressCopied(false), 2000);
-    } catch (_err) {
+    } catch {
       toast({ title: tCommon('error'), description: t('actions.copyError'), variant: 'destructive' });
     }
   };

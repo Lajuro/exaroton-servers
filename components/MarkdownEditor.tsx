@@ -67,7 +67,7 @@ export function MarkdownEditor({
     
     // Reposicionar cursor
     setTimeout(() => {
-      const newCursorPos = start + prefix.length + selectedText.length;
+      const _newCursorPos = start + prefix.length + selectedText.length;
       textarea.focus();
       textarea.setSelectionRange(
         start + prefix.length, 
