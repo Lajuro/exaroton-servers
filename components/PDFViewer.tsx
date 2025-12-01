@@ -37,6 +37,7 @@ export function PDFViewer({ url, filename, isOpen, onClose }: PDFViewerProps) {
   const handleReset = useCallback(() => setZoom(100), []);
 
   // Reset states when opening
+   
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);

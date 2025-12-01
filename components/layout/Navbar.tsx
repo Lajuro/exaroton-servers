@@ -15,7 +15,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -23,7 +22,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Skeleton } from '@/components/ui/skeleton';
 import { CreditsHoverCard } from '@/components/CreditsHoverCard';
 import { CreditReportDialog } from '@/components/CreditReportDialog';
 import { OnlineStatus } from '@/components/PWAInstallPrompt';

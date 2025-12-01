@@ -38,12 +38,6 @@ interface MarkdownEditorProps {
   minHeight?: string;
 }
 
-interface ToolbarButton {
-  icon: React.ReactNode;
-  label: string;
-  action: (text: string, selectionStart: number, selectionEnd: number) => { newText: string; newCursorPos: number };
-}
-
 export function MarkdownEditor({ 
   value, 
   onChange, 
@@ -95,7 +89,7 @@ export function MarkdownEditor({
     { icon: <ListOrdered className="h-4 w-4" />, label: 'Lista Numerada', prefix: '1. ', defaultText: 'item' },
     { icon: <CheckSquare className="h-4 w-4" />, label: 'Checklist', prefix: '- [ ] ', defaultText: 'tarefa' },
     { icon: <Link className="h-4 w-4" />, label: 'Link', prefix: '[', suffix: '](url)', defaultText: 'texto do link' },
-    { icon: <Image className="h-4 w-4" />, label: 'Imagem', prefix: '![', suffix: '](url)', defaultText: 'descrição' },
+    { icon: <Image className="h-4 w-4" aria-hidden />, label: 'Imagem', prefix: '![', suffix: '](url)', defaultText: 'descrição' },
     { icon: <Minus className="h-4 w-4" />, label: 'Linha Horizontal', prefix: '\n---\n', defaultText: '' },
   ];
 

@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { auth } from '@/lib/firebase';
-import { cn } from '@/lib/utils';
 import {
   FileText,
   Download,

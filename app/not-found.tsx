@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Home, RefreshCw, Pickaxe, Trophy, Volume2, VolumeX, Package, X } from 'lucide-react';
+import { Home, RefreshCw, Pickaxe, Trophy, Volume2, VolumeX, Package } from 'lucide-react';
 
 // Tipos de blocos com cores estilo Minecraft
 const BLOCK_TYPES = [
@@ -370,7 +370,7 @@ export default function NotFound() {
 
   // Limpar mesa de crafting
   const clearCraftingTable = useCallback(() => {
-    craftingSlots.forEach((item, index) => {
+    craftingSlots.forEach((item) => {
       if (item) {
         addToInventory(item);
       }
@@ -631,7 +631,7 @@ export default function NotFound() {
                 {t('game.inventory')}
               </p>
               <div className="grid grid-cols-5 gap-1">
-                {Object.entries(inventory).filter(([_, count]) => count > 0).map(([item, count]) => (
+                {Object.entries(inventory).filter(([, count]) => count > 0).map(([item, count]) => (
                   <button
                     key={item}
                     onClick={() => setSelectedItem(selectedItem === item ? null : item)}

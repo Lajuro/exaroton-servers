@@ -57,7 +57,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const [server, setServer] = useState<ExarotonServer | null>(null);
   const [content, setContent] = useState<ServerContent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [fromCache, setFromCache] = useState(false);
+  const [_fromCache, setFromCache] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [sendingCommand, setSendingCommand] = useState(false);
@@ -86,6 +86,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
         eventSourceRef.current.close();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, serverId]);
 
   const fetchServerData = async (forceRefresh = false) => {
@@ -109,9 +110,10 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
       setServer(data.server);
       setFromCache(data.fromCache || false);
       setError(null);
-    } catch (err: any) {
-      setError(err.message);
-      if (err.message === 'Access denied') {
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message);
+      if (error.message === 'Access denied') {
         router.push('/dashboard');
       }
     } finally {

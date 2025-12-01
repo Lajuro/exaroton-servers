@@ -48,7 +48,7 @@ export function ServerControls({
   sendingCommand,
   onAction,
   onSendCommand,
-  isAdmin = false,
+  isAdmin: _isAdmin = false,
   variant = 'card',
 }: ServerControlsProps) {
   const t = useTranslations('servers.commands');
@@ -65,7 +65,7 @@ export function ServerControls({
   const isStarting = serverStatus === 2 || serverStatus === 10 || serverStatus === 6;
   const isStopping = serverStatus === 3;
   const isRestarting = serverStatus === 4;
-  const isTransitioning = isStarting || isStopping || isRestarting;
+  const _isTransitioning = isStarting || isStopping || isRestarting;
 
   const handleSendCommand = () => {
     let finalCommand = '';

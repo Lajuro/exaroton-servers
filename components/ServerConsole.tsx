@@ -135,7 +135,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
       };
 
       eventSourceRef.current = eventSource;
-    } catch (err) {
+    } catch (_err) {
       setError(t('connectionError'));
       setIsConnecting(false);
     }
@@ -235,7 +235,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         const data = await response.json().catch(() => ({}));
         addLine(tCommon('error'), data.error || (locale === 'pt-BR' ? 'Falha ao executar comando' : 'Failed to execute command'), 'error');
       }
-    } catch (err) {
+    } catch (_err) {
       addLine(tCommon('error'), locale === 'pt-BR' ? 'Erro de conexão' : 'Connection error', 'error');
     } finally {
       setSendingCommand(false);

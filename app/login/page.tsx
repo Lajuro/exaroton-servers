@@ -23,21 +23,31 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Partículas flutuantes animadas
+// Partículas flutuantes animadas - valores pré-computados para evitar Math.random() durante render
+const PARTICLES = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  width: 5 + (i * 7) % 10,
+  height: 5 + ((i + 3) * 7) % 10,
+  left: (i * 17) % 100,
+  top: (i * 23) % 100,
+  delay: (i * 0.5) % 5,
+  duration: 10 + (i % 10),
+}));
+
 function FloatingParticles() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(20)].map((_, i) => (
+      {PARTICLES.map((particle) => (
         <div
-          key={i}
+          key={particle.id}
           className="absolute rounded-full bg-primary/20 animate-float"
           style={{
-            width: Math.random() * 10 + 5 + 'px',
-            height: Math.random() * 10 + 5 + 'px',
-            left: Math.random() * 100 + '%',
-            top: Math.random() * 100 + '%',
-            animationDelay: Math.random() * 5 + 's',
-            animationDuration: Math.random() * 10 + 10 + 's',
+            width: particle.width + 'px',
+            height: particle.height + 'px',
+            left: particle.left + '%',
+            top: particle.top + '%',
+            animationDelay: particle.delay + 's',
+            animationDuration: particle.duration + 's',
           }}
         />
       ))}
@@ -108,6 +118,7 @@ export default function LoginPage() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+   
   useEffect(() => {
     setMounted(true);
   }, []);

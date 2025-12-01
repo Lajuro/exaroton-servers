@@ -16,7 +16,6 @@ import {
   Coins,
   RefreshCw,
   TrendingDown,
-  TrendingUp,
   Calendar,
   Clock,
   BarChart3,

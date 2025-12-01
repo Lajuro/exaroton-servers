@@ -17,11 +17,12 @@ export function PWAInstallPrompt() {
   const [showBanner, setShowBanner] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
+  const [_isOnline, setIsOnline] = useState(true);
   const [showOfflineToast, setShowOfflineToast] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
+   
   useEffect(() => {
     // Check if already installed
     if (window.matchMedia("(display-mode: standalone)").matches) {
@@ -317,6 +318,7 @@ export function OnlineStatus() {
   const t = useTranslations("common");
   const [isOnline, setIsOnline] = useState(true);
 
+   
   useEffect(() => {
     setIsOnline(navigator.onLine);
 

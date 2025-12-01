@@ -48,12 +48,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  X,
-  Eye,
   Clock,
   CheckCircle,
   XCircle,
   RefreshCw,
+  Eye,
 } from 'lucide-react';
 
 const actionTypeIcons: Record<ActionType, React.ElementType> = {

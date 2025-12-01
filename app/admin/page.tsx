@@ -10,11 +10,11 @@ import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
 import { AdminSkeleton } from '@/components/AdminSkeleton';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -28,18 +28,12 @@ import {
   Server as ServerIcon, 
   Search, 
   Settings, 
-  UserCog,
   Crown,
   User,
   Pencil,
   Check,
-  X,
-  ChevronDown,
   ShieldCheck,
-  UserCheck,
-  BarChart3,
   ArrowDownAZ,
-  Clock
 } from 'lucide-react';
 import { ActionHistory } from '@/components/ActionHistory';
 
@@ -116,7 +110,7 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t, tCommon]);
 
   useEffect(() => {
     if (user?.isAdmin) {

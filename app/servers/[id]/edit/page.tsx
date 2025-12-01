@@ -93,6 +93,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
     if (user && serverId) {
       fetchServerContent();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, serverId]);
 
   // Warn before leaving with unsaved changes

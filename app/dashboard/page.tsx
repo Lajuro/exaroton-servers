@@ -12,11 +12,10 @@ import { ServerCardSkeleton } from '@/components/ServerCardSkeleton';
 import { DashboardSkeleton } from '@/components/DashboardSkeleton';
 import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, Loader2, RefreshCw, Server as ServerIcon, Activity, Users, Search, TrendingUp, Zap, Globe, ArrowDownAZ, BarChart3, UserCheck, Gamepad2, LayoutDashboard } from 'lucide-react';
+import { AlertCircle, Loader2, RefreshCw, Server as ServerIcon, Activity, Users, Search, ArrowDownAZ, BarChart3, UserCheck, LayoutDashboard } from 'lucide-react';
 
 interface Server {
   id: string;
@@ -110,6 +109,7 @@ export default function DashboardPage() {
     if (user) {
       fetchServers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Fetch server icons from serverContent collection
@@ -186,7 +186,7 @@ export default function DashboardPage() {
     return sorted;
   }, [servers, searchQuery, sortBy]);
 
-  const handleSignOut = async () => {
+  const _handleSignOut = async () => {
     try {
       await signOut();
       router.push('/login');

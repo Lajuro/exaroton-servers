@@ -51,6 +51,7 @@ export function LanguageSwitcher() {
 
   const handleLocaleChange = (locale: Locale) => {
     // Set cookie
+    // eslint-disable-next-line react-hooks/immutability
     document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=${60 * 60 * 24 * 365}`;
     setCurrentLocale(locale);
     
