@@ -1,0 +1,76 @@
+mutation CreateMinecraftServer(
+    $name: String!
+    $serverId: String!
+    $ownerId: UUID!
+    $createdAt: Timestamp!
+    $gameMode: String
+    $ipAddress: String
+    $maxPlayers: Int
+    $minecraftVersion: String
+    $port: Int
+    $serverSoftware: String
+    $status: String!
+) @auth(level: USER) {
+    minecraftServer_insert(
+        data: {
+            name: $name
+            serverId: $serverId
+            ownerId: $ownerId
+            createdAt: $createdAt
+            gameMode: $gameMode
+            ipAddress: $ipAddress
+            maxPlayers: $maxPlayers
+            minecraftVersion: $minecraftVersion
+            port: $port
+            serverSoftware: $serverSoftware
+            status: $status
+        }
+    )
+}
+
+query GetMinecraftServer($id: UUID!) @auth(level: USER) {
+    minecraftServer(id: $id) {
+        id
+        name
+        serverId
+        ownerId
+        createdAt
+        gameMode
+        ipAddress
+        maxPlayers
+        minecraftVersion
+        port
+        serverSoftware
+        status
+    }
+}
+
+mutation UpdateMinecraftServer(
+    $id: UUID!
+    $name: String
+    $gameMode: String
+    $ipAddress: String
+    $maxPlayers: Int
+    $minecraftVersion: String
+    $port: Int
+    $serverSoftware: String
+    $status: String
+) @auth(level: USER) {
+    minecraftServer_update(
+        id: $id
+        data: {
+            name: $name
+            gameMode: $gameMode
+            ipAddress: $ipAddress
+            maxPlayers: $maxPlayers
+            minecraftVersion: $minecraftVersion
+            port: $port
+            serverSoftware: $serverSoftware
+            status: $status
+        }
+    )
+}
+
+mutation DeleteMinecraftServer($id: UUID!) @auth(level: USER) {
+    minecraftServer_delete(id: $id)
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -41,19 +42,6 @@ interface ServerControlsProps {
 
 type CommandType = 'custom' | 'message' | 'time' | 'weather' | 'gamemode';
 
-const STATUS_NAMES: Record<number, string> = {
-  0: 'Offline',
-  1: 'Online',
-  2: 'Iniciando',
-  3: 'Parando',
-  4: 'Reiniciando',
-  5: 'Salvando',
-  6: 'Carregando',
-  7: 'Travado',
-  8: 'Desconhecido',
-  10: 'Preparando',
-};
-
 export function ServerControls({
   serverStatus,
   actionLoading,
@@ -63,6 +51,10 @@ export function ServerControls({
   isAdmin = false,
   variant = 'card',
 }: ServerControlsProps) {
+  const t = useTranslations('servers.commands');
+  const tStatus = useTranslations('servers.status');
+  const tCommon = useTranslations('common');
+  
   const [commandDialog, setCommandDialog] = useState(false);
   const [commandType, setCommandType] = useState<CommandType>('custom');
   const [command, setCommand] = useState('');
@@ -101,7 +93,7 @@ export function ServerControls({
 
   const renderControls = () => (
     <div className="space-y-3">
-      {/* Botão Iniciar - Aparece quando offline */}
+      {/* Start Button - Appears when offline */}
       {(isOffline || isStarting) && (
         <Button
           className="w-full justify-start gap-3 h-12"
@@ -115,17 +107,17 @@ export function ServerControls({
             <Play className="h-4 w-4" />
           )}
           <span className="flex-1 text-left">
-            {isStarting ? STATUS_NAMES[serverStatus] : 'Iniciar Servidor'}
+            {isStarting ? tStatus(String(serverStatus)) : t('startServer')}
           </span>
           {isStarting && (
             <Badge variant="outline" className="ml-auto animate-pulse">
-              {STATUS_NAMES[serverStatus]}...
+              {tStatus(String(serverStatus))}...
             </Badge>
           )}
         </Button>
       )}
       
-      {/* Botão Parar - Aparece quando online ou parando */}
+      {/* Stop Button - Appears when online or stopping */}
       {(isOnline || isStopping) && (
         <Button
           className="w-full justify-start gap-3 h-12"
@@ -139,12 +131,12 @@ export function ServerControls({
             <Square className="h-4 w-4" />
           )}
           <span className="flex-1 text-left">
-            {isStopping ? 'Parando...' : 'Parar Servidor'}
+            {isStopping ? t('stopping') : t('stopServer')}
           </span>
         </Button>
       )}
       
-      {/* Botão Reiniciar - Só aparece quando online */}
+      {/* Restart Button - Only appears when online */}
       {isOnline && (
         <>
           <Separator />
@@ -159,12 +151,12 @@ export function ServerControls({
             ) : (
               <RotateCw className="h-4 w-4" />
             )}
-            <span className="flex-1 text-left">Reiniciar</span>
+            <span className="flex-1 text-left">{tCommon('restart')}</span>
           </Button>
         </>
       )}
 
-      {/* Botão Enviar Comando - Só aparece quando online */}
+      {/* Send Command Button - Only appears when online */}
       {isOnline && (
         <Button
           className="w-full justify-start gap-3 h-12"
@@ -173,7 +165,7 @@ export function ServerControls({
           disabled={actionLoading !== null || sendingCommand}
         >
           <Terminal className="h-4 w-4" />
-          <span className="flex-1 text-left">Enviar Comando</span>
+          <span className="flex-1 text-left">{t('sendCommand')}</span>
         </Button>
       )}
     </div>
@@ -185,17 +177,17 @@ export function ServerControls({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Terminal className="h-5 w-5" />
-            Enviar Comando
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
-            Execute comandos diretamente no servidor Minecraft
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          {/* Tipo de comando */}
+          {/* Command type */}
           <div className="space-y-2">
-            <Label>Tipo de Comando</Label>
+            <Label>{t('type')}</Label>
             <Select value={commandType} onValueChange={(v) => setCommandType(v as CommandType)}>
               <SelectTrigger>
                 <SelectValue />
@@ -204,52 +196,52 @@ export function ServerControls({
                 <SelectItem value="custom">
                   <div className="flex items-center gap-2">
                     <Terminal className="h-4 w-4" />
-                    Comando Personalizado
+                    {t('custom')}
                   </div>
                 </SelectItem>
                 <SelectItem value="message">
                   <div className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
-                    Enviar Mensagem
+                    {t('message')}
                   </div>
                 </SelectItem>
                 <SelectItem value="time">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    Mudar Horário
+                    {t('time')}
                   </div>
                 </SelectItem>
                 <SelectItem value="weather">
                   <div className="flex items-center gap-2">
                     <Cloud className="h-4 w-4" />
-                    Mudar Clima
+                    {t('weather')}
                   </div>
                 </SelectItem>
                 <SelectItem value="gamemode">
                   <div className="flex items-center gap-2">
                     <Gamepad2 className="h-4 w-4" />
-                    Modo de Jogo
+                    {t('gamemode')}
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Input baseado no tipo */}
+          {/* Input based on type */}
           {(commandType === 'custom' || commandType === 'message') && (
             <div className="space-y-2">
               <Label>
-                {commandType === 'custom' ? 'Comando' : 'Mensagem'}
+                {commandType === 'custom' ? t('command') : t('messageLabel')}
               </Label>
               <Input
-                placeholder={commandType === 'custom' ? 'Ex: give @a diamond 64' : 'Digite a mensagem...'}
+                placeholder={commandType === 'custom' ? t('commandPlaceholder') : t('messagePlaceholder')}
                 value={command}
                 onChange={(e) => setCommand(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendCommand()}
               />
               {commandType === 'custom' && (
                 <p className="text-xs text-muted-foreground">
-                  Não inclua a barra (/) no início do comando
+                  {t('noSlashNote')}
                 </p>
               )}
             </div>
@@ -257,16 +249,16 @@ export function ServerControls({
 
           {commandType === 'time' && (
             <div className="space-y-2">
-              <Label>Horário</Label>
+              <Label>{t('timeLabel')}</Label>
               <Select value={commandOption} onValueChange={setCommandOption}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o horário" />
+                  <SelectValue placeholder={t('selectTime')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="day">🌅 Dia</SelectItem>
-                  <SelectItem value="noon">☀️ Meio-dia</SelectItem>
-                  <SelectItem value="night">🌙 Noite</SelectItem>
-                  <SelectItem value="midnight">🌑 Meia-noite</SelectItem>
+                  <SelectItem value="day">🌅 {t('times.day')}</SelectItem>
+                  <SelectItem value="noon">☀️ {t('times.noon')}</SelectItem>
+                  <SelectItem value="night">🌙 {t('times.night')}</SelectItem>
+                  <SelectItem value="midnight">🌑 {t('times.midnight')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -274,15 +266,15 @@ export function ServerControls({
 
           {commandType === 'weather' && (
             <div className="space-y-2">
-              <Label>Clima</Label>
+              <Label>{t('weatherLabel')}</Label>
               <Select value={commandOption} onValueChange={setCommandOption}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o clima" />
+                  <SelectValue placeholder={t('selectWeather')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="clear">☀️ Limpo</SelectItem>
-                  <SelectItem value="rain">🌧️ Chuva</SelectItem>
-                  <SelectItem value="thunder">⛈️ Tempestade</SelectItem>
+                  <SelectItem value="clear">☀️ {t('weathers.clear')}</SelectItem>
+                  <SelectItem value="rain">🌧️ {t('weathers.rain')}</SelectItem>
+                  <SelectItem value="thunder">⛈️ {t('weathers.thunder')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -290,16 +282,16 @@ export function ServerControls({
 
           {commandType === 'gamemode' && (
             <div className="space-y-2">
-              <Label>Modo de Jogo (para todos)</Label>
+              <Label>{t('gamemodeLabel')}</Label>
               <Select value={commandOption} onValueChange={setCommandOption}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o modo" />
+                  <SelectValue placeholder={t('selectGamemode')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="survival">⚔️ Survival</SelectItem>
-                  <SelectItem value="creative">🎨 Creative</SelectItem>
-                  <SelectItem value="adventure">🗺️ Adventure</SelectItem>
-                  <SelectItem value="spectator">👻 Spectator</SelectItem>
+                  <SelectItem value="survival">⚔️ {t('gamemodes.survival')}</SelectItem>
+                  <SelectItem value="creative">🎨 {t('gamemodes.creative')}</SelectItem>
+                  <SelectItem value="adventure">🗺️ {t('gamemodes.adventure')}</SelectItem>
+                  <SelectItem value="spectator">👻 {t('gamemodes.spectator')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -308,7 +300,7 @@ export function ServerControls({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setCommandDialog(false)}>
-            Cancelar
+            {tCommon('cancel')}
           </Button>
           <Button onClick={handleSendCommand} disabled={sendingCommand}>
             {sendingCommand ? (
@@ -316,7 +308,7 @@ export function ServerControls({
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}
-            Executar
+            {t('execute')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -338,10 +330,10 @@ export function ServerControls({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Zap className="h-5 w-5" />
-            Controles
+            {t('controls')}
           </CardTitle>
           <CardDescription>
-            Gerencie o estado do servidor
+            {t('controlsDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>

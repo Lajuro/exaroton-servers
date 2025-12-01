@@ -1,0 +1,54 @@
+extend type Invitation {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "Invitation", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Invitation`.`invitedBy`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  invitedById: UUID @fdc_generated(from: "Invitation.invitedBy", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Invitation`.`invitedTo`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  invitedToId: UUID @fdc_generated(from: "Invitation.invitedTo", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Invitation`.`server`. It must match the value of `MinecraftServer`.`id`. See `@ref` for how to customize it.
+  """
+  serverId: UUID @fdc_generated(from: "Invitation.server", purpose: IMPLICIT_REF_FIELD)
+}
+extend type MinecraftServer {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "MinecraftServer", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `MinecraftServer`.`owner`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  ownerId: UUID @fdc_generated(from: "MinecraftServer.owner", purpose: IMPLICIT_REF_FIELD)
+}
+extend type ServerAccess {
+  """
+  ✨ Implicit foreign key field based on `ServerAccess`.`user`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  userId: UUID! @fdc_generated(from: "ServerAccess.user", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `ServerAccess`.`server`. It must match the value of `MinecraftServer`.`id`. See `@ref` for how to customize it.
+  """
+  serverId: UUID! @fdc_generated(from: "ServerAccess.server", purpose: IMPLICIT_REF_FIELD)
+}
+extend type ServerLog {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "ServerLog", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `ServerLog`.`server`. It must match the value of `MinecraftServer`.`id`. See `@ref` for how to customize it.
+  """
+  serverId: UUID @fdc_generated(from: "ServerLog.server", purpose: IMPLICIT_REF_FIELD)
+}
+extend type User {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "User", purpose: IMPLICIT_KEY_FIELD)
+}

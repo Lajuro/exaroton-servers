@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
@@ -18,6 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { 
@@ -30,7 +41,8 @@ import {
   Save,
   Trash2,
   GripVertical,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { ServerContent, ServerDocument } from '@/types';
 
@@ -42,12 +54,15 @@ export default function ServerEditPage({ params }: EditPageProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const t = useTranslations('serverEdit');
+  const tCommon = useTranslations('common');
   const [serverId, setServerId] = useState<string>('');
   const [content, setContent] = useState<ServerContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; type: string; documentId?: string }>({ open: false, type: '' });
+  const [unsavedDialog, setUnsavedDialog] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Form state
@@ -111,8 +126,8 @@ export default function ServerEditPage({ params }: EditPageProps) {
     } catch (err) {
       console.error('Error fetching content:', err);
       toast({
-        title: 'Erro ao carregar conteúdo',
-        description: 'Não foi possível carregar o conteúdo do servidor.',
+        title: t('errorLoading'),
+        description: t('errorLoadingDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -120,7 +135,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (redirectAfterSave = false) => {
     try {
       setSaving(true);
       const token = await auth.currentUser?.getIdToken();
@@ -144,13 +159,17 @@ export default function ServerEditPage({ params }: EditPageProps) {
 
       setHasUnsavedChanges(false);
       toast({
-        title: 'Alterações salvas',
-        description: 'O conteúdo do servidor foi atualizado com sucesso.',
+        title: t('changesSaved'),
+        description: t('changesSavedDesc'),
       });
+
+      if (redirectAfterSave) {
+        router.push(`/servers/${serverId}`);
+      }
     } catch (err: any) {
       toast({
-        title: 'Erro ao salvar',
-        description: err.message || 'Não foi possível salvar as alterações.',
+        title: t('errorSaving'),
+        description: err.message || t('errorSavingDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -163,8 +182,8 @@ export default function ServerEditPage({ params }: EditPageProps) {
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       toast({
-        title: 'Arquivo muito grande',
-        description: `O arquivo não pode exceder 10MB. Tamanho atual: ${(file.size / (1024 * 1024)).toFixed(2)}MB`,
+        title: t('fileTooLarge'),
+        description: t('fileTooLargeDesc', { size: (file.size / (1024 * 1024)).toFixed(2) }),
         variant: 'destructive',
       });
       return;
@@ -190,19 +209,19 @@ export default function ServerEditPage({ params }: EditPageProps) {
       }
 
       toast({
-        title: 'Upload concluído',
+        title: t('uploadComplete'),
         description: type === 'document' 
-          ? 'Documento enviado com sucesso.' 
+          ? t('documentUploaded')
           : type === 'banner' 
-            ? 'Banner atualizado com sucesso.' 
-            : 'Ícone atualizado com sucesso.',
+            ? t('bannerUpdated')
+            : t('iconUpdated'),
       });
       
       await fetchServerContent();
     } catch (err: any) {
       toast({
-        title: 'Erro no upload',
-        description: err.message || 'Não foi possível enviar o arquivo.',
+        title: t('uploadError'),
+        description: err.message || t('uploadErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -230,15 +249,15 @@ export default function ServerEditPage({ params }: EditPageProps) {
       }
 
       toast({
-        title: 'Arquivo removido',
-        description: 'O arquivo foi removido com sucesso.',
+        title: t('fileRemoved'),
+        description: t('fileRemovedDesc'),
       });
       
       await fetchServerContent();
     } catch (err: any) {
       toast({
-        title: 'Erro ao remover',
-        description: err.message || 'Não foi possível remover o arquivo.',
+        title: t('errorRemoving'),
+        description: err.message || t('errorRemovingDesc'),
         variant: 'destructive',
       });
     }
@@ -294,7 +313,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
   };
 
   if (authLoading || loading) {
-    return <GlobalLoading message="Carregando editor" />;
+    return <GlobalLoading message={t('loadingEditor')} />;
   }
 
   return (
@@ -312,7 +331,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
           <>
             <img
               src={content.bannerUrl}
-              alt="Banner"
+              alt={t('banner')}
               className="w-full h-full object-cover transition-all"
               style={{ objectPosition: `center ${bannerPosition}%` }}
               draggable={false}
@@ -332,15 +351,15 @@ export default function ServerEditPage({ params }: EditPageProps) {
             }`}>
               <GripVertical className="h-6 w-6" />
               <span className="text-sm font-medium bg-black/50 px-3 py-1 rounded-full">
-                Arraste para reposicionar
+                {t('dragToReposition')}
               </span>
             </div>
           </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white/80">
             <ImageIcon className="h-12 w-12 mb-2" />
-            <p className="text-lg font-medium">Nenhum banner definido</p>
-            <p className="text-sm text-white/60">Clique abaixo para adicionar</p>
+            <p className="text-lg font-medium">{t('noBannerSet')}</p>
+            <p className="text-sm text-white/60">{t('clickBelowToAdd')}</p>
           </div>
         )}
 
@@ -369,7 +388,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
             ) : (
               <Upload className="h-4 w-4 mr-2" />
             )}
-            {content?.bannerUrl ? 'Trocar banner' : 'Adicionar banner'}
+            {content?.bannerUrl ? t('changeBanner') : t('addBanner')}
           </Button>
           {content?.bannerUrl && (
             <Button
@@ -389,16 +408,14 @@ export default function ServerEditPage({ params }: EditPageProps) {
           className="absolute top-4 left-4 bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/10 z-10"
           onClick={() => {
             if (hasUnsavedChanges) {
-              if (confirm('Você tem alterações não salvas. Deseja sair mesmo assim?')) {
-                router.push(`/servers/${serverId}`);
-              }
+              setUnsavedDialog(true);
             } else {
               router.push(`/servers/${serverId}`);
             }
           }}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
+          {tCommon('back')}
         </Button>
       </div>
 
@@ -406,9 +423,9 @@ export default function ServerEditPage({ params }: EditPageProps) {
         {/* Cabeçalho */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Editar Servidor</h1>
+            <h1 className="text-3xl font-bold">{t('title')}</h1>
             <p className="text-muted-foreground mt-1">
-              Personalize o conteúdo e aparência do servidor
+              {t('subtitle')}
             </p>
           </div>
           
@@ -416,7 +433,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
           {hasUnsavedChanges && (
             <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
               <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">Alterações não salvas</span>
+              <span className="text-sm">{t('unsavedChanges')}</span>
             </div>
           )}
         </div>
@@ -427,10 +444,10 @@ export default function ServerEditPage({ params }: EditPageProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5" />
-                Ícone do Servidor
+                {t('serverIcon.title')}
               </CardTitle>
               <CardDescription>
-                Este ícone aparece no card do servidor no dashboard (máx. 10MB)
+                {t('serverIcon.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -440,7 +457,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
                     <div className="relative group">
                       <img
                         src={content.iconUrl}
-                        alt="Ícone"
+                        alt={t('serverIcon.title')}
                         className="w-24 h-24 rounded-xl object-cover border-2 border-border"
                       />
                       <button
@@ -479,10 +496,10 @@ export default function ServerEditPage({ params }: EditPageProps) {
                     ) : (
                       <Upload className="h-4 w-4 mr-2" />
                     )}
-                    {content?.iconUrl ? 'Trocar ícone' : 'Enviar ícone'}
+                    {content?.iconUrl ? t('serverIcon.change') : t('serverIcon.upload')}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Formatos: JPG, PNG, WebP • Redimensionado para 256x256px
+                    {t('serverIcon.formats')}
                   </p>
                 </div>
               </div>
@@ -492,16 +509,16 @@ export default function ServerEditPage({ params }: EditPageProps) {
           {/* Descrição */}
           <Card>
             <CardHeader>
-              <CardTitle>Descrição</CardTitle>
+              <CardTitle>{t('description.title')}</CardTitle>
               <CardDescription>
-                Uma breve descrição sobre o servidor
+                {t('description.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
                 value={description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange(setDescription)(e.target.value)}
-                placeholder="Ex: Servidor de Minecraft Survival com mods de exploração..."
+                placeholder={t('description.placeholder')}
                 rows={3}
                 className="resize-none"
               />
@@ -511,30 +528,16 @@ export default function ServerEditPage({ params }: EditPageProps) {
           {/* Instruções de Acesso */}
           <Card>
             <CardHeader>
-              <CardTitle>Instruções de Acesso</CardTitle>
+              <CardTitle>{t('accessInstructions.title')}</CardTitle>
               <CardDescription>
-                Informações importantes para os jogadores. Suporta Markdown para formatação rica.
+                {t('accessInstructions.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <MarkdownEditor
                 value={accessInstructions}
                 onChange={(value) => handleFieldChange(setAccessInstructions)(value)}
-                placeholder={`# 📌 Como conectar
-
-1. Abra o Minecraft na versão **1.20.1**
-2. Adicione o servidor: \`play.meuservidor.com\`
-3. Conecte-se e divirta-se!
-
----
-
-# 📜 Regras
-
-- Respeite outros jogadores
-- Não use hacks ou exploits
-- Divirta-se!
-
-> **Dica:** Use /help para ver todos os comandos disponíveis.`}
+                placeholder={t('accessInstructions.placeholder')}
                 minHeight="350px"
               />
             </CardContent>
@@ -545,10 +548,10 @@ export default function ServerEditPage({ params }: EditPageProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Documentos
+                {t('documents.title')}
               </CardTitle>
               <CardDescription>
-                PDFs com informações adicionais (máx. 10MB cada)
+                {t('documents.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -564,7 +567,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
                         <div>
                           <p className="font-medium text-sm">{doc.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {(doc.size / 1024).toFixed(1)} KB
+                            {t('documents.fileSize', { size: (doc.size / 1024).toFixed(1) })}
                           </p>
                         </div>
                       </div>
@@ -604,7 +607,7 @@ export default function ServerEditPage({ params }: EditPageProps) {
                   ) : (
                     <Upload className="h-4 w-4 mr-2" />
                   )}
-                  Adicionar documento PDF
+                  {t('documents.addPdf')}
                 </Button>
               </div>
             </CardContent>
@@ -618,26 +621,24 @@ export default function ServerEditPage({ params }: EditPageProps) {
               variant="outline"
               onClick={() => {
                 if (hasUnsavedChanges) {
-                  if (confirm('Você tem alterações não salvas. Deseja sair mesmo assim?')) {
-                    router.push(`/servers/${serverId}`);
-                  }
+                  setUnsavedDialog(true);
                 } else {
                   router.push(`/servers/${serverId}`);
                 }
               }}
             >
-              Cancelar
+              {tCommon('cancel')}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Salvando...
+                  {t('saving')}
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Salvar Alterações
+                  {t('saveChanges')}
                 </>
               )}
             </Button>
@@ -649,22 +650,75 @@ export default function ServerEditPage({ params }: EditPageProps) {
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar exclusão</DialogTitle>
+            <DialogTitle>{t('deleteConfirm.title')}</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja remover este arquivo? Esta ação não pode ser desfeita.
+              {t('deleteConfirm.description')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialog({ open: false, type: '' })}>
-              Cancelar
+              {tCommon('cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteFile}>
               <Trash2 className="h-4 w-4 mr-2" />
-              Excluir
+              {tCommon('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* AlertDialog de confirmação de saída com alterações não salvas */}
+      <AlertDialog open={unsavedDialog} onOpenChange={setUnsavedDialog}>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader className="text-center sm:text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+              <AlertTriangle className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+            </div>
+            <AlertDialogTitle className="text-xl">
+              {t('unsavedChangesTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              {t('unsavedChangesConfirm')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="my-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4">
+            <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
+              {t('unsavedChangesTip')}
+            </p>
+          </div>
+
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              variant="default"
+              className="w-full"
+              onClick={() => {
+                setUnsavedDialog(false);
+                handleSave(true);
+              }}
+              disabled={saving}
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              {t('saveAndExit')}
+            </Button>
+            <div className="flex gap-2 w-full">
+              <AlertDialogCancel className="flex-1 mt-0">
+                {t('continueEditing')}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => router.push(`/servers/${serverId}`)}
+                className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {t('discardChanges')}
+              </AlertDialogAction>
+            </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

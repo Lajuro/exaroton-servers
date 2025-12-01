@@ -2,13 +2,17 @@
 
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface GlobalLoadingProps {
   message?: string;
   fullScreen?: boolean;
 }
 
-export function GlobalLoading({ message = 'Carregando...', fullScreen = true }: GlobalLoadingProps) {
+export function GlobalLoading({ message, fullScreen = true }: GlobalLoadingProps) {
+  const t = useTranslations('common');
+  const displayMessage = message ?? t('loading');
+  
   return (
     <div 
       className={cn(
@@ -51,7 +55,7 @@ export function GlobalLoading({ message = 'Carregando...', fullScreen = true }: 
             MineServerManager
           </h2>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{message}</span>
+            <span className="text-sm text-muted-foreground">{displayMessage}</span>
             <LoadingDots />
           </div>
         </div>
@@ -82,10 +86,12 @@ function LoadingDots() {
 
 // Mini loading for inline use
 export function MiniLoading({ className }: { className?: string }) {
+  const t = useTranslations('common');
+  
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <div className="h-4 w-4 rounded-full border-2 border-muted border-t-primary animate-spin" />
-      <span className="text-sm text-muted-foreground">Carregando...</span>
+      <span className="text-sm text-muted-foreground">{t('loading')}</span>
     </div>
   );
 }

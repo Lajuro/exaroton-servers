@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import ServerCard from '@/components/ServerCard';
@@ -35,6 +36,10 @@ interface ServerIconMap {
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
+  const tAuth = useTranslations('auth');
+  const tServers = useTranslations('servers');
   const [servers, setServers] = useState<Server[]>([]);
   const [serverIcons, setServerIcons] = useState<ServerIconMap>({});
   const [loading, setLoading] = useState(true);
@@ -68,19 +73,19 @@ export default function DashboardPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Não autorizado. Faça login novamente.');
+          throw new Error(tAuth('unauthorized'));
         }
         if (response.status === 404) {
-          throw new Error('Usuário não encontrado no sistema.');
+          throw new Error(tAuth('userNotFound'));
         }
         if (response.status === 500) {
           const msg = typeof data?.error === 'string' ? data.error : '';
           if (msg.includes('UNAUTHENTICATED')) {
-            throw new Error('Credenciais do Firebase inválidas no servidor (Admin SDK). Verifique o .env.');
+            throw new Error(tAuth('invalidCredentials'));
           }
-          throw new Error(msg || 'Erro no servidor ao buscar servidores.');
+          throw new Error(msg || tServers('fetchError'));
         }
-        throw new Error('Falha ao buscar servidores.');
+        throw new Error(tServers('fetchError'));
       }
 
       setServers(data.servers || []);
@@ -93,8 +98,8 @@ export default function DashboardPage() {
       const message = err instanceof Error
         ? err.message
         : isNetworkError
-          ? 'Servidor indisponível. Verifique se o app está rodando.'
-          : 'Ocorreu um erro.';
+          ? tCommon('serverUnavailable')
+          : tCommon('errorOccurred');
       setError(message);
     } finally {
       setLoading(false);
@@ -206,8 +211,8 @@ export default function DashboardPage() {
               <LayoutDashboard className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl md:text-2xl font-bold tracking-tight">Dashboard</h2>
-              <p className="text-xs text-muted-foreground">Gerencie seus servidores de Minecraft em tempo real</p>
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight">{t('title')}</h2>
+              <p className="text-xs text-muted-foreground">{t('manageServers')}</p>
             </div>
           </div>
           <Button
@@ -222,7 +227,7 @@ export default function DashboardPage() {
             ) : (
               <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
             )}
-            <span className="hidden sm:inline">Atualizar</span>
+            <span className="hidden sm:inline">{tCommon('refresh')}</span>
           </Button>
         </div>
 
@@ -232,7 +237,7 @@ export default function DashboardPage() {
             <div className="relative flex-1 group">
               <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
-                placeholder="Buscar..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 sm:pl-10 h-9 sm:h-10 text-sm border-muted-foreground/20 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
@@ -240,25 +245,25 @@ export default function DashboardPage() {
             </div>
             <Select value={sortBy} onValueChange={(value: 'name' | 'status' | 'players') => setSortBy(value)}>
               <SelectTrigger className="w-[100px] sm:w-[140px] h-9 sm:h-10 text-xs sm:text-sm border-muted-foreground/20 hover:border-primary/50 transition-colors">
-                <SelectValue placeholder="Ordenar" />
+                <SelectValue placeholder={tCommon('sort')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="status">
                   <div className="flex items-center gap-2">
                     <BarChart3 className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Status</span>
+                    <span className="text-xs sm:text-sm">{t('sortByStatus')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="players">
                   <div className="flex items-center gap-2">
                     <UserCheck className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Jogadores</span>
+                    <span className="text-xs sm:text-sm">{t('sortByPlayers')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="name">
                   <div className="flex items-center gap-2">
                     <ArrowDownAZ className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Nome</span>
+                    <span className="text-xs sm:text-sm">{t('sortByName')}</span>
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -277,7 +282,7 @@ export default function DashboardPage() {
                     <ServerIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                   </div>
                   <div className="flex-1 text-center sm:text-left min-w-0 space-y-0.5 sm:space-y-1">
-                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">Total</p>
+                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">{tCommon('total')}</p>
                     <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent">{servers.length}</p>
                   </div>
                 </div>
@@ -295,7 +300,7 @@ export default function DashboardPage() {
                     <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                   </div>
                   <div className="flex-1 text-center sm:text-left min-w-0 space-y-0.5 sm:space-y-1">
-                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">Online</p>
+                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">{tCommon('online')}</p>
                     <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-green-500 to-green-600 bg-clip-text text-transparent">{servers.filter(s => s.status === 1).length}</p>
                   </div>
                 </div>
@@ -310,7 +315,7 @@ export default function DashboardPage() {
                     <Users className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
                   </div>
                   <div className="flex-1 text-center sm:text-left min-w-0 space-y-0.5 sm:space-y-1">
-                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">Jogadores</p>
+                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">{t('players')}</p>
                     <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-purple-500 to-purple-600 bg-clip-text text-transparent">{servers.reduce((total, s) => total + (s.players?.count || 0), 0)}</p>
                   </div>
                 </div>
@@ -323,7 +328,7 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-1">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Carregando servidores...</p>
+              <p className="text-sm text-muted-foreground">{t('loadingServers')}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <ServerCardSkeleton />
@@ -339,7 +344,7 @@ export default function DashboardPage() {
                   <AlertCircle className="h-8 w-8 text-destructive" />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-lg font-medium text-destructive">Erro ao carregar servidores</p>
+                  <p className="text-lg font-medium text-destructive">{t('errorLoading')}</p>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto">{error}</p>
                 </div>
                 <Button
@@ -348,7 +353,7 @@ export default function DashboardPage() {
                   className="gap-2"
                 >
                   <RefreshCw className="h-4 w-4" />
-                  Tentar novamente
+                  {t('tryAgain')}
                 </Button>
               </div>
             </CardContent>
@@ -361,17 +366,17 @@ export default function DashboardPage() {
                   <ServerIcon className="h-10 w-10 text-muted-foreground" />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-xl font-medium">Nenhum servidor disponível</p>
+                  <p className="text-xl font-medium">{t('noServersAvailable')}</p>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto">
                     {user.isAdmin
-                      ? 'Configure a API key do Exaroton para começar a gerenciar seus servidores.'
-                      : 'Você ainda não tem acesso a nenhum servidor. Entre em contato com um administrador para solicitar acesso.'}
+                      ? t('configureApiKey')
+                      : t('noAccessYet')}
                   </p>
                 </div>
                 {user.isAdmin && (
                   <Button variant="outline" className="gap-2">
                     <AlertCircle className="h-4 w-4" />
-                    Ver documentação
+                    {t('viewDocs')}
                   </Button>
                 )}
               </div>
@@ -385,9 +390,9 @@ export default function DashboardPage() {
                   <Search className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-lg font-medium">Nenhum servidor encontrado</p>
+                  <p className="text-lg font-medium">{t('noServersFound')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Não encontramos resultados para &quot;{searchQuery}&quot;
+                    {t('noResultsFor', { query: searchQuery })}
                   </p>
                 </div>
                 <Button
@@ -396,7 +401,7 @@ export default function DashboardPage() {
                   className="gap-2"
                 >
                   <RefreshCw className="h-4 w-4" />
-                  Limpar busca
+                  {t('clearSearch')}
                 </Button>
               </div>
             </CardContent>
@@ -407,7 +412,7 @@ export default function DashboardPage() {
             {(searchQuery || sortBy !== 'status') && (
               <div className="flex items-center justify-between px-1">
                 <p className="text-sm text-muted-foreground">
-                  Exibindo <span className="font-medium text-foreground">{filteredAndSortedServers.length}</span> de <span className="font-medium text-foreground">{servers.length}</span> servidor{servers.length !== 1 && 'es'}
+                  {t('showingServers', { shown: filteredAndSortedServers.length, total: servers.length })}
                 </p>
                 {searchQuery && (
                   <Button
@@ -417,7 +422,7 @@ export default function DashboardPage() {
                     className="h-8 gap-1 text-xs"
                   >
                     <RefreshCw className="h-3 w-3" />
-                    Limpar filtros
+                    {t('clearFilters')}
                   </Button>
                 )}
               </div>

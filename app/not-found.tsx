@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Home, RefreshCw, Pickaxe, Trophy, Volume2, VolumeX, Package, X } from 'lucide-react';
 
 // Tipos de blocos com cores estilo Minecraft
@@ -86,6 +87,8 @@ const PATTERN_404 = [
 ];
 
 export default function NotFound() {
+  const t = useTranslations('notFound');
+  
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [score, setScore] = useState(0);
@@ -523,11 +526,11 @@ export default function NotFound() {
         >
           <Pickaxe className="h-6 w-6 text-amber-400" />
           <span style={{ color: '#FCFC54', textShadow: '2px 2px 0 #3F3F00', fontFamily: 'monospace' }} className="font-bold text-xl tracking-wider">
-            MINE THE 404!
+            {t('game.title')}
           </span>
         </div>
         <p style={{ color: '#fff', textShadow: '1px 1px 0 #000', fontFamily: 'monospace' }} className="text-sm">
-          Quebre blocos, colete materiais e crafteie picaretas!
+          {t('game.subtitle')}
         </p>
       </div>
 
@@ -625,7 +628,7 @@ export default function NotFound() {
             {/* Inventário */}
             <div>
               <p style={{ color: '#AAA', textShadow: '1px 1px 0 #000', fontFamily: 'monospace' }} className="text-xs mb-2 text-center">
-                Inventário (clique para selecionar)
+                {t('game.inventory')}
               </p>
               <div className="grid grid-cols-5 gap-1">
                 {Object.entries(inventory).filter(([_, count]) => count > 0).map(([item, count]) => (
@@ -643,7 +646,7 @@ export default function NotFound() {
                       borderRightColor: '#1a1a1a',
                       borderBottomColor: '#0a0a0a',
                     }}
-                    title={MATERIALS[item]?.name || item}
+                    title={t(`game.materials.${item}`)}
                   >
                     <span className="text-lg">{MATERIALS[item]?.icon || '📦'}</span>
                     <span style={{ color: '#fff', fontSize: '10px', textShadow: '1px 1px 0 #000' }}>{count}</span>
@@ -652,7 +655,7 @@ export default function NotFound() {
               </div>
               {selectedItem && (
                 <p style={{ color: '#5F5', textShadow: '1px 1px 0 #000', fontFamily: 'monospace' }} className="text-xs mt-2 text-center">
-                  {MATERIALS[selectedItem]?.name} selecionado
+                  {t('game.selected', { item: t(`game.materials.${selectedItem}`) })}
                 </p>
               )}
             </div>
@@ -660,7 +663,7 @@ export default function NotFound() {
             {/* Grid de Crafting 3x3 */}
             <div>
               <p style={{ color: '#AAA', textShadow: '1px 1px 0 #000', fontFamily: 'monospace' }} className="text-xs mb-2 text-center">
-                Mesa de Trabalho
+                {t('game.craftingTable')}
               </p>
               <div className="grid grid-cols-3 gap-1">
                 {craftingSlots.map((slot, index) => (
@@ -711,7 +714,7 @@ export default function NotFound() {
             {/* Resultado */}
             <div className="flex flex-col items-center">
               <p style={{ color: '#AAA', textShadow: '1px 1px 0 #000', fontFamily: 'monospace' }} className="text-xs mb-2">
-                Resultado
+                {t('game.result')}
               </p>
               <button
                 onClick={craftItem}
@@ -746,7 +749,7 @@ export default function NotFound() {
           {/* Dicas de receitas */}
           <div className="mt-4 pt-3 border-t border-white/10">
             <p style={{ color: '#888', textShadow: '1px 1px 0 #000', fontFamily: 'monospace' }} className="text-xs">
-              💡 Receitas: Picareta = 3 materiais no topo + 2 gravetos no centro | Gravetos = 2 madeiras verticais
+              💡 {t('game.recipeTip')}
             </p>
           </div>
         </div>
@@ -849,13 +852,13 @@ export default function NotFound() {
           className="text-2xl sm:text-3xl font-bold mb-3"
           style={{ color: '#fff', textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000', fontFamily: 'monospace' }}
         >
-          Página não encontrada
+          {t('title')}
         </h1>
         <p 
           className="text-sm mb-8 max-w-md"
           style={{ color: '#ccc', textShadow: '1px 1px 0 #000', fontFamily: 'monospace' }}
         >
-          Colete materiais quebrando blocos e crafteie picaretas para quebrar mais rápido!
+          {t('description')}
         </p>
         
         <div className="flex flex-wrap items-center justify-center gap-4">
@@ -876,7 +879,7 @@ export default function NotFound() {
             }}
           >
             <Home className="h-4 w-4" />
-            Voltar ao início
+            {t('backHome')}
           </Link>
           <button 
             onClick={resetGame}
@@ -895,7 +898,7 @@ export default function NotFound() {
             }}
           >
             <RefreshCw className="h-4 w-4" />
-            Resetar
+            {t('reset')}
           </button>
         </div>
       </div>
@@ -917,11 +920,11 @@ export default function NotFound() {
           >
             <div className="text-6xl mb-4">⛏️</div>
             <h2 style={{ color: '#FCFC54', textShadow: '2px 2px 0 #3F3F00', fontFamily: 'monospace' }} className="text-2xl font-bold mb-3">
-              Parabéns!
+              {t('congrats.title')}
             </h2>
             <p style={{ color: '#ccc', textShadow: '1px 1px 0 #000', fontFamily: 'monospace' }} className="mb-6">
-              Você minerou todos os {totalBlocks} blocos!<br />
-              {equippedPickaxe && `Com sua ${equippedPickaxe.name}!`}
+              {t('congrats.message', { blocks: totalBlocks })}<br />
+              {equippedPickaxe && t('congrats.withPickaxe', { pickaxe: equippedPickaxe.name })}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link 
@@ -960,7 +963,7 @@ export default function NotFound() {
                 }}
               >
                 <RefreshCw className="h-4 w-4" />
-                Jogar novamente
+                {t('playAgain')}
               </button>
             </div>
           </div>

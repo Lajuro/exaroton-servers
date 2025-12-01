@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { ActionLog, ActionType, ActionLogResponse } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,21 +71,6 @@ const actionTypeIcons: Record<ActionType, React.ElementType> = {
   logout: LogOut,
 };
 
-const actionTypeLabels: Record<ActionType, string> = {
-  server_start: 'Iniciar servidor',
-  server_stop: 'Parar servidor',
-  server_restart: 'Reiniciar servidor',
-  server_command: 'Comando',
-  user_access_grant: 'Conceder acesso',
-  user_access_revoke: 'Revogar acesso',
-  user_role_change: 'Alterar função',
-  content_update: 'Atualizar conteúdo',
-  document_upload: 'Upload de documento',
-  document_delete: 'Excluir documento',
-  login: 'Login',
-  logout: 'Logout',
-};
-
 const actionTypeColors: Record<ActionType, string> = {
   server_start: 'bg-green-500/10 text-green-500 border-green-500/30',
   server_stop: 'bg-red-500/10 text-red-500 border-red-500/30',
@@ -110,7 +95,10 @@ interface ActionHistoryProps {
 
 export function ActionHistory({ serverId, userId, compact = false, limit = 20 }: ActionHistoryProps) {
   const { user } = useAuth();
-  const t = useTranslations('common');
+  const t = useTranslations('actionHistory');
+  const tTime = useTranslations('time');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [logs, setLogs] = useState<ActionLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +108,11 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedLog, setSelectedLog] = useState<ActionLog | null>(null);
 
+  // Get translated action type labels
+  const getActionTypeLabel = (type: ActionType): string => {
+    return t(`actionTypes.${type}`);
+  };
+
   const fetchLogs = useCallback(async () => {
     if (!user) return;
 
@@ -128,7 +121,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
 
     try {
       const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
+      if (!token) throw new Error(tCommon('notAuthenticated'));
       
       const params = new URLSearchParams({
         page: page.toString(),
@@ -143,18 +136,18 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch history');
+      if (!response.ok) throw new Error(t('loadError'));
 
       const data: ActionLogResponse = await response.json();
       setLogs(data.logs);
       setTotal(data.total);
       setHasMore(data.hasMore);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error loading history');
+      setError(err instanceof Error ? err.message : t('loadError'));
     } finally {
       setLoading(false);
     }
-  }, [user, page, limit, serverId, userId, typeFilter]);
+  }, [user, page, limit, serverId, userId, typeFilter, t, tCommon]);
 
   useEffect(() => {
     fetchLogs();
@@ -168,12 +161,12 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return 'Agora';
-    if (minutes < 60) return `${minutes}min atrás`;
-    if (hours < 24) return `${hours}h atrás`;
-    if (days < 7) return `${days}d atrás`;
+    if (minutes < 1) return tTime('now');
+    if (minutes < 60) return tTime('minutesAgo', { count: minutes });
+    if (hours < 24) return tTime('hoursAgo', { count: hours });
+    if (days < 7) return tTime('daysAgo', { count: days });
     
-    return d.toLocaleDateString('pt-BR', {
+    return d.toLocaleDateString(locale === 'pt-BR' ? 'pt-BR' : 'en-US', {
       day: '2-digit',
       month: '2-digit',
       year: '2-digit',
@@ -183,31 +176,35 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
   };
 
   const getActionDescription = (log: ActionLog): string => {
+    const server = log.serverName || log.serverId || '';
+    const targetUser = log.targetUserName || log.targetUserId || '';
+    const document = log.details?.documentName || '';
+
     switch (log.type) {
       case 'server_start':
-        return `iniciou o servidor ${log.serverName || log.serverId}`;
+        return t('actionDescriptions.server_start', { server });
       case 'server_stop':
-        return `parou o servidor ${log.serverName || log.serverId}`;
+        return t('actionDescriptions.server_stop', { server });
       case 'server_restart':
-        return `reiniciou o servidor ${log.serverName || log.serverId}`;
+        return t('actionDescriptions.server_restart', { server });
       case 'server_command':
-        return `executou comando em ${log.serverName || log.serverId}`;
+        return t('actionDescriptions.server_command', { server });
       case 'user_access_grant':
-        return `concedeu acesso a ${log.targetUserName || log.targetUserId}`;
+        return t('actionDescriptions.user_access_grant', { user: targetUser });
       case 'user_access_revoke':
-        return `revogou acesso de ${log.targetUserName || log.targetUserId}`;
+        return t('actionDescriptions.user_access_revoke', { user: targetUser });
       case 'user_role_change':
-        return `alterou função de ${log.targetUserName || log.targetUserId}`;
+        return t('actionDescriptions.user_role_change', { user: targetUser });
       case 'content_update':
-        return `atualizou conteúdo de ${log.serverName || log.serverId}`;
+        return t('actionDescriptions.content_update', { server });
       case 'document_upload':
-        return `enviou documento ${log.details?.documentName || ''}`;
+        return t('actionDescriptions.document_upload', { document });
       case 'document_delete':
-        return `excluiu documento ${log.details?.documentName || ''}`;
+        return t('actionDescriptions.document_delete', { document });
       case 'login':
-        return 'fez login';
+        return t('actionDescriptions.login');
       case 'logout':
-        return 'fez logout';
+        return t('actionDescriptions.logout');
       default:
         return log.type;
     }
@@ -228,7 +225,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
           ))
         ) : logs.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Nenhuma ação registrada
+            {t('noActions')}
           </p>
         ) : (
           logs.slice(0, limit).map((log) => {
@@ -266,6 +263,14 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
     );
   }
 
+  // Get all action types for filter
+  const actionTypes: ActionType[] = [
+    'server_start', 'server_stop', 'server_restart', 'server_command',
+    'user_access_grant', 'user_access_revoke', 'user_role_change',
+    'content_update', 'document_upload', 'document_delete',
+    'login', 'logout'
+  ];
+
   return (
     <>
       <Card>
@@ -274,23 +279,23 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Histórico de Ações
+                {t('title')}
               </CardTitle>
               <CardDescription>
-                {total > 0 ? `${total} ações registradas` : 'Registro de atividades do sistema'}
+                {total > 0 ? t('actionsRecorded', { count: total }) : t('description')}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
                 <SelectTrigger className="w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filtrar por tipo" />
+                  <SelectValue placeholder={t('filterByType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os tipos</SelectItem>
-                  {Object.entries(actionTypeLabels).map(([type, label]) => (
+                  <SelectItem value="all">{t('allTypes')}</SelectItem>
+                  {actionTypes.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {label}
+                      {getActionTypeLabel(type)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -307,7 +312,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
               <XCircle className="h-8 w-8 mx-auto mb-2" />
               <p>{error}</p>
               <Button variant="outline" onClick={fetchLogs} className="mt-2">
-                Tentar novamente
+                {tCommon('refresh')}
               </Button>
             </div>
           ) : loading ? (
@@ -326,18 +331,18 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
           ) : logs.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">Nenhuma ação encontrada</p>
-              <p className="text-sm">As ações realizadas aparecerão aqui</p>
+              <p className="text-lg font-medium">{t('noActions')}</p>
+              <p className="text-sm">{t('description')}</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Ação</TableHead>
-                    <TableHead>Contexto</TableHead>
-                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>{t('user')}</TableHead>
+                    <TableHead>{t('action')}</TableHead>
+                    <TableHead>{tCommon('filter')}</TableHead>
+                    <TableHead>{t('timestamp')}</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -363,7 +368,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
                         <TableCell>
                           <Badge variant="outline" className={actionTypeColors[log.type]}>
                             <Icon className="h-3 w-3 mr-1" />
-                            {actionTypeLabels[log.type]}
+                            {getActionTypeLabel(log.type)}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -397,7 +402,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
               {/* Pagination */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Página {page} de {Math.ceil(total / limit)}
+                  {locale === 'pt-BR' ? `Página ${page} de ${Math.ceil(total / limit)}` : `Page ${page} of ${Math.ceil(total / limit)}`}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -407,7 +412,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
                     disabled={page === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Anterior
+                    {tCommon('previous')}
                   </Button>
                   <Button
                     variant="outline"
@@ -415,7 +420,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
                     onClick={() => setPage(p => p + 1)}
                     disabled={!hasMore}
                   >
-                    Próxima
+                    {tCommon('next')}
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -436,12 +441,12 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
                     const Icon = actionTypeIcons[selectedLog.type];
                     return <Icon className="h-5 w-5" />;
                   })()}
-                  {actionTypeLabels[selectedLog?.type || 'login']}
+                  {getActionTypeLabel(selectedLog?.type || 'login')}
                 </>
               )}
             </DialogTitle>
             <DialogDescription>
-              Detalhes da ação
+              {t('details')}
             </DialogDescription>
           </DialogHeader>
           
@@ -463,32 +468,32 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
 
               {/* Status */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Status:</span>
+                <span className="text-sm text-muted-foreground">{t('status')}:</span>
                 {selectedLog.success ? (
                   <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
                     <CheckCircle className="h-3 w-3 mr-1" />
-                    Sucesso
+                    {t('success')}
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/30">
                     <XCircle className="h-3 w-3 mr-1" />
-                    Falha
+                    {t('failed')}
                   </Badge>
                 )}
               </div>
 
               {/* Timestamp */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Data/Hora:</span>
+                <span className="text-sm text-muted-foreground">{t('timestamp')}:</span>
                 <span className="text-sm">
-                  {new Date(selectedLog.timestamp).toLocaleString('pt-BR')}
+                  {new Date(selectedLog.timestamp).toLocaleString(locale === 'pt-BR' ? 'pt-BR' : 'en-US')}
                 </span>
               </div>
 
               {/* Server info */}
               {selectedLog.serverName && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Servidor:</span>
+                  <span className="text-sm text-muted-foreground">{locale === 'pt-BR' ? 'Servidor' : 'Server'}:</span>
                   <span className="text-sm font-medium">{selectedLog.serverName}</span>
                 </div>
               )}
@@ -496,7 +501,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
               {/* Target user */}
               {selectedLog.targetUserName && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Usuário alvo:</span>
+                  <span className="text-sm text-muted-foreground">{locale === 'pt-BR' ? 'Usuário alvo' : 'Target user'}:</span>
                   <span className="text-sm font-medium">{selectedLog.targetUserName}</span>
                 </div>
               )}
@@ -504,35 +509,35 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
               {/* Details */}
               {selectedLog.details && Object.keys(selectedLog.details).length > 0 && (
                 <div className="p-3 bg-muted rounded-lg space-y-2">
-                  <p className="text-sm font-medium">Detalhes:</p>
+                  <p className="text-sm font-medium">{t('details')}:</p>
                   <div className="space-y-1 text-sm">
                     {selectedLog.details.command && (
                       <p>
-                        <span className="text-muted-foreground">Comando: </span>
+                        <span className="text-muted-foreground">{locale === 'pt-BR' ? 'Comando' : 'Command'}: </span>
                         <code className="bg-background px-1 rounded">{selectedLog.details.command}</code>
                       </p>
                     )}
                     {selectedLog.details.previousRole && (
                       <p>
-                        <span className="text-muted-foreground">Função anterior: </span>
+                        <span className="text-muted-foreground">{locale === 'pt-BR' ? 'Função anterior' : 'Previous role'}: </span>
                         {selectedLog.details.previousRole}
                       </p>
                     )}
                     {selectedLog.details.newRole && (
                       <p>
-                        <span className="text-muted-foreground">Nova função: </span>
+                        <span className="text-muted-foreground">{locale === 'pt-BR' ? 'Nova função' : 'New role'}: </span>
                         {selectedLog.details.newRole}
                       </p>
                     )}
                     {selectedLog.details.documentName && (
                       <p>
-                        <span className="text-muted-foreground">Documento: </span>
+                        <span className="text-muted-foreground">{locale === 'pt-BR' ? 'Documento' : 'Document'}: </span>
                         {selectedLog.details.documentName}
                       </p>
                     )}
                     {selectedLog.details.fieldUpdated && (
                       <p>
-                        <span className="text-muted-foreground">Campo: </span>
+                        <span className="text-muted-foreground">{locale === 'pt-BR' ? 'Campo' : 'Field'}: </span>
                         {selectedLog.details.fieldUpdated}
                       </p>
                     )}

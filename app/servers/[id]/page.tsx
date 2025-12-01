@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
@@ -35,21 +36,23 @@ interface ServerDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-const statusConfig: Record<number, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; color: string; icon: React.ReactNode }> = {
-  0: { label: 'Offline', variant: 'secondary', color: 'bg-gray-500', icon: <div className="h-2 w-2 rounded-full bg-gray-500" /> },
-  1: { label: 'Online', variant: 'default', color: 'bg-green-500', icon: <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" /> },
-  2: { label: 'Iniciando', variant: 'outline', color: 'bg-yellow-500', icon: <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" /> },
-  3: { label: 'Parando', variant: 'outline', color: 'bg-orange-500', icon: <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" /> },
-  4: { label: 'Reiniciando', variant: 'outline', color: 'bg-blue-500', icon: <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" /> },
-  5: { label: 'Salvando', variant: 'outline', color: 'bg-cyan-500', icon: <div className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" /> },
-  6: { label: 'Carregando', variant: 'outline', color: 'bg-indigo-500', icon: <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" /> },
-  10: { label: 'Preparando', variant: 'outline', color: 'bg-amber-500', icon: <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> },
-};
+const getStatusConfig = (t: (key: string) => string): Record<number, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; color: string; icon: React.ReactNode }> => ({
+  0: { label: t('status.offline'), variant: 'secondary', color: 'bg-gray-500', icon: <div className="h-2 w-2 rounded-full bg-gray-500" /> },
+  1: { label: t('status.online'), variant: 'default', color: 'bg-green-500', icon: <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" /> },
+  2: { label: t('status.starting'), variant: 'outline', color: 'bg-yellow-500', icon: <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" /> },
+  3: { label: t('status.stopping'), variant: 'outline', color: 'bg-orange-500', icon: <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" /> },
+  4: { label: t('status.restarting'), variant: 'outline', color: 'bg-blue-500', icon: <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" /> },
+  5: { label: t('status.saving'), variant: 'outline', color: 'bg-cyan-500', icon: <div className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" /> },
+  6: { label: t('status.loading'), variant: 'outline', color: 'bg-indigo-500', icon: <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" /> },
+  10: { label: t('status.preparing'), variant: 'outline', color: 'bg-amber-500', icon: <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> },
+});
 
 export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const t = useTranslations('servers');
+  const tCommon = useTranslations('common');
   const [serverId, setServerId] = useState<string>('');
   const [server, setServer] = useState<ExarotonServer | null>(null);
   const [content, setContent] = useState<ServerContent | null>(null);
@@ -200,13 +203,13 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
       }
 
       const actionLabels = {
-        start: 'Servidor iniciando...',
-        stop: 'Servidor parando...',
-        restart: 'Servidor reiniciando...',
+        start: t('toast.serverStarting', { name: '' }),
+        stop: t('toast.serverStopping', { name: '' }),
+        restart: t('toast.serverRestarting', { name: '' }),
       };
 
       toast({
-        title: 'Comando enviado',
+        title: t('toast.commandSent'),
         description: actionLabels[action],
       });
 
@@ -223,7 +226,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
       }
     } catch (err: any) {
       toast({
-        title: 'Erro',
+        title: tCommon('error'),
         description: err.message,
         variant: 'destructive',
       });
@@ -235,8 +238,8 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: 'Copiado!',
-      description: `${label} copiado para a área de transferência.`,
+      title: tCommon('copied'),
+      description: t('copiedToClipboard', { label }),
     });
   };
 
@@ -260,12 +263,12 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
       }
 
       toast({
-        title: 'Comando enviado',
-        description: `Comando "${command}" executado com sucesso.`,
+        title: t('toast.commandSent'),
+        description: t('commandExecuted', { command }),
       });
     } catch (err: any) {
       toast({
-        title: 'Erro',
+        title: tCommon('error'),
         description: err.message,
         variant: 'destructive',
       });
@@ -275,7 +278,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   };
 
   if (authLoading || loading) {
-    return <GlobalLoading message="Carregando servidor" />;
+    return <GlobalLoading message={t('loadingServer')} />;
   }
 
   if (error) {
@@ -288,11 +291,11 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
               <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
                 <Server className="h-8 w-8 text-destructive" />
               </div>
-              <h2 className="text-xl font-semibold mb-2">Erro ao carregar</h2>
+              <h2 className="text-xl font-semibold mb-2">{t('errorLoading')}</h2>
               <p className="text-muted-foreground mb-6">{error}</p>
               <Button onClick={() => router.push('/dashboard')}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar ao Dashboard
+                {t('backToDashboard')}
               </Button>
             </CardContent>
           </Card>
@@ -303,6 +306,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
 
   if (!server) return null;
 
+  const statusConfig = getStatusConfig(t);
   const statusInfo = statusConfig[server.status] || statusConfig[0];
   const canControl = user?.isAdmin || user?.serverAccess?.includes(serverId);
   const isOnline = server.status === 1;
@@ -369,7 +373,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       
                       <Badge variant="outline" className="gap-1.5">
                         <Users className="h-3 w-3" />
-                        {server.players.count}/{server.players.max} jogadores
+                        {server.players.count}/{server.players.max} {t('players')}
                       </Badge>
                     </div>
 
@@ -382,7 +386,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                         size="sm" 
                         variant="ghost"
                         className="h-8 w-8 p-0"
-                        onClick={() => copyToClipboard(server.address, 'Endereço')}
+                        onClick={() => copyToClipboard(server.address, t('address'))}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -395,7 +399,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       variant="outline"
                       size="icon"
                       onClick={() => fetchServerData(true)}
-                      title="Atualizar dados"
+                      title={t('refreshData')}
                       className="bg-background/50 backdrop-blur-sm"
                     >
                       <RefreshCw className="h-4 w-4" />
@@ -407,7 +411,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                         className="bg-background/50 backdrop-blur-sm"
                       >
                         <Settings className="h-4 w-4 mr-2" />
-                        Editar
+                        {tCommon('edit')}
                       </Button>
                     )}
                   </div>
@@ -464,14 +468,14 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Server className="h-5 w-5" />
-                  Informações
+                  {t('info.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-2">
                     <Cpu className="h-4 w-4" />
-                    Software
+                    {t('info.software')}
                   </span>
                   <span className="font-medium">{server.software.name}</span>
                 </div>
@@ -479,7 +483,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-2">
                     <HardDrive className="h-4 w-4" />
-                    Versão
+                    {t('info.version')}
                   </span>
                   <span className="font-medium">{server.software.version}</span>
                 </div>
@@ -487,9 +491,9 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Slots
+                    {t('info.slots')}
                   </span>
-                  <span className="font-medium">{server.players.max} jogadores</span>
+                  <span className="font-medium">{server.players.max} {t('players')}</span>
                 </div>
                 {server.ram && (
                   <>
@@ -509,9 +513,9 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground flex items-center gap-2">
                         <Clock className="h-4 w-4" />
-                        Créditos
+                        {t('info.credits')}
                       </span>
-                      <span className="font-medium">{server.credits} créditos</span>
+                      <span className="font-medium">{server.credits} {t('info.creditsUnit')}</span>
                     </div>
                   </>
                 )}

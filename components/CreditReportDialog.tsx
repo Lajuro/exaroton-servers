@@ -30,6 +30,7 @@ import {
   Server,
 } from 'lucide-react';
 import { CreditReport } from '@/types';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface CreditReportDialogProps {
   open: boolean;
@@ -37,6 +38,10 @@ interface CreditReportDialogProps {
 }
 
 export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogProps) {
+  const t = useTranslations('credits.report');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<CreditReport | null>(null);
@@ -55,7 +60,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
     try {
       const token = await auth.currentUser?.getIdToken(true);
       if (!token) {
-        throw new Error('Não autenticado');
+        throw new Error(tCommon('notAuthenticated'));
       }
 
       const params = new URLSearchParams({
@@ -69,17 +74,17 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || 'Erro ao gerar relatório');
+        throw new Error(data.error || t('errorGenerating'));
       }
 
       const data = await response.json();
       setReport(data.report);
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar relatório');
+      setError(err.message || t('errorLoading'));
     } finally {
       setLoading(false);
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, t, tCommon]);
 
   const generatePDF = useCallback(() => {
     if (!report) return;
@@ -88,6 +93,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
     let y = 20;
+    const isPtBR = locale === 'pt-BR';
 
     // Helper functions
     const addText = (text: string, x: number, currentY: number, options?: any) => {
@@ -101,7 +107,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
     };
 
     const formatDate = (date: Date | string) => {
-      return new Date(date).toLocaleDateString('pt-BR', {
+      return new Date(date).toLocaleDateString(isPtBR ? 'pt-BR' : 'en-US', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -114,21 +120,21 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
     // Header
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    addText('Relatório de Créditos Exaroton', pageWidth / 2, y, { align: 'center' });
+    addText(isPtBR ? 'Relatório de Créditos Exaroton' : 'Exaroton Credits Report', pageWidth / 2, y, { align: 'center' });
     y += 10;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
     addText(
-      `Período: ${formatDate(report.period.start)} - ${formatDate(report.period.end)}`,
+      `${isPtBR ? 'Período' : 'Period'}: ${formatDate(report.period.start)} - ${formatDate(report.period.end)}`,
       pageWidth / 2,
       y,
       { align: 'center' }
     );
     y += 5;
     addText(
-      `Gerado em: ${new Date(report.generatedAt).toLocaleString('pt-BR')}`,
+      `${isPtBR ? 'Gerado em' : 'Generated at'}: ${new Date(report.generatedAt).toLocaleString(isPtBR ? 'pt-BR' : 'en-US')}`,
       pageWidth / 2,
       y,
       { align: 'center' }
@@ -141,19 +147,26 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    addText('Resumo Geral', margin, y);
+    addText(isPtBR ? 'Resumo Geral' : 'General Summary', margin, y);
     y += 10;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
 
-    const summaryData = [
+    const summaryData = isPtBR ? [
       ['Créditos Iniciais:', `${formatCredits(report.summary.startCredits)} (${formatCurrency(report.summary.startCredits)})`],
       ['Créditos Finais:', `${formatCredits(report.summary.endCredits)} (${formatCurrency(report.summary.endCredits)})`],
       ['Total Gasto:', `${formatCredits(report.summary.totalSpent)} (${formatCurrency(report.summary.totalSpent)})`],
       ['Média por Dia:', `${formatCredits(report.summary.averagePerDay)} créditos/dia`],
       ['Média por Hora:', `${formatCredits(report.summary.averagePerHour)} créditos/hora`],
       ['Projeção Mensal:', `${formatCredits(report.summary.projectedMonthly)} créditos (~${formatCurrency(report.summary.projectedMonthly)})`],
+    ] : [
+      ['Starting Credits:', `${formatCredits(report.summary.startCredits)} (${formatCurrency(report.summary.startCredits)})`],
+      ['Ending Credits:', `${formatCredits(report.summary.endCredits)} (${formatCurrency(report.summary.endCredits)})`],
+      ['Total Spent:', `${formatCredits(report.summary.totalSpent)} (${formatCurrency(report.summary.totalSpent)})`],
+      ['Average per Day:', `${formatCredits(report.summary.averagePerDay)} credits/day`],
+      ['Average per Hour:', `${formatCredits(report.summary.averagePerHour)} credits/hour`],
+      ['Monthly Projection:', `${formatCredits(report.summary.projectedMonthly)} credits (~${formatCurrency(report.summary.projectedMonthly)})`],
     ];
 
     summaryData.forEach(([label, value]) => {
@@ -171,7 +184,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
     if (report.dailyBreakdown.length > 0) {
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      addText('Detalhamento Diário', margin, y);
+      addText(isPtBR ? 'Detalhamento Diário' : 'Daily Breakdown', margin, y);
       y += 10;
 
       // Table header
@@ -182,7 +195,8 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
       
       const colWidths = [40, 40, 40, 40];
       let x = margin + 5;
-      ['Data', 'Início', 'Fim', 'Gasto'].forEach((header, i) => {
+      const headers = isPtBR ? ['Data', 'Início', 'Fim', 'Gasto'] : ['Date', 'Start', 'End', 'Spent'];
+      headers.forEach((header, i) => {
         addText(header, x, y);
         x += colWidths[i];
       });
@@ -229,7 +243,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
 
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      addText('Uso por Servidor', margin, y);
+      addText(isPtBR ? 'Uso por Servidor' : 'Usage by Server', margin, y);
       y += 10;
 
       // Table header
@@ -240,7 +254,10 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
 
       const serverColWidths = [60, 30, 30, 40];
       let x = margin + 5;
-      ['Servidor', 'RAM (GB)', 'Horas', 'Créditos Est.'].forEach((header, i) => {
+      const serverHeaders = isPtBR 
+        ? ['Servidor', 'RAM (GB)', 'Horas', 'Créditos Est.']
+        : ['Server', 'RAM (GB)', 'Hours', 'Est. Credits'];
+      serverHeaders.forEach((header, i) => {
         addText(header, x, y);
         x += serverColWidths[i];
       });
@@ -284,23 +301,25 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     addText(
-      'Relatório gerado automaticamente pelo MineServerManager',
+      isPtBR ? 'Relatório gerado automaticamente pelo MineServerManager' : 'Report automatically generated by MineServerManager',
       pageWidth / 2,
       y,
       { align: 'center' }
     );
     y += 4;
     addText(
-      'Dados baseados em snapshots salvos no Firebase',
+      isPtBR ? 'Dados baseados em snapshots salvos no Firebase' : 'Data based on snapshots saved in Firebase',
       pageWidth / 2,
       y,
       { align: 'center' }
     );
 
     // Save the PDF
-    const fileName = `relatorio-creditos-${formatDate(report.period.start)}-${formatDate(report.period.end)}.pdf`;
+    const fileName = isPtBR 
+      ? `relatorio-creditos-${formatDate(report.period.start)}-${formatDate(report.period.end)}.pdf`
+      : `credits-report-${formatDate(report.period.start)}-${formatDate(report.period.end)}.pdf`;
     doc.save(fileName);
-  }, [report]);
+  }, [report, locale]);
 
   const formatCredits = (value: number) => value.toFixed(2);
   const formatCurrency = (credits: number) => `€${(credits * 0.01).toFixed(2)}`;
@@ -311,10 +330,10 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Relatório de Créditos
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
-            Gere um relatório detalhado dos seus gastos de créditos em PDF
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -322,7 +341,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
           {/* Date Range Selection */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Data Inicial</Label>
+              <Label htmlFor="startDate">{t('startDate')}</Label>
               <Input
                 id="startDate"
                 type="date"
@@ -331,7 +350,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">Data Final</Label>
+              <Label htmlFor="endDate">{t('endDate')}</Label>
               <Input
                 id="endDate"
                 type="date"
@@ -350,12 +369,12 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Carregando...
+                {tCommon('loading')}
               </>
             ) : (
               <>
                 <BarChart3 className="mr-2 h-4 w-4" />
-                Carregar Dados
+                {t('loadData')}
               </>
             )}
           </Button>
@@ -376,10 +395,10 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    Prévia do Relatório
+                    {t('preview')}
                   </h4>
                   <Badge variant="outline" className="text-xs">
-                    {new Date(report.generatedAt).toLocaleString('pt-BR')}
+                    {new Date(report.generatedAt).toLocaleString(locale === 'pt-BR' ? 'pt-BR' : 'en-US')}
                   </Badge>
                 </div>
 
@@ -388,7 +407,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
                   <div className="p-3 rounded-lg bg-muted/50 space-y-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <TrendingDown className="h-4 w-4" />
-                      <span className="text-xs">Total Gasto</span>
+                      <span className="text-xs">{t('totalSpent')}</span>
                     </div>
                     <p className="text-lg font-bold text-red-500">
                       -{formatCredits(report.summary.totalSpent)}
@@ -401,7 +420,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
                   <div className="p-3 rounded-lg bg-muted/50 space-y-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      <span className="text-xs">Projeção Mensal</span>
+                      <span className="text-xs">{t('monthlyProjection')}</span>
                     </div>
                     <p className="text-lg font-bold text-amber-500">
                       ~{formatCredits(report.summary.projectedMonthly)}
@@ -414,23 +433,23 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
                   <div className="p-3 rounded-lg bg-muted/50 space-y-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      <span className="text-xs">Média/Dia</span>
+                      <span className="text-xs">{t('avgPerDay')}</span>
                     </div>
                     <p className="text-lg font-bold">
                       {formatCredits(report.summary.averagePerDay)}
                     </p>
-                    <p className="text-xs text-muted-foreground">créditos/dia</p>
+                    <p className="text-xs text-muted-foreground">{t('creditsPerDay')}</p>
                   </div>
 
                   <div className="p-3 rounded-lg bg-muted/50 space-y-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Server className="h-4 w-4" />
-                      <span className="text-xs">Servidores</span>
+                      <span className="text-xs">{t('servers')}</span>
                     </div>
                     <p className="text-lg font-bold">
                       {report.serverUsage.length}
                     </p>
-                    <p className="text-xs text-muted-foreground">com uso registrado</p>
+                    <p className="text-xs text-muted-foreground">{t('withUsageRecorded')}</p>
                   </div>
                 </div>
 
@@ -438,7 +457,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
                 {report.dailyBreakdown.length > 0 && (
                   <div className="p-3 rounded-lg bg-muted/50">
                     <p className="text-xs text-muted-foreground mb-2">
-                      Últimos {Math.min(7, report.dailyBreakdown.length)} dias
+                      {t('lastDays', { count: Math.min(7, report.dailyBreakdown.length) })}
                     </p>
                     <div className="flex items-end gap-1 h-16">
                       {report.dailyBreakdown.slice(-7).map((day, i) => {
@@ -451,7 +470,7 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
                             key={i}
                             className="flex-1 bg-red-500/70 rounded-t transition-all"
                             style={{ height: `${Math.max(height, 5)}%` }}
-                            title={`${new Date(day.date).toLocaleDateString('pt-BR')}: -${formatCredits(day.spent)}`}
+                            title={`${new Date(day.date).toLocaleDateString(locale === 'pt-BR' ? 'pt-BR' : 'en-US')}: -${formatCredits(day.spent)}`}
                           />
                         );
                       })}
@@ -465,11 +484,11 @@ export function CreditReportDialog({ open, onOpenChange }: CreditReportDialogPro
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+            {tCommon('cancel')}
           </Button>
           <Button onClick={generatePDF} disabled={!report || loading}>
             <Download className="mr-2 h-4 w-4" />
-            Baixar PDF
+            {t('downloadPDF')}
           </Button>
         </DialogFooter>
       </DialogContent>

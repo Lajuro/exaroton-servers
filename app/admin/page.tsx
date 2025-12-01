@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
@@ -62,6 +63,8 @@ export default function AdminPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const t = useTranslations('admin');
+  const tCommon = useTranslations('common');
   
   const [users, setUsers] = useState<User[]>([]);
   const [servers, setServers] = useState<Server[]>([]);
@@ -100,8 +103,8 @@ export default function AdminPage() {
         }),
       ]);
 
-      if (!usersRes.ok) throw new Error('Falha ao buscar usuários');
-      if (!serversRes.ok) throw new Error('Falha ao buscar servidores');
+      if (!usersRes.ok) throw new Error(t('fetchUsersError'));
+      if (!serversRes.ok) throw new Error(t('fetchServersError'));
 
       const usersData = await usersRes.json();
       const serversData = await serversRes.json();
@@ -109,7 +112,7 @@ export default function AdminPage() {
       setUsers(usersData.users || []);
       setServers(serversData.servers || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocorreu um erro');
+      setError(err instanceof Error ? err.message : tCommon('errorOccurred'));
     } finally {
       setLoading(false);
     }
@@ -182,7 +185,7 @@ export default function AdminPage() {
         body: JSON.stringify({ isAdmin: selectedRole === 'admin' }),
       });
 
-      if (!roleRes.ok) throw new Error('Falha ao atualizar role');
+      if (!roleRes.ok) throw new Error(t('updateRoleError'));
 
       // Update server access
       const accessRes = await fetch(`/api/users/${editingUser.id}/server-access`, {
@@ -194,19 +197,19 @@ export default function AdminPage() {
         body: JSON.stringify({ serverAccess: selectedServers }),
       });
 
-      if (!accessRes.ok) throw new Error('Falha ao atualizar acesso');
+      if (!accessRes.ok) throw new Error(t('updateAccessError'));
 
       toast({
-        title: 'Usuário atualizado',
-        description: `As permissões de ${editingUser.name} foram atualizadas com sucesso.`,
+        title: t('userUpdated'),
+        description: t('userUpdatedDesc', { name: editingUser.name }),
       });
 
       setEditingUser(null);
       fetchData();
     } catch (err) {
       toast({
-        title: 'Erro ao atualizar',
-        description: err instanceof Error ? err.message : 'Ocorreu um erro',
+        title: t('updateError'),
+        description: err instanceof Error ? err.message : tCommon('errorOccurred'),
         variant: 'destructive',
       });
     } finally {
@@ -248,8 +251,8 @@ export default function AdminPage() {
               <Settings className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl md:text-2xl font-bold tracking-tight">Administração</h2>
-              <p className="text-xs text-muted-foreground">Gerencie usuários e permissões do sistema</p>
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight">{t('title')}</h2>
+              <p className="text-xs text-muted-foreground">{t('description')}</p>
             </div>
           </div>
           <Button
@@ -264,7 +267,7 @@ export default function AdminPage() {
             ) : (
               <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
             )}
-            <span className="hidden sm:inline">Atualizar</span>
+            <span className="hidden sm:inline">{tCommon('refresh')}</span>
           </Button>
         </div>
 
@@ -274,7 +277,7 @@ export default function AdminPage() {
             <div className="relative flex-1 group">
               <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
-                placeholder="Buscar usuário..."
+                placeholder={t('searchUserPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 sm:pl-10 h-9 sm:h-10 text-sm border-muted-foreground/20 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
@@ -282,25 +285,25 @@ export default function AdminPage() {
             </div>
             <Select value={sortBy} onValueChange={(value: 'name' | 'role' | 'servers') => setSortBy(value)}>
               <SelectTrigger className="w-[100px] sm:w-[140px] h-9 sm:h-10 text-xs sm:text-sm border-muted-foreground/20 hover:border-primary/50 transition-colors">
-                <SelectValue placeholder="Ordenar" />
+                <SelectValue placeholder={tCommon('sort')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="name">
                   <div className="flex items-center gap-2">
                     <ArrowDownAZ className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Nome</span>
+                    <span className="text-xs sm:text-sm">{t('sortByName')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="role">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Cargo</span>
+                    <span className="text-xs sm:text-sm">{t('sortByRole')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="servers">
                   <div className="flex items-center gap-2">
                     <ServerIcon className="h-3.5 w-3.5" />
-                    <span className="text-xs sm:text-sm">Servidores</span>
+                    <span className="text-xs sm:text-sm">{t('sortByServers')}</span>
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -319,7 +322,7 @@ export default function AdminPage() {
                     <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                   </div>
                   <div className="flex-1 text-center sm:text-left min-w-0 space-y-0.5 sm:space-y-1">
-                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">Usuários</p>
+                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">{t('users.title')}</p>
                     <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent">{totalUsers}</p>
                   </div>
                 </div>
@@ -352,7 +355,7 @@ export default function AdminPage() {
                     <ServerIcon className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
                   </div>
                   <div className="flex-1 text-center sm:text-left min-w-0 space-y-0.5 sm:space-y-1">
-                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">Servidores</p>
+                    <p className="text-[9px] sm:text-xs font-semibold text-muted-foreground/80 leading-tight">{t('servers.title')}</p>
                     <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-purple-500 to-purple-600 bg-clip-text text-transparent">{totalServers}</p>
                   </div>
                 </div>
@@ -366,7 +369,7 @@ export default function AdminPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-1">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Carregando dados...</p>
+              <p className="text-sm text-muted-foreground">{t('loadingData')}</p>
             </div>
           </div>
         ) : error ? (
@@ -377,7 +380,7 @@ export default function AdminPage() {
                   <AlertCircle className="h-8 w-8 text-destructive" />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-lg font-medium text-destructive">Erro ao carregar dados</p>
+                  <p className="text-lg font-medium text-destructive">{t('errorLoadingData')}</p>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto">{error}</p>
                 </div>
                 <Button
@@ -386,7 +389,7 @@ export default function AdminPage() {
                   className="gap-2"
                 >
                   <RefreshCw className="h-4 w-4" />
-                  Tentar novamente
+                  {t('tryAgain')}
                 </Button>
               </div>
             </CardContent>
@@ -399,9 +402,9 @@ export default function AdminPage() {
                   <Users className="h-10 w-10 text-muted-foreground" />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-xl font-medium">Nenhum usuário encontrado</p>
+                  <p className="text-xl font-medium">{t('noUsersFound')}</p>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                    Os usuários aparecerão aqui assim que fizerem login pela primeira vez.
+                    {t('usersWillAppear')}
                   </p>
                 </div>
               </div>
@@ -415,9 +418,9 @@ export default function AdminPage() {
                   <Search className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-lg font-medium">Nenhum usuário encontrado</p>
+                  <p className="text-lg font-medium">{t('noUsersFound')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Não encontramos resultados para &quot;{searchQuery}&quot;
+                    {t('noResultsFor', { query: searchQuery })}
                   </p>
                 </div>
                 <Button
@@ -426,7 +429,7 @@ export default function AdminPage() {
                   className="gap-2"
                 >
                   <RefreshCw className="h-4 w-4" />
-                  Limpar busca
+                  {t('clearSearch')}
                 </Button>
               </div>
             </CardContent>
@@ -437,7 +440,7 @@ export default function AdminPage() {
             {(searchQuery || sortBy !== 'name') && (
               <div className="flex items-center justify-between px-1">
                 <p className="text-sm text-muted-foreground">
-                  Exibindo <span className="font-medium text-foreground">{filteredAndSortedUsers.length}</span> de <span className="font-medium text-foreground">{users.length}</span> usuário{users.length !== 1 && 's'}
+                  {t('showingUsers', { shown: filteredAndSortedUsers.length, total: users.length })}
                 </p>
                 {searchQuery && (
                   <Button
@@ -447,7 +450,7 @@ export default function AdminPage() {
                     className="h-8 gap-1 text-xs"
                   >
                     <RefreshCw className="h-3 w-3" />
-                    Limpar filtros
+                    {t('clearFilters')}
                   </Button>
                 )}
               </div>
@@ -488,7 +491,7 @@ export default function AdminPage() {
                           {userItem.isAdmin ? (
                             <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
                               <Shield className="h-3 w-3 mr-1" />
-                              Acesso total
+                              {t('fullAccess')}
                             </Badge>
                           ) : userItem.serverAccess?.length > 0 ? (
                             userItem.serverAccess.map(serverId => (
@@ -499,7 +502,7 @@ export default function AdminPage() {
                             ))
                           ) : (
                             <Badge variant="outline" className="text-xs text-muted-foreground">
-                              Sem acesso
+                              {t('noAccess')}
                             </Badge>
                           )}
                         </div>
@@ -513,7 +516,7 @@ export default function AdminPage() {
                               onClick={() => handleEditUser(userItem)}
                             >
                               <Pencil className="h-3.5 w-3.5" />
-                              <span className="hidden sm:inline">Editar</span>
+                              <span className="hidden sm:inline">{tCommon('edit')}</span>
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-md">
@@ -533,7 +536,7 @@ export default function AdminPage() {
                             <div className="space-y-6 py-4">
                               {/* Role Selection */}
                               <div className="space-y-3">
-                                <Label className="text-sm font-medium">Cargo</Label>
+                                <Label className="text-sm font-medium">{t('role')}</Label>
                                 <div className="grid grid-cols-2 gap-3">
                                   <button
                                     type="button"
@@ -545,8 +548,8 @@ export default function AdminPage() {
                                     }`}
                                   >
                                     <User className="h-5 w-5 mx-auto mb-1" />
-                                    <p className="text-sm font-medium">Usuário</p>
-                                    <p className="text-xs text-muted-foreground">Acesso limitado</p>
+                                    <p className="text-sm font-medium">{t('user')}</p>
+                                    <p className="text-xs text-muted-foreground">{t('limitedAccess')}</p>
                                   </button>
                                   <button
                                     type="button"
@@ -559,7 +562,7 @@ export default function AdminPage() {
                                   >
                                     <Crown className="h-5 w-5 mx-auto mb-1 text-amber-500" />
                                     <p className="text-sm font-medium">Admin</p>
-                                    <p className="text-xs text-muted-foreground">Acesso total</p>
+                                    <p className="text-xs text-muted-foreground">{t('fullAccess')}</p>
                                   </button>
                                 </div>
                               </div>
@@ -567,11 +570,11 @@ export default function AdminPage() {
                               {/* Server Access */}
                               {selectedRole === 'user' && (
                                 <div className="space-y-3">
-                                  <Label className="text-sm font-medium">Acesso aos Servidores</Label>
+                                  <Label className="text-sm font-medium">{t('serverAccess')}</Label>
                                   <div className="space-y-2 max-h-48 overflow-y-auto rounded-lg border p-3">
                                     {servers.length === 0 ? (
                                       <p className="text-sm text-muted-foreground text-center py-2">
-                                        Nenhum servidor disponível
+                                        {t('noServersAvailable')}
                                       </p>
                                     ) : (
                                       servers.map(server => (
@@ -598,7 +601,7 @@ export default function AdminPage() {
                                     )}
                                   </div>
                                   <p className="text-xs text-muted-foreground">
-                                    {selectedServers.length} servidor{selectedServers.length !== 1 && 'es'} selecionado{selectedServers.length !== 1 && 's'}
+                                    {t('serversSelected', { count: selectedServers.length })}
                                   </p>
                                 </div>
                               )}
@@ -608,9 +611,9 @@ export default function AdminPage() {
                                   <div className="flex gap-2">
                                     <Shield className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
                                     <div>
-                                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Acesso Administrativo</p>
+                                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400">{t('adminAccess')}</p>
                                       <p className="text-xs text-muted-foreground">
-                                        Administradores têm acesso total a todos os servidores e configurações do sistema.
+                                        {t('adminAccessDesc')}
                                       </p>
                                     </div>
                                   </div>
@@ -621,19 +624,19 @@ export default function AdminPage() {
                             <DialogFooter className="gap-2 sm:gap-0">
                               <DialogClose asChild>
                                 <Button variant="outline" disabled={isSaving}>
-                                  Cancelar
+                                  {tCommon('cancel')}
                                 </Button>
                               </DialogClose>
                               <Button onClick={handleSaveUser} disabled={isSaving}>
                                 {isSaving ? (
                                   <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Salvando...
+                                    {t('saving')}
                                   </>
                                 ) : (
                                   <>
                                     <Check className="h-4 w-4 mr-2" />
-                                    Salvar alterações
+                                    {t('saveChanges')}
                                   </>
                                 )}
                               </Button>

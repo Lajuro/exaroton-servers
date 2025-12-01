@@ -1,0 +1,552 @@
+extend type Mutation {
+  """
+  ✨ Insert a single `Invitation` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  invitation_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Invitation_Data!
+  ): Invitation_KeyOutput! @fdc_generated(from: "Invitation", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `MinecraftServer` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  minecraftServer_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: MinecraftServer_Data!
+  ): MinecraftServer_KeyOutput! @fdc_generated(from: "MinecraftServer", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `ServerAccess` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  serverAccess_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: ServerAccess_Data!
+  ): ServerAccess_KeyOutput! @fdc_generated(from: "ServerAccess", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `ServerLog` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  serverLog_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: ServerLog_Data!
+  ): ServerLog_KeyOutput! @fdc_generated(from: "ServerLog", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `User` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  user_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: User_Data!
+  ): User_KeyOutput! @fdc_generated(from: "User", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert `Invitation` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  invitation_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Invitation_Data!]!
+  ): [Invitation_KeyOutput!]! @fdc_generated(from: "Invitation", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `MinecraftServer` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  minecraftServer_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [MinecraftServer_Data!]!
+  ): [MinecraftServer_KeyOutput!]! @fdc_generated(from: "MinecraftServer", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `ServerAccess` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  serverAccess_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [ServerAccess_Data!]!
+  ): [ServerAccess_KeyOutput!]! @fdc_generated(from: "ServerAccess", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `ServerLog` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  serverLog_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [ServerLog_Data!]!
+  ): [ServerLog_KeyOutput!]! @fdc_generated(from: "ServerLog", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `User` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  user_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [User_Data!]!
+  ): [User_KeyOutput!]! @fdc_generated(from: "User", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert or update a single `Invitation` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Invitation`.
+  """
+  invitation_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Invitation_Data!
+  ): Invitation_KeyOutput! @fdc_generated(from: "Invitation", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `MinecraftServer` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `MinecraftServer`.
+  """
+  minecraftServer_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: MinecraftServer_Data!
+  ): MinecraftServer_KeyOutput! @fdc_generated(from: "MinecraftServer", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `ServerAccess` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ServerAccess`.
+  """
+  serverAccess_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: ServerAccess_Data!
+  ): ServerAccess_KeyOutput! @fdc_generated(from: "ServerAccess", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `ServerLog` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ServerLog`.
+  """
+  serverLog_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: ServerLog_Data!
+  ): ServerLog_KeyOutput! @fdc_generated(from: "ServerLog", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `User` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `User`.
+  """
+  user_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: User_Data!
+  ): User_KeyOutput! @fdc_generated(from: "User", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update `Invitation` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Invitation`.
+  """
+  invitation_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Invitation_Data!]!
+  ): [Invitation_KeyOutput!]! @fdc_generated(from: "Invitation", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `MinecraftServer` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `MinecraftServer`.
+  """
+  minecraftServer_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [MinecraftServer_Data!]!
+  ): [MinecraftServer_KeyOutput!]! @fdc_generated(from: "MinecraftServer", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `ServerAccess` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ServerAccess`.
+  """
+  serverAccess_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [ServerAccess_Data!]!
+  ): [ServerAccess_KeyOutput!]! @fdc_generated(from: "ServerAccess", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `ServerLog` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ServerLog`.
+  """
+  serverLog_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [ServerLog_Data!]!
+  ): [ServerLog_KeyOutput!]! @fdc_generated(from: "ServerLog", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `User` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `User`.
+  """
+  user_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [User_Data!]!
+  ): [User_KeyOutput!]! @fdc_generated(from: "User", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Update a single `Invitation` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Invitation` or `null` if not found.
+  """
+  invitation_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Invitation_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Invitation_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Invitation_Data!
+  ): Invitation_KeyOutput @fdc_generated(from: "Invitation", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `MinecraftServer` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `MinecraftServer` or `null` if not found.
+  """
+  minecraftServer_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: MinecraftServer_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: MinecraftServer_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: MinecraftServer_Data!
+  ): MinecraftServer_KeyOutput @fdc_generated(from: "MinecraftServer", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `ServerAccess` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `ServerAccess` or `null` if not found.
+  """
+  serverAccess_update(
+    """
+    The key used to identify the object.
+    """
+    key: ServerAccess_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ServerAccess_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: ServerAccess_Data!
+  ): ServerAccess_KeyOutput @fdc_generated(from: "ServerAccess", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `ServerLog` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `ServerLog` or `null` if not found.
+  """
+  serverLog_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: ServerLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ServerLog_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: ServerLog_Data!
+  ): ServerLog_KeyOutput @fdc_generated(from: "ServerLog", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `User` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `User` or `null` if not found.
+  """
+  user_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: User_Data!
+  ): User_KeyOutput @fdc_generated(from: "User", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update `Invitation` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  invitation_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Invitation_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Invitation_Data!
+  ): Int! @fdc_generated(from: "Invitation", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `MinecraftServer` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  minecraftServer_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: MinecraftServer_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: MinecraftServer_Data!
+  ): Int! @fdc_generated(from: "MinecraftServer", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `ServerAccess` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  serverAccess_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: ServerAccess_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: ServerAccess_Data!
+  ): Int! @fdc_generated(from: "ServerAccess", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `ServerLog` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  serverLog_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: ServerLog_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: ServerLog_Data!
+  ): Int! @fdc_generated(from: "ServerLog", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `User` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  user_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: User_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: User_Data!
+  ): Int! @fdc_generated(from: "User", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Delete a single `Invitation` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  invitation_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Invitation_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Invitation_FirstRow
+  ): Invitation_KeyOutput @fdc_generated(from: "Invitation", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `MinecraftServer` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  minecraftServer_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: MinecraftServer_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: MinecraftServer_FirstRow
+  ): MinecraftServer_KeyOutput @fdc_generated(from: "MinecraftServer", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `ServerAccess` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  serverAccess_delete(
+    """
+    The key used to identify the object.
+    """
+    key: ServerAccess_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ServerAccess_FirstRow
+  ): ServerAccess_KeyOutput @fdc_generated(from: "ServerAccess", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `ServerLog` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  serverLog_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: ServerLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ServerLog_FirstRow
+  ): ServerLog_KeyOutput @fdc_generated(from: "ServerLog", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `User` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  user_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+  ): User_KeyOutput @fdc_generated(from: "User", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete `Invitation` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  invitation_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Invitation_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Invitation", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `MinecraftServer` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  minecraftServer_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: MinecraftServer_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "MinecraftServer", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `ServerAccess` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  serverAccess_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: ServerAccess_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "ServerAccess", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `ServerLog` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  serverLog_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: ServerLog_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "ServerLog", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `User` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  user_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: User_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "User", purpose: DELETE_MULTIPLE)
+}

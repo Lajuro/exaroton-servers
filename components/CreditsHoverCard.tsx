@@ -32,6 +32,7 @@ import {
   PinOff,
 } from 'lucide-react';
 import { CreditSpending, DailySpending } from '@/types';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface CreditHistoryData {
   currentCredits: number;
@@ -56,6 +57,10 @@ interface CreditsHoverCardProps {
 }
 
 export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
+  const t = useTranslations('credits');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+  
   const [credits, setCredits] = useState<number | null>(null);
   const [history, setHistory] = useState<CreditHistoryData | null>(null);
   const [loadingCredits, setLoadingCredits] = useState(false);
@@ -91,11 +96,11 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
       }
     } catch (err) {
       console.error('Error fetching credits:', err);
-      setError('Erro ao buscar créditos');
+      setError(t('errorFetchingCredits'));
     } finally {
       setLoadingCredits(false);
     }
-  }, []);
+  }, [t]);
 
   // Fetch credit history
   const fetchHistory = useCallback(async () => {
@@ -263,7 +268,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
 
   const formatDate = (date: Date | string) => {
     const d = new Date(date);
-    return d.toLocaleDateString('pt-BR', {
+    return d.toLocaleDateString(locale === 'pt-BR' ? 'pt-BR' : 'en-US', {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
@@ -373,9 +378,9 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                 <Coins className="h-5 w-5 text-emerald-500" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold">Créditos Exaroton</h4>
+                <h4 className="text-sm font-semibold">{t('exarotonCredits')}</h4>
                 <p className="text-xs text-muted-foreground">
-                  Monitoramento de gastos
+                  {t('spendingMonitoring')}
                 </p>
               </div>
             </div>
@@ -388,7 +393,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                   isPinned && 'bg-emerald-500 hover:bg-emerald-600'
                 )}
                 onClick={() => setIsPinned(!isPinned)}
-                title={isPinned ? 'Desafixar' : 'Fixar aberto'}
+                title={isPinned ? t('unpin') : t('pinOpen')}
               >
                 {isPinned ? (
                   <PinOff className="h-4 w-4" />
@@ -419,7 +424,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
           {/* Current Balance */}
           <div className="p-3 rounded-lg bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">Saldo Atual</span>
+              <span className="text-xs text-muted-foreground">{t('currentBalance')}</span>
               {displayCredits !== null && (
                 <span className="text-xs text-muted-foreground">
                   {formatCurrency(displayCredits)}
@@ -436,7 +441,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                 {displayCredits !== null ? formatCredits(displayCredits) : '-'}
               </span>
               <Badge variant="outline" className="text-xs">
-                créditos
+                {t('credits')}
               </Badge>
             </div>
           </div>
@@ -446,7 +451,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
             <div className="flex items-center justify-between p-2 rounded-lg border">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Modo Tempo Real</span>
+                <span className="text-sm">{t('realTimeMode')}</span>
               </div>
               <Button
                 variant={realTimeEnabled ? 'destructive' : 'outline'}
@@ -460,12 +465,12 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                 ) : realTimeEnabled ? (
                   <>
                     <Pause className="h-3 w-3" />
-                    Parar
+                    {tCommon('stop')}
                   </>
                 ) : (
                   <>
                     <Play className="h-3 w-3" />
-                    Iniciar
+                    {t('start')}
                   </>
                 )}
               </Button>
@@ -487,7 +492,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                   {/* Started With */}
                   <div className="p-2 rounded bg-muted/50">
                     <span className="text-[10px] text-muted-foreground block mb-0.5">
-                      Início
+                      {t('start')}
                     </span>
                     <span className="text-sm font-bold text-foreground tabular-nums">
                       {formatCredits(realTimeStartCredits)}
@@ -497,7 +502,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                   {/* Current */}
                   <div className="p-2 rounded bg-red-500/10">
                     <span className="text-[10px] text-muted-foreground block mb-0.5">
-                      Atual
+                      {t('current')}
                     </span>
                     <span className="text-sm font-bold text-red-500 tabular-nums">
                       {displayCredits !== null ? formatCredits(displayCredits) : '-'}
@@ -507,7 +512,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                   {/* Spent */}
                   <div className="p-2 rounded bg-red-500/20">
                     <span className="text-[10px] text-muted-foreground block mb-0.5">
-                      Gasto
+                      {t('spentRealTime')}
                     </span>
                     <span className="text-sm font-bold text-red-600 tabular-nums">
                       -{formatCredits(realTimeSpent)}
@@ -518,13 +523,15 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                 {/* Money equivalent */}
                 <div className="text-center pt-1 border-t border-red-500/20">
                   <span className="text-xs text-muted-foreground">
-                    Equivalente: <span className="text-red-500 font-semibold">{formatCurrency(realTimeSpent)}</span> gastos
+                    {locale === 'pt-BR' ? 'Equivalente:' : 'Equivalent:'} <span className="text-red-500 font-semibold">{formatCurrency(realTimeSpent)}</span> {locale === 'pt-BR' ? 'gastos' : 'spent'}
                   </span>
                 </div>
 
                 {/* Info */}
                 <p className="text-[10px] text-muted-foreground text-center">
-                  Atualiza automaticamente a cada 30s • Estimativa baseada na média de gasto
+                  {locale === 'pt-BR' 
+                    ? 'Atualiza automaticamente a cada 30s • Estimativa baseada na média de gasto'
+                    : 'Auto-updates every 30s • Estimate based on average spending'}
                 </p>
               </div>
             )}
@@ -544,7 +551,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
             <div className="flex items-center justify-between">
               <h5 className="text-sm font-semibold flex items-center gap-1.5">
                 <ArrowDown className="h-4 w-4" />
-                Resumo de Gastos
+                {locale === 'pt-BR' ? 'Resumo de Gastos' : 'Spending Summary'}
               </h5>
               {!history && (
                 <Button
@@ -554,25 +561,25 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
                   onClick={fetchHistory}
                   disabled={loadingHistory}
                 >
-                  Carregar
+                  {tCommon('loading')}
                 </Button>
               )}
             </div>
 
             <SpendingCard
-              title="Hoje"
+              title={t('today')}
               icon={Calendar}
               spending={history?.spending.day}
               isLoading={loadingHistory}
             />
             <SpendingCard
-              title="Últimos 3 dias"
+              title={t('last3Days')}
               icon={CalendarDays}
               spending={history?.spending.threeDays}
               isLoading={loadingHistory}
             />
             <SpendingCard
-              title="Última semana"
+              title={t('lastWeek')}
               icon={CalendarRange}
               spending={history?.spending.week}
               isLoading={loadingHistory}
@@ -584,15 +591,15 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2 rounded-lg bg-muted/50 text-center">
                 <span className="text-xs text-muted-foreground block">
-                  Média/Dia
+                  {locale === 'pt-BR' ? 'Média/Dia' : 'Avg/Day'}
                 </span>
                 <span className="text-sm font-bold">
-                  {formatCredits(history.spending.week.averagePerDay)}/dia
+                  {formatCredits(history.spending.week.averagePerDay)}/{locale === 'pt-BR' ? 'dia' : 'day'}
                 </span>
               </div>
               <div className="p-2 rounded-lg bg-muted/50 text-center">
                 <span className="text-xs text-muted-foreground block">
-                  Média/Hora
+                  {locale === 'pt-BR' ? 'Média/Hora' : 'Avg/Hour'}
                 </span>
                 <span className="text-sm font-bold">
                   {formatCredits(history.spending.week.averagePerHour)}/h
@@ -612,7 +619,7 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
               onClick={createSnapshot}
             >
               <BarChart3 className="h-4 w-4" />
-              Salvar Snapshot
+              {locale === 'pt-BR' ? 'Salvar Snapshot' : 'Save Snapshot'}
             </Button>
             <Button
               variant="default"
@@ -621,14 +628,14 @@ export function CreditsHoverCard({ onGenerateReport }: CreditsHoverCardProps) {
               onClick={onGenerateReport}
             >
               <FileText className="h-4 w-4" />
-              Relatório
+              {locale === 'pt-BR' ? 'Relatório' : 'Report'}
             </Button>
           </div>
 
           {/* Last Snapshot Info */}
           {history?.lastSnapshot && (
             <p className="text-xs text-muted-foreground text-center">
-              Último snapshot: {formatDate(history.lastSnapshot.timestamp)}
+              {locale === 'pt-BR' ? 'Último snapshot:' : 'Last snapshot:'} {formatDate(history.lastSnapshot.timestamp)}
             </p>
           )}
         </div>

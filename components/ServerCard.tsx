@@ -43,6 +43,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface Server {
   id: string;
@@ -64,20 +65,12 @@ interface ServerCardProps {
 
 type CommandType = 'custom' | 'message' | 'time' | 'weather' | 'gamemode';
 
-const STATUS_CONFIG: Record<number, { label: string; color: string; bgColor: string; borderColor: string }> = {
-  0: { label: 'Offline', color: 'text-gray-500', bgColor: 'bg-gray-500/10', borderColor: 'border-gray-500/20' },
-  1: { label: 'Online', color: 'text-green-500', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/20' },
-  2: { label: 'Iniciando', color: 'text-yellow-500', bgColor: 'bg-yellow-500/10', borderColor: 'border-yellow-500/20' },
-  3: { label: 'Parando', color: 'text-orange-500', bgColor: 'bg-orange-500/10', borderColor: 'border-orange-500/20' },
-  4: { label: 'Reiniciando', color: 'text-blue-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/20' },
-  5: { label: 'Salvando', color: 'text-cyan-500', bgColor: 'bg-cyan-500/10', borderColor: 'border-cyan-500/20' },
-  6: { label: 'Carregando', color: 'text-indigo-500', bgColor: 'bg-indigo-500/10', borderColor: 'border-indigo-500/20' },
-  7: { label: 'Travado', color: 'text-red-500', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/20' },
-  10: { label: 'Preparando', color: 'text-amber-500', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/20' },
-};
-
 export default function ServerCard({ server: initialServer, isAdmin, onUpdate, iconUrl }: ServerCardProps) {
   const router = useRouter();
+  const t = useTranslations('servers');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+  
   const [server, setServer] = useState(initialServer);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +87,36 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
   const lastActionTimeRef = useRef<number>(0);
   const { toast } = useToast();
 
+  // Get status label from translations
+  const getStatusLabel = (status: number) => {
+    const statusMap: Record<number, string> = {
+      0: t('status.offline'),
+      1: t('status.online'),
+      2: t('status.starting'),
+      3: t('status.stopping'),
+      4: t('status.restarting'),
+      5: t('status.saving'),
+      6: t('status.loading'),
+      7: t('status.crashed'),
+      10: t('status.preparing'),
+    };
+    return statusMap[status] || t('status.unknown');
+  };
+
+  const STATUS_CONFIG: Record<number, { color: string; bgColor: string; borderColor: string }> = {
+    0: { color: 'text-gray-500', bgColor: 'bg-gray-500/10', borderColor: 'border-gray-500/20' },
+    1: { color: 'text-green-500', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/20' },
+    2: { color: 'text-yellow-500', bgColor: 'bg-yellow-500/10', borderColor: 'border-yellow-500/20' },
+    3: { color: 'text-orange-500', bgColor: 'bg-orange-500/10', borderColor: 'border-orange-500/20' },
+    4: { color: 'text-blue-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/20' },
+    5: { color: 'text-cyan-500', bgColor: 'bg-cyan-500/10', borderColor: 'border-cyan-500/20' },
+    6: { color: 'text-indigo-500', bgColor: 'bg-indigo-500/10', borderColor: 'border-indigo-500/20' },
+    7: { color: 'text-red-500', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/20' },
+    10: { color: 'text-amber-500', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/20' },
+  };
+
   const statusInfo = STATUS_CONFIG[server.status] || STATUS_CONFIG[0];
+  const statusLabel = getStatusLabel(server.status);
   const isOnline = server.status === 1;
   const isOffline = server.status === 0;
   const isTransitioning = [2, 3, 4, 5, 6, 10].includes(server.status);
@@ -186,10 +208,14 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Failed to ${action} server`);
 
-      const actionNames = { start: 'iniciando', stop: 'parando', restart: 'reiniciando' };
+      const actionNames = { 
+        start: t('actions.starting'), 
+        stop: t('actions.stopping'), 
+        restart: t('actions.restarting') 
+      };
       toast({
-        title: 'Comando enviado',
-        description: `Servidor ${server.name} ${actionNames[action]}...`,
+        title: t('actions.commandSent'),
+        description: `${server.name} ${actionNames[action]}...`,
       });
 
       // Marcar tempo da ação para evitar race conditions com SSE
@@ -201,9 +227,9 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
       
       onUpdate();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
+      const message = err instanceof Error ? err.message : tCommon('errorOccurred');
       setError(message);
-      toast({ title: 'Erro', description: message, variant: 'destructive' });
+      toast({ title: tCommon('error'), description: message, variant: 'destructive' });
     } finally {
       setLoading(null);
     }
@@ -215,12 +241,12 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
       await navigator.clipboard.writeText(server.address);
       setAddressCopied(true);
       toast({
-        title: 'Copiado!',
-        description: `Endereço copiado para a área de transferência.`,
+        title: tCommon('copied'),
+        description: t('actions.addressCopied'),
       });
       setTimeout(() => setAddressCopied(false), 2000);
     } catch (err) {
-      toast({ title: 'Erro', description: 'Não foi possível copiar o endereço', variant: 'destructive' });
+      toast({ title: tCommon('error'), description: t('actions.copyError'), variant: 'destructive' });
     }
   };
 
@@ -262,8 +288,8 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
       if (!response.ok) throw new Error(data.error || 'Failed to execute command');
 
       toast({
-        title: 'Comando executado',
-        description: `"${finalCommand}" enviado com sucesso.`,
+        title: t('actions.commandExecuted'),
+        description: `"${finalCommand}" ${locale === 'pt-BR' ? 'enviado com sucesso.' : 'sent successfully.'}`,
       });
 
       setCommand('');
@@ -271,8 +297,8 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
       setCommandType('custom');
       setCommandDialog(false);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
-      toast({ title: 'Erro', description: message, variant: 'destructive' });
+      const message = err instanceof Error ? err.message : tCommon('errorOccurred');
+      toast({ title: tCommon('error'), description: message, variant: 'destructive' });
     } finally {
       setSendingCommand(false);
     }
@@ -362,7 +388,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                <span className="hidden sm:inline">LIVE</span>
+                <span className="hidden sm:inline">{tCommon('live')}</span>
               </div>
             )}
           </div>
@@ -379,7 +405,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
               {isOnline && <Zap className="h-3 w-3" />}
               {isOffline && <WifiOff className="h-3 w-3" />}
               {isTransitioning && <Clock className="h-3 w-3 animate-spin" />}
-              {statusInfo.label}
+              {statusLabel}
             </Badge>
 
             {server.players && (
@@ -431,7 +457,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                 ) : (
                   <Play className="h-4 w-4" fill="currentColor" />
                 )}
-                Iniciar
+                {t('actions.start')}
               </Button>
             )}
 
@@ -444,7 +470,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                 size="sm"
               >
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {statusInfo.label}...
+                {statusLabel}...
               </Button>
             )}
 
@@ -463,7 +489,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                   ) : (
                     <Square className="h-4 w-4" fill="currentColor" />
                   )}
-                  Parar
+                  {t('actions.stop')}
                 </Button>
 
                 <Button
@@ -478,7 +504,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                   ) : (
                     <RotateCw className="h-4 w-4" />
                   )}
-                  <span className="hidden sm:inline">Reiniciar</span>
+                  <span className="hidden sm:inline">{t('actions.restart')}</span>
                 </Button>
 
                 {isAdmin && (
@@ -490,7 +516,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                     className="gap-2"
                   >
                     <Terminal className="h-4 w-4" />
-                    <span className="hidden sm:inline">Comando</span>
+                    <span className="hidden sm:inline">{t('actions.command')}</span>
                   </Button>
                 )}
               </>
@@ -515,20 +541,24 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Confirmar Ação
+              {t('actions.confirmAction')}
             </DialogTitle>
             <DialogDescription>
               {confirmDialog.action === 'stop' && (
-                <>Tem certeza que deseja <strong>parar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados.</>
+                locale === 'pt-BR' 
+                  ? <>Tem certeza que deseja <strong>parar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados.</>
+                  : <>Are you sure you want to <strong>stop</strong> the server <strong>{server.name}</strong>? Online players will be disconnected.</>
               )}
               {confirmDialog.action === 'restart' && (
-                <>Tem certeza que deseja <strong>reiniciar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados temporariamente.</>
+                locale === 'pt-BR'
+                  ? <>Tem certeza que deseja <strong>reiniciar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados temporariamente.</>
+                  : <>Are you sure you want to <strong>restart</strong> the server <strong>{server.name}</strong>? Online players will be temporarily disconnected.</>
               )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmDialog({ open: false, action: null })}>
-              Cancelar
+              {tCommon('cancel')}
             </Button>
             <Button
               variant={confirmDialog.action === 'stop' ? 'destructive' : 'default'}
@@ -539,7 +569,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                 }
               }}
             >
-              Confirmar
+              {tCommon('confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -558,16 +588,19 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Terminal className="h-5 w-5" />
-              Enviar Comando
+              {t('actions.sendCommand')}
             </DialogTitle>
             <DialogDescription>
-              Execute comandos no servidor <strong>{server.name}</strong>
+              {locale === 'pt-BR' 
+                ? <>Execute comandos no servidor <strong>{server.name}</strong></>
+                : <>Execute commands on server <strong>{server.name}</strong></>
+              }
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Tipo de Comando</Label>
+              <Label>{t('command.type')}</Label>
               <Select value={commandType} onValueChange={(v) => {
                 setCommandType(v as CommandType);
                 setCommand('');
@@ -580,31 +613,31 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                   <SelectItem value="custom">
                     <div className="flex items-center gap-2">
                       <Terminal className="h-4 w-4" />
-                      Comando Personalizado
+                      {t('command.custom')}
                     </div>
                   </SelectItem>
                   <SelectItem value="message">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
-                      Enviar Mensagem
+                      {t('command.sendMessage')}
                     </div>
                   </SelectItem>
                   <SelectItem value="time">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      Mudar Horário
+                      {t('command.changeTime')}
                     </div>
                   </SelectItem>
                   <SelectItem value="weather">
                     <div className="flex items-center gap-2">
                       <Cloud className="h-4 w-4" />
-                      Mudar Clima
+                      {t('command.changeWeather')}
                     </div>
                   </SelectItem>
                   <SelectItem value="gamemode">
                     <div className="flex items-center gap-2">
                       <Gamepad2 className="h-4 w-4" />
-                      Modo de Jogo
+                      {t('command.gameMode')}
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -613,9 +646,12 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
 
             {(commandType === 'custom' || commandType === 'message') && (
               <div className="space-y-2">
-                <Label>{commandType === 'custom' ? 'Comando' : 'Mensagem'}</Label>
+                <Label>{commandType === 'custom' ? t('command.command') : t('command.message')}</Label>
                 <Input
-                  placeholder={commandType === 'custom' ? 'Ex: give @a diamond 64' : 'Digite a mensagem...'}
+                  placeholder={commandType === 'custom' 
+                    ? (locale === 'pt-BR' ? 'Ex: give @a diamond 64' : 'Ex: give @a diamond 64')
+                    : (locale === 'pt-BR' ? 'Digite a mensagem...' : 'Type the message...')
+                  }
                   value={command}
                   onChange={(e) => setCommand(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendCommand()}
@@ -623,7 +659,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                 />
                 {commandType === 'custom' && (
                   <p className="text-xs text-muted-foreground">
-                    Não inclua a barra (/) no início
+                    {t('command.noSlash')}
                   </p>
                 )}
               </div>
@@ -631,16 +667,16 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
 
             {commandType === 'time' && (
               <div className="space-y-2">
-                <Label>Horário</Label>
+                <Label>{t('command.time')}</Label>
                 <Select value={commandOption} onValueChange={setCommandOption}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o horário" />
+                    <SelectValue placeholder={t('command.selectTime')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="day"><Sun className="inline h-4 w-4 mr-2" />Dia</SelectItem>
-                    <SelectItem value="noon"><Sun className="inline h-4 w-4 mr-2" />Meio-dia</SelectItem>
-                    <SelectItem value="night"><Moon className="inline h-4 w-4 mr-2" />Noite</SelectItem>
-                    <SelectItem value="midnight"><Moon className="inline h-4 w-4 mr-2" />Meia-noite</SelectItem>
+                    <SelectItem value="day"><Sun className="inline h-4 w-4 mr-2" />{t('command.day')}</SelectItem>
+                    <SelectItem value="noon"><Sun className="inline h-4 w-4 mr-2" />{t('command.noon')}</SelectItem>
+                    <SelectItem value="night"><Moon className="inline h-4 w-4 mr-2" />{t('command.night')}</SelectItem>
+                    <SelectItem value="midnight"><Moon className="inline h-4 w-4 mr-2" />{t('command.midnight')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -648,15 +684,15 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
 
             {commandType === 'weather' && (
               <div className="space-y-2">
-                <Label>Clima</Label>
+                <Label>{t('command.weather')}</Label>
                 <Select value={commandOption} onValueChange={setCommandOption}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o clima" />
+                    <SelectValue placeholder={t('command.selectWeather')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="clear"><Sun className="inline h-4 w-4 mr-2" />Limpo</SelectItem>
-                    <SelectItem value="rain"><Cloud className="inline h-4 w-4 mr-2" />Chuva</SelectItem>
-                    <SelectItem value="thunder"><CloudRain className="inline h-4 w-4 mr-2" />Tempestade</SelectItem>
+                    <SelectItem value="clear"><Sun className="inline h-4 w-4 mr-2" />{t('command.clear')}</SelectItem>
+                    <SelectItem value="rain"><Cloud className="inline h-4 w-4 mr-2" />{t('command.rain')}</SelectItem>
+                    <SelectItem value="thunder"><CloudRain className="inline h-4 w-4 mr-2" />{t('command.thunder')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -664,10 +700,10 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
 
             {commandType === 'gamemode' && (
               <div className="space-y-2">
-                <Label>Modo de Jogo (para todos)</Label>
+                <Label>{t('command.gameModeForAll')}</Label>
                 <Select value={commandOption} onValueChange={setCommandOption}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o modo" />
+                    <SelectValue placeholder={t('command.selectMode')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="survival">⚔️ Survival</SelectItem>
@@ -682,7 +718,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setCommandDialog(false)}>
-              Cancelar
+              {tCommon('cancel')}
             </Button>
             <Button onClick={handleSendCommand} disabled={sendingCommand}>
               {sendingCommand ? (
@@ -690,7 +726,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
-              Executar
+              {tCommon('execute')}
             </Button>
           </DialogFooter>
         </DialogContent>

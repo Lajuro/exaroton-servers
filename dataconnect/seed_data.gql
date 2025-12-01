@@ -1,0 +1,67 @@
+mutation CreateSeedData @transaction @auth(level: USER, insecureReason: "Seed data creation is safe for any logged in user.") {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      username: "demouser1",
+      email: "demouser1@example.com",
+      createdAt: "2024-01-01T00:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      username: "demouser2",
+      email: "demouser2@example.com",
+      createdAt: "2024-01-01T00:00:00Z"
+    }
+  ])
+  minecraftServer_insertMany(data: [
+    {
+      id: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      name: "Example Server 1",
+      serverId: "server1",
+      createdAt: "2024-01-01T00:00:00Z",
+      ownerId: "550e8400-e29b-41d4-a716-446655440000",
+      status: "online"
+    },
+    {
+      id: "bcdef123-4567-890a-bcde-f1234567890a",
+      name: "Example Server 2",
+      serverId: "server2",
+      createdAt: "2024-01-01T00:00:00Z",
+      ownerId: "550e8400-e29b-41d4-a716-446655440001",
+      status: "offline"
+    }
+  ])
+  serverAccess_insertMany(data: [
+    {
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      serverId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      role: "admin"
+    },
+    {
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      serverId: "bcdef123-4567-890a-bcde-f1234567890a",
+      role: "member"
+    }
+  ])
+  invitation_insertMany(data: [
+    {
+      invitedById: "550e8400-e29b-41d4-a716-446655440000",
+      invitedToId: "550e8400-e29b-41d4-a716-446655440001",
+      serverId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      createdAt: "2024-01-02T00:00:00Z",
+      status: "pending"
+    }
+  ])
+  serverLog_insertMany(data: [
+    {
+      serverId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      message: "Server started",
+      timestamp: "2024-01-01T00:00:00Z"
+    },
+    {
+      serverId: "bcdef123-4567-890a-bcde-f1234567890a",
+      message: "Server stopped",
+      timestamp: "2024-01-02T00:00:00Z"
+    }
+  ])
+}

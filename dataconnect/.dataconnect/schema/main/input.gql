@@ -1,0 +1,1665 @@
+"""
+✨ `Invitation_KeyOutput` returns the primary key fields of table type `Invitation`.
+
+It has the same format as `Invitation_Key`, but is only used as mutation return value.
+"""
+scalar Invitation_KeyOutput
+"""
+✨ `MinecraftServer_KeyOutput` returns the primary key fields of table type `MinecraftServer`.
+
+It has the same format as `MinecraftServer_Key`, but is only used as mutation return value.
+"""
+scalar MinecraftServer_KeyOutput
+"""
+✨ `ServerAccess_KeyOutput` returns the primary key fields of table type `ServerAccess`.
+
+It has the same format as `ServerAccess_Key`, but is only used as mutation return value.
+"""
+scalar ServerAccess_KeyOutput
+"""
+✨ `ServerLog_KeyOutput` returns the primary key fields of table type `ServerLog`.
+
+It has the same format as `ServerLog_Key`, but is only used as mutation return value.
+"""
+scalar ServerLog_KeyOutput
+"""
+✨ `User_KeyOutput` returns the primary key fields of table type `User`.
+
+It has the same format as `User_Key`, but is only used as mutation return value.
+"""
+scalar User_KeyOutput
+"""
+✨ Generated data input type for table 'Invitation'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Invitation_Data {
+  """
+  ✨ Generated from Field `Invitation`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Invitation`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Invitation`.`invitedById` of type `UUID`
+  """
+  invitedById: UUID
+  """
+  ✨ `_expr` server value variant of `invitedById` (✨ Generated from Field `Invitation`.`invitedById` of type `UUID`)
+  """
+  invitedById_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Invitation`.`invitedToId` of type `UUID`
+  """
+  invitedToId: UUID
+  """
+  ✨ `_expr` server value variant of `invitedToId` (✨ Generated from Field `Invitation`.`invitedToId` of type `UUID`)
+  """
+  invitedToId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Invitation`.`serverId` of type `UUID`
+  """
+  serverId: UUID
+  """
+  ✨ `_expr` server value variant of `serverId` (✨ Generated from Field `Invitation`.`serverId` of type `UUID`)
+  """
+  serverId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Invitation`.`invitedBy` of type `User`
+  """
+  invitedBy: User_Key
+  """
+  ✨ Generated from Field `Invitation`.`invitedTo` of type `User`
+  """
+  invitedTo: User_Key
+  """
+  ✨ Generated from Field `Invitation`.`server` of type `MinecraftServer`
+  """
+  server: MinecraftServer_Key
+  """
+  ✨ Generated from Field `Invitation`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Invitation`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `Invitation`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `Invitation`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt` of type `Timestamp`
+  """
+  expiresAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `expiresAt` (✨ Generated from Field `Invitation`.`expiresAt` of type `Timestamp`)
+  """
+  expiresAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `expiresAt` (✨ Generated from Field `Invitation`.`expiresAt` of type `Timestamp`)
+  """
+  expiresAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `expiresAt` (✨ Generated from Field `Invitation`.`expiresAt` of type `Timestamp`)
+  """
+  expiresAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `Invitation`.`status` of type `String!`
+  """
+  status: String
+  """
+  ✨ `_expr` server value variant of `status` (✨ Generated from Field `Invitation`.`status` of type `String!`)
+  """
+  status_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'Invitation'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Invitation_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Invitation_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Invitation_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Invitation_Filter!]
+  """
+  ✨ Generated from Field `Invitation`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `Invitation`.`invitedById` of type `UUID`
+  """
+  invitedById: UUID_Filter
+  """
+  ✨ Generated from Field `Invitation`.`invitedToId` of type `UUID`
+  """
+  invitedToId: UUID_Filter
+  """
+  ✨ Generated from Field `Invitation`.`serverId` of type `UUID`
+  """
+  serverId: UUID_Filter
+  """
+  ✨ Generated from Field `Invitation`.`invitedBy` of type `User`
+  """
+  invitedBy: User_Filter
+  """
+  ✨ Generated from Field `Invitation`.`invitedTo` of type `User`
+  """
+  invitedTo: User_Filter
+  """
+  ✨ Generated from Field `Invitation`.`server` of type `MinecraftServer`
+  """
+  server: MinecraftServer_Filter
+  """
+  ✨ Generated from Field `Invitation`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt` of type `Timestamp`
+  """
+  expiresAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `Invitation`.`status` of type `String!`
+  """
+  status: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Invitation'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Invitation_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Invitation_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Invitation_Filter
+}
+"""
+✨ Generated having input type for table 'Invitation'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Invitation_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Invitation_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Invitation_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Invitation_Having!]
+  """
+  ✨ Generated from Field `Invitation`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Invitation`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt_count` of type `Int!`
+  """
+  expiresAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Invitation`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Invitation`.`invitedById_count` of type `Int!`
+  """
+  invitedById_count: Int_Filter
+  """
+  ✨ Generated from Field `Invitation`.`invitedToId_count` of type `Int!`
+  """
+  invitedToId_count: Int_Filter
+  """
+  ✨ Generated from Field `Invitation`.`serverId_count` of type `Int!`
+  """
+  serverId_count: Int_Filter
+  """
+  ✨ Generated from Field `Invitation`.`status_count` of type `Int!`
+  """
+  status_count: Int_Filter
+  """
+  ✨ Generated from Field `Invitation`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt_min` of type `Timestamp`
+  """
+  expiresAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Invitation`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt_max` of type `Timestamp`
+  """
+  expiresAt_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'Invitation'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Invitation_Key {
+  """
+  ✨ Generated from Field `Invitation`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Invitation`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'Invitation'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Invitation_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Invitation_Filter
+}
+"""
+✨ Generated order input type for table 'Invitation'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Invitation_Order {
+  """
+  ✨ Generated from Field `Invitation`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`invitedById` of type `UUID`
+  """
+  invitedById: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`invitedToId` of type `UUID`
+  """
+  invitedToId: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`serverId` of type `UUID`
+  """
+  serverId: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`invitedBy` of type `User`
+  """
+  invitedBy: User_Order
+  """
+  ✨ Generated from Field `Invitation`.`invitedTo` of type `User`
+  """
+  invitedTo: User_Order
+  """
+  ✨ Generated from Field `Invitation`.`server` of type `MinecraftServer`
+  """
+  server: MinecraftServer_Order
+  """
+  ✨ Generated from Field `Invitation`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt` of type `Timestamp`
+  """
+  expiresAt: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`status` of type `String!`
+  """
+  status: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt_count` of type `Int!`
+  """
+  expiresAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`invitedById_count` of type `Int!`
+  """
+  invitedById_count: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`invitedToId_count` of type `Int!`
+  """
+  invitedToId_count: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`serverId_count` of type `Int!`
+  """
+  serverId_count: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`status_count` of type `Int!`
+  """
+  status_count: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt_min` of type `Timestamp`
+  """
+  expiresAt_min: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `Invitation`.`expiresAt_max` of type `Timestamp`
+  """
+  expiresAt_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'MinecraftServer'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input MinecraftServer_Data {
+  """
+  ✨ Generated from Field `MinecraftServer`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `MinecraftServer`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `MinecraftServer`.`ownerId` of type `UUID`
+  """
+  ownerId: UUID
+  """
+  ✨ `_expr` server value variant of `ownerId` (✨ Generated from Field `MinecraftServer`.`ownerId` of type `UUID`)
+  """
+  ownerId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `MinecraftServer`.`owner` of type `User`
+  """
+  owner: User_Key
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `MinecraftServer`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `MinecraftServer`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `MinecraftServer`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `MinecraftServer`.`gameMode` of type `String`
+  """
+  gameMode: String
+  """
+  ✨ `_expr` server value variant of `gameMode` (✨ Generated from Field `MinecraftServer`.`gameMode` of type `String`)
+  """
+  gameMode_expr: String_Expr
+  """
+  ✨ Generated from Field `MinecraftServer`.`ipAddress` of type `String`
+  """
+  ipAddress: String
+  """
+  ✨ `_expr` server value variant of `ipAddress` (✨ Generated from Field `MinecraftServer`.`ipAddress` of type `String`)
+  """
+  ipAddress_expr: String_Expr
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers` of type `Int`
+  """
+  maxPlayers: Int
+  """
+  ✨ `_expr` server value variant of `maxPlayers` (✨ Generated from Field `MinecraftServer`.`maxPlayers` of type `Int`)
+  """
+  maxPlayers_expr: Int_Expr
+  """
+  ✨ `_update` server value variant of `maxPlayers` (✨ Generated from Field `MinecraftServer`.`maxPlayers` of type `Int`)
+  """
+  maxPlayers_update: [Int_Update!]
+  """
+  ✨ Generated from Field `MinecraftServer`.`minecraftVersion` of type `String`
+  """
+  minecraftVersion: String
+  """
+  ✨ `_expr` server value variant of `minecraftVersion` (✨ Generated from Field `MinecraftServer`.`minecraftVersion` of type `String`)
+  """
+  minecraftVersion_expr: String_Expr
+  """
+  ✨ Generated from Field `MinecraftServer`.`name` of type `String!`
+  """
+  name: String
+  """
+  ✨ `_expr` server value variant of `name` (✨ Generated from Field `MinecraftServer`.`name` of type `String!`)
+  """
+  name_expr: String_Expr
+  """
+  ✨ Generated from Field `MinecraftServer`.`port` of type `Int`
+  """
+  port: Int
+  """
+  ✨ `_expr` server value variant of `port` (✨ Generated from Field `MinecraftServer`.`port` of type `Int`)
+  """
+  port_expr: Int_Expr
+  """
+  ✨ `_update` server value variant of `port` (✨ Generated from Field `MinecraftServer`.`port` of type `Int`)
+  """
+  port_update: [Int_Update!]
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverId` of type `String!`
+  """
+  serverId: String
+  """
+  ✨ `_expr` server value variant of `serverId` (✨ Generated from Field `MinecraftServer`.`serverId` of type `String!`)
+  """
+  serverId_expr: String_Expr
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverSoftware` of type `String`
+  """
+  serverSoftware: String
+  """
+  ✨ `_expr` server value variant of `serverSoftware` (✨ Generated from Field `MinecraftServer`.`serverSoftware` of type `String`)
+  """
+  serverSoftware_expr: String_Expr
+  """
+  ✨ Generated from Field `MinecraftServer`.`status` of type `String!`
+  """
+  status: String
+  """
+  ✨ `_expr` server value variant of `status` (✨ Generated from Field `MinecraftServer`.`status` of type `String!`)
+  """
+  status_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'MinecraftServer'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input MinecraftServer_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [MinecraftServer_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: MinecraftServer_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [MinecraftServer_Filter!]
+  """
+  ✨ Generated from Field `MinecraftServer`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`ownerId` of type `UUID`
+  """
+  ownerId: UUID_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`owner` of type `User`
+  """
+  owner: User_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`gameMode` of type `String`
+  """
+  gameMode: String_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`ipAddress` of type `String`
+  """
+  ipAddress: String_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers` of type `Int`
+  """
+  maxPlayers: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`minecraftVersion` of type `String`
+  """
+  minecraftVersion: String_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`name` of type `String!`
+  """
+  name: String_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`port` of type `Int`
+  """
+  port: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverId` of type `String!`
+  """
+  serverId: String_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverSoftware` of type `String`
+  """
+  serverSoftware: String_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`status` of type `String!`
+  """
+  status: String_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`invitations_on_server` of type `[Invitation!]!`
+  """
+  invitations_on_server: Invitation_ListFilter
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverAccesses_on_server` of type `[ServerAccess!]!`
+  """
+  serverAccesses_on_server: ServerAccess_ListFilter
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverLogs_on_server` of type `[ServerLog!]!`
+  """
+  serverLogs_on_server: ServerLog_ListFilter
+  """
+  ✨ Generated from Field `MinecraftServer`.`users_via_ServerAccess` of type `[User!]!`
+  """
+  users_via_ServerAccess: User_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'MinecraftServer'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input MinecraftServer_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [MinecraftServer_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: MinecraftServer_Filter
+}
+"""
+✨ Generated having input type for table 'MinecraftServer'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input MinecraftServer_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [MinecraftServer_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: MinecraftServer_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [MinecraftServer_Having!]
+  """
+  ✨ Generated from Field `MinecraftServer`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`gameMode_count` of type `Int!`
+  """
+  gameMode_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`ipAddress_count` of type `Int!`
+  """
+  ipAddress_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_count` of type `Int!`
+  """
+  maxPlayers_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`minecraftVersion_count` of type `Int!`
+  """
+  minecraftVersion_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`name_count` of type `Int!`
+  """
+  name_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`ownerId_count` of type `Int!`
+  """
+  ownerId_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_count` of type `Int!`
+  """
+  port_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverId_count` of type `Int!`
+  """
+  serverId_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverSoftware_count` of type `Int!`
+  """
+  serverSoftware_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`status_count` of type `Int!`
+  """
+  status_count: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_sum` of type `Int`
+  """
+  maxPlayers_sum: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_sum` of type `Int`
+  """
+  port_sum: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_avg` of type `Float`
+  """
+  maxPlayers_avg: Float_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_avg` of type `Float`
+  """
+  port_avg: Float_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_min` of type `Int`
+  """
+  maxPlayers_min: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_min` of type `Int`
+  """
+  port_min: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_max` of type `Int`
+  """
+  maxPlayers_max: Int_Filter
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_max` of type `Int`
+  """
+  port_max: Int_Filter
+}
+"""
+✨ Generated key input type for table 'MinecraftServer'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input MinecraftServer_Key {
+  """
+  ✨ Generated from Field `MinecraftServer`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `MinecraftServer`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'MinecraftServer'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input MinecraftServer_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: MinecraftServer_Filter
+}
+"""
+✨ Generated order input type for table 'MinecraftServer'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input MinecraftServer_Order {
+  """
+  ✨ Generated from Field `MinecraftServer`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`ownerId` of type `UUID`
+  """
+  ownerId: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`owner` of type `User`
+  """
+  owner: User_Order
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`gameMode` of type `String`
+  """
+  gameMode: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`ipAddress` of type `String`
+  """
+  ipAddress: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers` of type `Int`
+  """
+  maxPlayers: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`minecraftVersion` of type `String`
+  """
+  minecraftVersion: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`name` of type `String!`
+  """
+  name: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`port` of type `Int`
+  """
+  port: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverId` of type `String!`
+  """
+  serverId: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverSoftware` of type `String`
+  """
+  serverSoftware: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`status` of type `String!`
+  """
+  status: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`gameMode_count` of type `Int!`
+  """
+  gameMode_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`ipAddress_count` of type `Int!`
+  """
+  ipAddress_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_count` of type `Int!`
+  """
+  maxPlayers_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`minecraftVersion_count` of type `Int!`
+  """
+  minecraftVersion_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`name_count` of type `Int!`
+  """
+  name_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`ownerId_count` of type `Int!`
+  """
+  ownerId_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_count` of type `Int!`
+  """
+  port_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverId_count` of type `Int!`
+  """
+  serverId_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`serverSoftware_count` of type `Int!`
+  """
+  serverSoftware_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`status_count` of type `Int!`
+  """
+  status_count: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_sum` of type `Int`
+  """
+  maxPlayers_sum: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_sum` of type `Int`
+  """
+  port_sum: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_avg` of type `Float`
+  """
+  maxPlayers_avg: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_avg` of type `Float`
+  """
+  port_avg: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_min` of type `Int`
+  """
+  maxPlayers_min: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_min` of type `Int`
+  """
+  port_min: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`maxPlayers_max` of type `Int`
+  """
+  maxPlayers_max: OrderDirection
+  """
+  ✨ Generated from Field `MinecraftServer`.`port_max` of type `Int`
+  """
+  port_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'ServerAccess'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input ServerAccess_Data {
+  """
+  ✨ Generated from Field `ServerAccess`.`userId` of type `UUID!`
+  """
+  userId: UUID
+  """
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `ServerAccess`.`userId` of type `UUID!`)
+  """
+  userId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `ServerAccess`.`serverId` of type `UUID!`
+  """
+  serverId: UUID
+  """
+  ✨ `_expr` server value variant of `serverId` (✨ Generated from Field `ServerAccess`.`serverId` of type `UUID!`)
+  """
+  serverId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `ServerAccess`.`server` of type `MinecraftServer!`
+  """
+  server: MinecraftServer_Key
+  """
+  ✨ Generated from Field `ServerAccess`.`user` of type `User!`
+  """
+  user: User_Key
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt` of type `Timestamp`
+  """
+  assignedAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `assignedAt` (✨ Generated from Field `ServerAccess`.`assignedAt` of type `Timestamp`)
+  """
+  assignedAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `assignedAt` (✨ Generated from Field `ServerAccess`.`assignedAt` of type `Timestamp`)
+  """
+  assignedAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `assignedAt` (✨ Generated from Field `ServerAccess`.`assignedAt` of type `Timestamp`)
+  """
+  assignedAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `ServerAccess`.`role` of type `String!`
+  """
+  role: String
+  """
+  ✨ `_expr` server value variant of `role` (✨ Generated from Field `ServerAccess`.`role` of type `String!`)
+  """
+  role_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'ServerAccess'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ServerAccess_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [ServerAccess_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: ServerAccess_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [ServerAccess_Filter!]
+  """
+  ✨ Generated from Field `ServerAccess`.`userId` of type `UUID!`
+  """
+  userId: UUID_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`serverId` of type `UUID!`
+  """
+  serverId: UUID_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`server` of type `MinecraftServer!`
+  """
+  server: MinecraftServer_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`user` of type `User!`
+  """
+  user: User_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt` of type `Timestamp`
+  """
+  assignedAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`role` of type `String!`
+  """
+  role: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'ServerAccess'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input ServerAccess_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [ServerAccess_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: ServerAccess_Filter
+}
+"""
+✨ Generated having input type for table 'ServerAccess'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ServerAccess_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [ServerAccess_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: ServerAccess_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [ServerAccess_Having!]
+  """
+  ✨ Generated from Field `ServerAccess`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt_count` of type `Int!`
+  """
+  assignedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`role_count` of type `Int!`
+  """
+  role_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`serverId_count` of type `Int!`
+  """
+  serverId_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`userId_count` of type `Int!`
+  """
+  userId_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt_min` of type `Timestamp`
+  """
+  assignedAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt_max` of type `Timestamp`
+  """
+  assignedAt_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'ServerAccess'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input ServerAccess_Key {
+  """
+  ✨ Generated from Field `ServerAccess`.`userId` of type `UUID!`
+  """
+  userId: UUID
+  """
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `ServerAccess`.`userId` of type `UUID!`)
+  """
+  userId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `ServerAccess`.`serverId` of type `UUID!`
+  """
+  serverId: UUID
+  """
+  ✨ `_expr` server value variant of `serverId` (✨ Generated from Field `ServerAccess`.`serverId` of type `UUID!`)
+  """
+  serverId_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'ServerAccess'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input ServerAccess_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: ServerAccess_Filter
+}
+"""
+✨ Generated order input type for table 'ServerAccess'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input ServerAccess_Order {
+  """
+  ✨ Generated from Field `ServerAccess`.`userId` of type `UUID!`
+  """
+  userId: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`serverId` of type `UUID!`
+  """
+  serverId: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`server` of type `MinecraftServer!`
+  """
+  server: MinecraftServer_Order
+  """
+  ✨ Generated from Field `ServerAccess`.`user` of type `User!`
+  """
+  user: User_Order
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt` of type `Timestamp`
+  """
+  assignedAt: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`role` of type `String!`
+  """
+  role: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt_count` of type `Int!`
+  """
+  assignedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`role_count` of type `Int!`
+  """
+  role_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`serverId_count` of type `Int!`
+  """
+  serverId_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`userId_count` of type `Int!`
+  """
+  userId_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt_min` of type `Timestamp`
+  """
+  assignedAt_min: OrderDirection
+  """
+  ✨ Generated from Field `ServerAccess`.`assignedAt_max` of type `Timestamp`
+  """
+  assignedAt_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'ServerLog'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input ServerLog_Data {
+  """
+  ✨ Generated from Field `ServerLog`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ServerLog`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `ServerLog`.`serverId` of type `UUID`
+  """
+  serverId: UUID
+  """
+  ✨ `_expr` server value variant of `serverId` (✨ Generated from Field `ServerLog`.`serverId` of type `UUID`)
+  """
+  serverId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `ServerLog`.`server` of type `MinecraftServer`
+  """
+  server: MinecraftServer_Key
+  """
+  ✨ Generated from Field `ServerLog`.`level` of type `String`
+  """
+  level: String
+  """
+  ✨ `_expr` server value variant of `level` (✨ Generated from Field `ServerLog`.`level` of type `String`)
+  """
+  level_expr: String_Expr
+  """
+  ✨ Generated from Field `ServerLog`.`message` of type `String!`
+  """
+  message: String
+  """
+  ✨ `_expr` server value variant of `message` (✨ Generated from Field `ServerLog`.`message` of type `String!`)
+  """
+  message_expr: String_Expr
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp` of type `Timestamp!`
+  """
+  timestamp: Timestamp
+  """
+  ✨ `_expr` server value variant of `timestamp` (✨ Generated from Field `ServerLog`.`timestamp` of type `Timestamp!`)
+  """
+  timestamp_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `timestamp` (✨ Generated from Field `ServerLog`.`timestamp` of type `Timestamp!`)
+  """
+  timestamp_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `timestamp` (✨ Generated from Field `ServerLog`.`timestamp` of type `Timestamp!`)
+  """
+  timestamp_update: [Timestamp_Update!]
+}
+"""
+✨ Generated filter input type for table 'ServerLog'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ServerLog_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [ServerLog_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: ServerLog_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [ServerLog_Filter!]
+  """
+  ✨ Generated from Field `ServerLog`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`serverId` of type `UUID`
+  """
+  serverId: UUID_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`server` of type `MinecraftServer`
+  """
+  server: MinecraftServer_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`level` of type `String`
+  """
+  level: String_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`message` of type `String!`
+  """
+  message: String_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp` of type `Timestamp!`
+  """
+  timestamp: Timestamp_Filter
+}
+"""
+✨ Generated first-row input type for table 'ServerLog'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input ServerLog_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [ServerLog_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: ServerLog_Filter
+}
+"""
+✨ Generated having input type for table 'ServerLog'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ServerLog_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [ServerLog_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: ServerLog_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [ServerLog_Having!]
+  """
+  ✨ Generated from Field `ServerLog`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`level_count` of type `Int!`
+  """
+  level_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`message_count` of type `Int!`
+  """
+  message_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`serverId_count` of type `Int!`
+  """
+  serverId_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp_count` of type `Int!`
+  """
+  timestamp_count: Int_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp_min` of type `Timestamp`
+  """
+  timestamp_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp_max` of type `Timestamp`
+  """
+  timestamp_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'ServerLog'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input ServerLog_Key {
+  """
+  ✨ Generated from Field `ServerLog`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ServerLog`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'ServerLog'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input ServerLog_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: ServerLog_Filter
+}
+"""
+✨ Generated order input type for table 'ServerLog'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input ServerLog_Order {
+  """
+  ✨ Generated from Field `ServerLog`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`serverId` of type `UUID`
+  """
+  serverId: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`server` of type `MinecraftServer`
+  """
+  server: MinecraftServer_Order
+  """
+  ✨ Generated from Field `ServerLog`.`level` of type `String`
+  """
+  level: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`message` of type `String!`
+  """
+  message: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp` of type `Timestamp!`
+  """
+  timestamp: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`level_count` of type `Int!`
+  """
+  level_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`message_count` of type `Int!`
+  """
+  message_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`serverId_count` of type `Int!`
+  """
+  serverId_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp_count` of type `Int!`
+  """
+  timestamp_count: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp_min` of type `Timestamp`
+  """
+  timestamp_min: OrderDirection
+  """
+  ✨ Generated from Field `ServerLog`.`timestamp_max` of type `Timestamp`
+  """
+  timestamp_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'User'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input User_Data {
+  """
+  ✨ Generated from Field `User`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `User`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `User`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `User`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `User`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `User`.`displayName` of type `String`
+  """
+  displayName: String
+  """
+  ✨ `_expr` server value variant of `displayName` (✨ Generated from Field `User`.`displayName` of type `String`)
+  """
+  displayName_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: String
+  """
+  ✨ `_expr` server value variant of `email` (✨ Generated from Field `User`.`email` of type `String!`)
+  """
+  email_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`photoUrl` of type `String`
+  """
+  photoUrl: String
+  """
+  ✨ `_expr` server value variant of `photoUrl` (✨ Generated from Field `User`.`photoUrl` of type `String`)
+  """
+  photoUrl_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`username` of type `String!`
+  """
+  username: String
+  """
+  ✨ `_expr` server value variant of `username` (✨ Generated from Field `User`.`username` of type `String!`)
+  """
+  username_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'User'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input User_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [User_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: User_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [User_Filter!]
+  """
+  ✨ Generated from Field `User`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `User`.`displayName` of type `String`
+  """
+  displayName: String_Filter
+  """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: String_Filter
+  """
+  ✨ Generated from Field `User`.`photoUrl` of type `String`
+  """
+  photoUrl: String_Filter
+  """
+  ✨ Generated from Field `User`.`username` of type `String!`
+  """
+  username: String_Filter
+  """
+  ✨ Generated from Field `User`.`invitations_on_invitedBy` of type `[Invitation!]!`
+  """
+  invitations_on_invitedBy: Invitation_ListFilter
+  """
+  ✨ Generated from Field `User`.`invitations_on_invitedTo` of type `[Invitation!]!`
+  """
+  invitations_on_invitedTo: Invitation_ListFilter
+  """
+  ✨ Generated from Field `User`.`minecraftServers_on_owner` of type `[MinecraftServer!]!`
+  """
+  minecraftServers_on_owner: MinecraftServer_ListFilter
+  """
+  ✨ Generated from Field `User`.`serverAccesses_on_user` of type `[ServerAccess!]!`
+  """
+  serverAccesses_on_user: ServerAccess_ListFilter
+  """
+  ✨ Generated from Field `User`.`minecraftServers_via_ServerAccess` of type `[MinecraftServer!]!`
+  """
+  minecraftServers_via_ServerAccess: MinecraftServer_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'User'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input User_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [User_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: User_Filter
+}
+"""
+✨ Generated having input type for table 'User'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input User_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [User_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: User_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [User_Having!]
+  """
+  ✨ Generated from Field `User`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`displayName_count` of type `Int!`
+  """
+  displayName_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`email_count` of type `Int!`
+  """
+  email_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`photoUrl_count` of type `Int!`
+  """
+  photoUrl_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`username_count` of type `Int!`
+  """
+  username_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'User'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input User_Key {
+  """
+  ✨ Generated from Field `User`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `User`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'User'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input User_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: User_Filter
+}
+"""
+✨ Generated order input type for table 'User'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input User_Order {
+  """
+  ✨ Generated from Field `User`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `User`.`displayName` of type `String`
+  """
+  displayName: OrderDirection
+  """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: OrderDirection
+  """
+  ✨ Generated from Field `User`.`photoUrl` of type `String`
+  """
+  photoUrl: OrderDirection
+  """
+  ✨ Generated from Field `User`.`username` of type `String!`
+  """
+  username: OrderDirection
+  """
+  ✨ Generated from Field `User`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`displayName_count` of type `Int!`
+  """
+  displayName_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`email_count` of type `Int!`
+  """
+  email_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`photoUrl_count` of type `Int!`
+  """
+  photoUrl_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`username_count` of type `Int!`
+  """
+  username_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+}

@@ -1,0 +1,44 @@
+type User @table {
+  username: String!
+  email: String!
+  createdAt: Timestamp!
+  displayName: String
+  photoUrl: String
+}
+
+type MinecraftServer @table {
+  owner: User
+  serverId: String!
+  name: String!
+  status: String!
+  createdAt: Timestamp!
+  ipAddress: String
+  port: Int
+  minecraftVersion: String
+  maxPlayers: Int
+  gameMode: String
+  serverSoftware: String
+}
+
+type ServerLog @table {
+  server: MinecraftServer
+  timestamp: Timestamp!
+  message: String!
+  level: String
+}
+
+type Invitation @table {
+  invitedBy: User
+  invitedTo: User
+  server: MinecraftServer
+  status: String!
+  createdAt: Timestamp!
+  expiresAt: Timestamp
+}
+
+type ServerAccess @table(key: ["user", "server"]) {
+  user: User!
+  server: MinecraftServer!
+  role: String!
+  assignedAt: Timestamp
+}

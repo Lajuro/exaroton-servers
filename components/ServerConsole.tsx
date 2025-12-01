@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Info,
 } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface ConsoleLine {
   id: string;
@@ -39,6 +40,10 @@ interface ServerConsoleProps {
 }
 
 export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: ServerConsoleProps) {
+  const t = useTranslations('servers.console');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+  
   const [lines, setLines] = useState<ConsoleLine[]>([]);
   const [command, setCommand] = useState('');
   const [isConnected, setIsConnected] = useState(false);
@@ -76,7 +81,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
     try {
       const token = await auth.currentUser?.getIdToken(true);
       if (!token) {
-        setError('Não autenticado');
+        setError(tCommon('notAuthenticated'));
         setIsConnecting(false);
         return;
       }
@@ -93,7 +98,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
       eventSource.onopen = () => {
         setIsConnected(true);
         setIsConnecting(false);
-        addLine('Sistema', 'Conectado ao console do servidor', 'info');
+        addLine(t('system'), t('connectedToServer'), 'info');
       };
 
       eventSource.onmessage = (event) => {
@@ -102,18 +107,18 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
           
           switch (data.type) {
             case 'connected':
-              addLine('Sistema', `Conectado a ${data.serverName}`, 'info');
+              addLine(t('system'), t('connectedTo', { serverName: data.serverName }), 'info');
               break;
             case 'console':
               addLine('', data.line, classifyLine(data.line));
               break;
             case 'status':
               if (data.status !== 1) {
-                addLine('Sistema', 'Servidor ficou offline', 'warning');
+                addLine(t('system'), t('serverWentOffline'), 'warning');
               }
               break;
             case 'info':
-              addLine('Sistema', data.message, 'info');
+              addLine(t('system'), data.message, 'info');
               break;
           }
         } catch (err) {
@@ -125,16 +130,16 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         setIsConnected(false);
         setIsConnecting(false);
         if (eventSource.readyState === EventSource.CLOSED) {
-          addLine('Sistema', 'Conexão perdida. Clique em conectar para reconectar.', 'warning');
+          addLine(t('system'), t('connectionLost'), 'warning');
         }
       };
 
       eventSourceRef.current = eventSource;
     } catch (err) {
-      setError('Erro ao conectar');
+      setError(t('connectionError'));
       setIsConnecting(false);
     }
-  }, [serverId, serverStatus, isAdmin]);
+  }, [serverId, serverStatus, isAdmin, t, tCommon]);
 
   // Disconnect from console stream
   const disconnect = useCallback(() => {
@@ -143,8 +148,8 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
       eventSourceRef.current = null;
     }
     setIsConnected(false);
-    addLine('Sistema', 'Desconectado do console', 'info');
-  }, []);
+    addLine(t('system'), t('disconnectedFromConsole'), 'info');
+  }, [t]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -207,12 +212,12 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
     setHistoryIndex(-1);
 
     // Show command in console
-    addLine('Comando', cmd, 'command');
+    addLine(t('command'), cmd, 'command');
 
     try {
       const token = await auth.currentUser?.getIdToken(true);
       if (!token) {
-        addLine('Erro', 'Não autenticado', 'error');
+        addLine(tCommon('error'), tCommon('notAuthenticated'), 'error');
         setSendingCommand(false);
         return;
       }
@@ -228,10 +233,10 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        addLine('Erro', data.error || 'Falha ao executar comando', 'error');
+        addLine(tCommon('error'), data.error || (locale === 'pt-BR' ? 'Falha ao executar comando' : 'Failed to execute command'), 'error');
       }
     } catch (err) {
-      addLine('Erro', 'Erro de conexão', 'error');
+      addLine(tCommon('error'), locale === 'pt-BR' ? 'Erro de conexão' : 'Connection error', 'error');
     } finally {
       setSendingCommand(false);
       inputRef.current?.focus();
@@ -265,7 +270,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
   // Clear console
   const clearConsole = () => {
     setLines([]);
-    addLine('Sistema', 'Console limpo', 'info');
+    addLine(t('system'), t('consoleCleared'), 'info');
   };
 
   // Download logs
@@ -302,13 +307,13 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Terminal className="h-5 w-5" />
-            Console do Servidor
+            {t('title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
-            <span>Acesso ao console disponível apenas para administradores</span>
+            <span>{t('adminOnly')}</span>
           </div>
         </CardContent>
       </Card>
@@ -324,16 +329,16 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Terminal className="h-5 w-5" />
-            Console do Servidor
+            {t('title')}
             {isConnected ? (
               <Badge variant="outline" className="ml-2 gap-1 text-green-500 border-green-500/30">
                 <Wifi className="h-3 w-3" />
-                Conectado
+                {t('connected')}
               </Badge>
             ) : (
               <Badge variant="outline" className="ml-2 gap-1 text-muted-foreground">
                 <WifiOff className="h-3 w-3" />
-                Desconectado
+                {t('disconnected')}
               </Badge>
             )}
           </CardTitle>
@@ -343,7 +348,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
               size="icon"
               className="h-8 w-8"
               onClick={() => setIsPaused(!isPaused)}
-              title={isPaused ? 'Continuar auto-scroll' : 'Pausar auto-scroll'}
+              title={isPaused ? t('resumeAutoScroll') : t('pauseAutoScroll')}
             >
               {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
             </Button>
@@ -352,7 +357,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
               size="icon"
               className="h-8 w-8"
               onClick={clearConsole}
-              title="Limpar console"
+              title={t('clearConsole')}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -361,7 +366,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
               size="icon"
               className="h-8 w-8"
               onClick={downloadLogs}
-              title="Baixar logs"
+              title={t('downloadLogs')}
             >
               <Download className="h-4 w-4" />
             </Button>
@@ -370,7 +375,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
               size="icon"
               className="h-8 w-8"
               onClick={() => setIsExpanded(!isExpanded)}
-              title={isExpanded ? 'Minimizar' : 'Expandir'}
+              title={isExpanded ? t('minimize') : t('expand')}
             >
               {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </Button>
@@ -383,7 +388,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
           <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
             <Info className="h-4 w-4 flex-shrink-0" />
             <span className="text-sm">
-              O servidor está offline. O console estará disponível quando o servidor iniciar.
+              {t('serverOfflineMessage')}
             </span>
           </div>
         )}
@@ -398,12 +403,12 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
             {isConnecting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Conectando...
+                {t('connecting')}
               </>
             ) : (
               <>
                 <Wifi className="mr-2 h-4 w-4" />
-                Conectar ao Console
+                {t('connectToConsole')}
               </>
             )}
           </Button>
@@ -427,7 +432,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         >
           {lines.length === 0 ? (
             <div className="text-gray-500 flex items-center justify-center h-full">
-              {isConnected ? 'Aguardando logs...' : 'Console vazio'}
+              {isConnected ? t('waitingForLogs') : t('emptyConsole')}
             </div>
           ) : (
             lines.map((line) => (
@@ -445,7 +450,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         {isPaused && (
           <div className="flex items-center justify-center gap-2 text-yellow-500 text-sm">
             <Pause className="h-4 w-4" />
-            Auto-scroll pausado
+            {t('autoScrollPaused')}
           </div>
         )}
 
@@ -462,7 +467,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
               value={command}
               onChange={(e) => setCommand(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={serverStatus === 1 ? "Digite um comando..." : "Servidor offline"}
+              placeholder={serverStatus === 1 ? t('typeCommand') : t('serverOffline')}
               className="pl-7 font-mono"
               disabled={!isConnected || serverStatus !== 1 || sendingCommand}
             />
@@ -480,7 +485,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Use ↑/↓ para navegar no histórico de comandos • {lines.length} linhas
+          {t('historyHint', { lines: lines.length })}
         </p>
       </CardContent>
     </Card>

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -39,6 +40,7 @@ export default function Navbar() {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations('nav');
   const [scrolled, setScrolled] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
@@ -67,8 +69,8 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    ...(user?.isAdmin ? [{ href: '/admin', label: 'Admin', icon: Shield }] : []),
+    { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    ...(user?.isAdmin ? [{ href: '/admin', label: t('admin'), icon: Shield }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -104,7 +106,7 @@ export default function Navbar() {
                   <span className="text-foreground">MineServer</span>
                   <span className="bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">Manager</span>
                 </h1>
-                <p className="text-[10px] text-muted-foreground font-medium">Painel de Controle</p>
+                <p className="text-[10px] text-muted-foreground font-medium">{t('controlPanel')}</p>
               </div>
             </Link>
 
@@ -151,7 +153,7 @@ export default function Navbar() {
                       </Badge>
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>Você tem privilégios de administrador</TooltipContent>
+                  <TooltipContent>{t('adminPrivileges')}</TooltipContent>
                 </Tooltip>
               )}
 
@@ -219,8 +221,8 @@ export default function Navbar() {
                         <LayoutDashboard className="h-4 w-4 text-blue-500" />
                       </div>
                       <div>
-                        <p className="font-medium">Dashboard</p>
-                        <p className="text-xs text-muted-foreground">Ver seus servidores</p>
+                        <p className="font-medium">{t('dashboard')}</p>
+                        <p className="text-xs text-muted-foreground">{t('viewServers')}</p>
                       </div>
                     </DropdownMenuItem>
 
@@ -233,8 +235,8 @@ export default function Navbar() {
                           <Shield className="h-4 w-4 text-amber-500" />
                         </div>
                         <div>
-                          <p className="font-medium">Painel Admin</p>
-                          <p className="text-xs text-muted-foreground">Gerenciar usuários</p>
+                          <p className="font-medium">{t('adminPanel')}</p>
+                          <p className="text-xs text-muted-foreground">{t('manageUsers')}</p>
                         </div>
                       </DropdownMenuItem>
                     )}
@@ -250,8 +252,8 @@ export default function Navbar() {
                         <LogOut className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="font-medium">Sair</p>
-                        <p className="text-xs opacity-70">Encerrar sessão</p>
+                        <p className="font-medium">{t('logout')}</p>
+                        <p className="text-xs opacity-70">{t('endSession')}</p>
                       </div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>

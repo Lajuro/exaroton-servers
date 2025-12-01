@@ -4,9 +4,11 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { GlobalLoading } from '@/components/GlobalLoading';
 import Image from 'next/image';
 import { 
@@ -101,6 +103,8 @@ function FeatureCard({ icon: Icon, title, description, delay }: {
 export default function LoginPage() {
   const router = useRouter();
   const { user, loading, signInWithGoogle } = useAuth();
+  const t = useTranslations('login');
+  const tCommon = useTranslations('common');
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -125,13 +129,14 @@ export default function LoginPage() {
   };
 
   if (loading) {
-    return <GlobalLoading message="Verificando autenticação" />;
+    return <GlobalLoading message={tCommon('verifyingAuth')} />;
   }
 
   return (
     <div className="relative flex min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Theme Toggle - Top Right */}
-      <div className="absolute top-4 right-4 z-50">
+      {/* Theme Toggle & Language - Top Right */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
         <ThemeToggle />
       </div>
       
@@ -171,22 +176,21 @@ export default function LoginPage() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   MineServerManager
                 </h1>
-                <p className="text-sm text-muted-foreground">Painel de Controle</p>
+                <p className="text-sm text-muted-foreground">{t('controlPanel')}</p>
               </div>
             </div>
 
             {/* Hero Text */}
             <div className="space-y-4">
               <h2 className="text-4xl lg:text-5xl font-bold leading-tight">
-                Gerencie seus servidores{' '}
+                {t('heroTitle')}{' '}
                 <span className="bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
                   Minecraft
                 </span>
-                {' '}com facilidade
+                {' '}{t('heroTitleEnd')}
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Controle total sobre seus servidores Minecraft. Inicie, pare, reinicie e 
-                execute comandos em tempo real com uma interface moderna e intuitiva.
+                {t('heroDescription')}
               </p>
             </div>
 
@@ -194,26 +198,26 @@ export default function LoginPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <FeatureCard 
                 icon={Zap} 
-                title="Tempo Real" 
-                description="Atualizações instantâneas via SSE"
+                title={t('features.realtime.title')} 
+                description={t('features.realtime.description')}
                 delay={100}
               />
               <FeatureCard 
                 icon={Terminal} 
-                title="Comandos" 
-                description="Execute comandos diretamente"
+                title={t('features.commands.title')} 
+                description={t('features.commands.description')}
                 delay={200}
               />
               <FeatureCard 
                 icon={Shield} 
-                title="Seguro" 
-                description="Autenticação via Google"
+                title={t('features.secure.title')} 
+                description={t('features.secure.description')}
                 delay={300}
               />
               <FeatureCard 
                 icon={Users} 
-                title="Multi-usuário" 
-                description="Controle de acesso por servidor"
+                title={t('features.multiuser.title')} 
+                description={t('features.multiuser.description')}
                 delay={400}
               />
             </div>
@@ -231,8 +235,8 @@ export default function LoginPage() {
               </div>
               <div className="h-8 w-px bg-border" />
               <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-500">Grátis</div>
-                <div className="text-xs text-muted-foreground">Para usar</div>
+                <div className="text-2xl font-bold text-emerald-500">{t('free')}</div>
+                <div className="text-xs text-muted-foreground">{t('toUse')}</div>
               </div>
             </div>
           </div>
@@ -254,11 +258,11 @@ export default function LoginPage() {
                 <div className="text-center space-y-2 mb-8">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
                     <Sparkles className="h-4 w-4" />
-                    Bem-vindo
+                    {t('welcome')}
                   </div>
-                  <h3 className="text-2xl font-bold">Faça login para continuar</h3>
+                  <h3 className="text-2xl font-bold">{t('loginToContinue')}</h3>
                   <p className="text-muted-foreground text-sm">
-                    Use sua conta Google para acessar o painel
+                    {t('useGoogleAccount')}
                   </p>
                 </div>
 
@@ -270,7 +274,7 @@ export default function LoginPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-zinc-100">Seu Servidor</span>
+                        <span className="font-semibold text-zinc-100">{t('yourServer')}</span>
                         <span className="flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -283,7 +287,7 @@ export default function LoginPage() {
                     </div>
                   </div>
                   <div className="mt-3 flex items-center justify-between text-xs">
-                    <span className="text-zinc-400">Jogadores</span>
+                    <span className="text-zinc-400">{t('players')}</span>
                     <span className="text-green-400 font-mono">5/20</span>
                   </div>
                   <div className="mt-1.5 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
@@ -301,7 +305,7 @@ export default function LoginPage() {
                   {isSigningIn ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Conectando...
+                      {t('connecting')}
                     </>
                   ) : (
                     <>
@@ -323,17 +327,17 @@ export default function LoginPage() {
                           d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                         />
                       </svg>
-                      Continuar com Google
+                      {t('continueWithGoogle')}
                     </>
                   )}
                 </Button>
 
                 {/* Terms */}
                 <p className="mt-6 text-center text-xs text-muted-foreground">
-                  Ao continuar, você concorda com nossos{' '}
-                  <a href="#" className="text-primary hover:underline">Termos de Uso</a>
-                  {' '}e{' '}
-                  <a href="#" className="text-primary hover:underline">Política de Privacidade</a>
+                  {t('termsText')}{' '}
+                  <a href="#" className="text-primary hover:underline">{t('termsOfUse')}</a>
+                  {' '}{t('and')}{' '}
+                  <a href="#" className="text-primary hover:underline">{t('privacyPolicy')}</a>
                 </p>
               </div>
             </div>
@@ -341,7 +345,7 @@ export default function LoginPage() {
             {/* Bottom Info */}
             <div className="mt-8 text-center">
               <p className="text-sm text-muted-foreground">
-                Feito com 💚 para a comunidade Minecraft
+                {t('madeWith')} 💚 {t('forCommunity')}
               </p>
             </div>
           </div>

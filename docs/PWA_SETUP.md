@@ -153,13 +153,11 @@ Use o DevTools do Chrome:
 
 ## Ícones Necessários
 
-O manifest.json espera:
-- `/logo_msm.svg` - SVG vetorial (qualquer tamanho)
-- `/icon-192.png` - PNG 192x192
-- `/icon-512.png` - PNG 512x512
+O manifest.json utiliza:
+- `/logo_msm.svg` - SVG vetorial (qualquer tamanho, usado como ícone principal)
 
 Para iOS também é útil:
-- `/apple-icon.png` - Apple Touch Icon
+- `/apple-icon.png` - Apple Touch Icon (gerado automaticamente pelo Next.js em `/app/apple-icon.tsx`)
 
 ## Troubleshooting
 
