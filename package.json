@@ -46,6 +46,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@swc/helpers": "^0.5.17",
     "@types/busboy": "^1.5.4",
     "@types/node": "^20",
     "@types/react": "^19",
