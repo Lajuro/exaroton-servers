@@ -39,14 +39,24 @@ export async function logAction(action: {
       errorMessage: action.errorMessage,
     };
 
+    // Remove undefined values to avoid Firestore errors
+    const cleanedLog = Object.fromEntries(
+      Object.entries(actionLog).filter(([_, v]) => v !== undefined)
+    );
+
+    console.log('[action-logger] Saving action:', action.type, 'for user:', action.userId);
+    
     const docRef = await db.collection('actionLogs').add({
-      ...actionLog,
+      ...cleanedLog,
       timestamp: FieldValue.serverTimestamp(),
     });
 
+    console.log('[action-logger] Action saved successfully with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error('Error logging action:', error);
+    // Log detailed error but don't throw - we don't want logging failures to break main operations
+    console.error('[action-logger] Error logging action:', error);
+    console.error('[action-logger] Action that failed:', JSON.stringify(action, null, 2));
     return null;
   }
 }

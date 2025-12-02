@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { ServerContent } from '@/types';
+import { logAction } from '@/lib/action-logger';
+import { getServer } from '@/lib/exaroton';
 
 /**
  * GET - Buscar conteúdo customizado do servidor
@@ -151,6 +153,33 @@ export async function PUT(
     // Buscar conteúdo atualizado
     const updatedDoc = await contentRef.get();
     const content = updatedDoc.data() as ServerContent;
+
+    // Get server name for logging
+    let serverName = serverId;
+    try {
+      const server = await getServer(serverId);
+      serverName = server?.name || serverId;
+    } catch {
+      // Continue with ID
+    }
+
+    // Determine what fields were updated
+    const updatedFields = Object.keys(body).filter(k => body[k] !== undefined).join(', ');
+
+    // Log the action
+    await logAction({
+      type: 'content_update',
+      userId,
+      userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+      userEmail: userData?.email || decodedToken.email || '',
+      userPhotoUrl: userData?.photoURL,
+      serverId,
+      serverName,
+      details: {
+        fieldUpdated: updatedFields,
+      },
+      success: true,
+    });
 
     return NextResponse.json({ success: true, content });
   } catch (error) {

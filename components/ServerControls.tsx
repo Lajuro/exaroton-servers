@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -67,6 +67,22 @@ export function ServerControls({
   const isRestarting = serverStatus === 4;
   const _isTransitioning = isStarting || isStopping || isRestarting;
 
+  // Map numeric status to translation key
+  const getStatusLabel = (status: number): string => {
+    const statusKeyMap: Record<number, string> = {
+      0: 'offline',
+      1: 'online',
+      2: 'starting',
+      3: 'stopping',
+      4: 'restarting',
+      5: 'saving',
+      6: 'loading',
+      7: 'crashed',
+      10: 'preparing',
+    };
+    return tStatus(statusKeyMap[status] || 'unknown');
+  };
+
   const handleSendCommand = () => {
     let finalCommand = '';
     
@@ -107,11 +123,11 @@ export function ServerControls({
             <Play className="h-4 w-4" />
           )}
           <span className="flex-1 text-left">
-            {isStarting ? tStatus(String(serverStatus)) : t('startServer')}
+            {isStarting ? getStatusLabel(serverStatus) : t('startServer')}
           </span>
           {isStarting && (
             <Badge variant="outline" className="ml-auto animate-pulse">
-              {tStatus(String(serverStatus))}...
+              {getStatusLabel(serverStatus)}...
             </Badge>
           )}
         </Button>
@@ -326,15 +342,14 @@ export function ServerControls({
 
   return (
     <>
-      <Card>
+      <Card className="border-border/50">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Zap className="h-5 w-5" />
+            <div className="p-2 rounded-lg bg-yellow-500/10">
+              <Zap className="h-5 w-5 text-yellow-500" />
+            </div>
             {t('controls')}
           </CardTitle>
-          <CardDescription>
-            {t('controlsDescription')}
-          </CardDescription>
         </CardHeader>
         <CardContent>
           {renderControls()}

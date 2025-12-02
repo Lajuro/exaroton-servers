@@ -10,7 +10,6 @@ import { GlobalLoading } from '@/components/GlobalLoading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { ServerBanner } from '@/components/ServerBanner';
 import { ServerIcon } from '@/components/ServerIcon';
 import { AccessInstructions } from '@/components/AccessInstructions';
@@ -466,61 +465,67 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
             )}
 
             {/* Informações do servidor */}
-            <Card>
+            <Card className="border-border/50">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Server className="h-5 w-5" />
+                  <div className="p-2 rounded-lg bg-purple-500/10">
+                    <Server className="h-5 w-5 text-purple-500" />
+                  </div>
                   {t('info.title')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <Cpu className="h-4 w-4" />
-                    {t('info.software')}
-                  </span>
-                  <span className="font-medium">{server.software.name}</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <HardDrive className="h-4 w-4" />
-                    {t('info.version')}
-                  </span>
-                  <span className="font-medium">{server.software.version}</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    {t('info.slots')}
-                  </span>
-                  <span className="font-medium">{server.players.max} {t('players')}</span>
-                </div>
-                {server.ram && (
-                  <>
-                    <Separator />
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground flex items-center gap-2">
-                        <MemoryStick className="h-4 w-4" />
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
+                    <span className="text-muted-foreground flex items-center gap-3 text-sm">
+                      <div className="p-2 rounded-lg bg-purple-500/10">
+                        <Cpu className="h-4 w-4 text-purple-500" />
+                      </div>
+                      {t('info.software')}
+                    </span>
+                    <span className="font-medium text-sm">{server.software.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
+                    <span className="text-muted-foreground flex items-center gap-3 text-sm">
+                      <div className="p-2 rounded-lg bg-purple-500/10">
+                        <HardDrive className="h-4 w-4 text-purple-500" />
+                      </div>
+                      {t('info.version')}
+                    </span>
+                    <span className="font-medium text-sm">{server.software.version}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
+                    <span className="text-muted-foreground flex items-center gap-3 text-sm">
+                      <div className="p-2 rounded-lg bg-purple-500/10">
+                        <Users className="h-4 w-4 text-purple-500" />
+                      </div>
+                      {t('info.slots')}
+                    </span>
+                    <span className="font-medium text-sm">{server.players.max} {t('players')}</span>
+                  </div>
+                  {server.ram && (
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
+                      <span className="text-muted-foreground flex items-center gap-3 text-sm">
+                        <div className="p-2 rounded-lg bg-purple-500/10">
+                          <MemoryStick className="h-4 w-4 text-purple-500" />
+                        </div>
                         RAM
                       </span>
-                      <span className="font-medium">{server.ram} GB</span>
+                      <span className="font-medium text-sm">{server.ram} GB</span>
                     </div>
-                  </>
-                )}
-                {typeof server.credits === 'number' && (
-                  <>
-                    <Separator />
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
+                  )}
+                  {typeof server.credits === 'number' && (
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
+                      <span className="text-muted-foreground flex items-center gap-3 text-sm">
+                        <div className="p-2 rounded-lg bg-purple-500/10">
+                          <Clock className="h-4 w-4 text-purple-500" />
+                        </div>
                         {t('info.credits')}
                       </span>
-                      <span className="font-medium">{server.credits} {t('info.creditsUnit')}</span>
+                      <span className="font-medium text-sm">{server.credits} {t('info.creditsUnit')}</span>
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

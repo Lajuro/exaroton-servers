@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { 
   User as FirebaseUser,
   onAuthStateChanged,
@@ -25,9 +25,30 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
+// Helper function to log auth actions
+async function logAuthAction(action: 'login' | 'logout' | 'register') {
+  try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    
+    const token = await currentUser.getIdToken();
+    await fetch('/api/auth/log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action }),
+    });
+  } catch (error) {
+    console.error('Error logging auth action:', error);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const lastLoggedUserId = useRef<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
@@ -47,6 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             createdAt: userData.createdAt?.toDate() || new Date(),
             updatedAt: userData.updatedAt?.toDate() || new Date(),
           });
+          
+          // Log login only if this is a new session (not a page reload with existing session)
+          if (lastLoggedUserId.current !== firebaseUser.uid) {
+            lastLoggedUserId.current = firebaseUser.uid;
+            logAuthAction('login');
+          }
         } else {
           // Create new user document if it doesn't exist
           const newUser: User = {
@@ -62,6 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
           setUser(newUser);
+          
+          // Log registration
+          lastLoggedUserId.current = firebaseUser.uid;
+          logAuthAction('register');
         }
       } else {
         setUser(null);
@@ -83,6 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
+      // Log logout before signing out (while we still have the token)
+      await logAuthAction('logout');
+      lastLoggedUserId.current = null;
       await firebaseSignOut(auth);
     } catch (error) {
       console.error('Error signing out:', error);

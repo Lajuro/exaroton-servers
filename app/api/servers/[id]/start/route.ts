@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { startServer } from '@/lib/exaroton';
+import { startServer, getServer } from '@/lib/exaroton';
 import { adminAuth, adminDb, invalidateServerCache } from '@/lib/firebase-admin';
+import { logAction } from '@/lib/action-logger';
 
 export async function POST(
   request: NextRequest,
@@ -34,11 +35,32 @@ export async function POST(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // Get server info for logging
+    let serverName = id;
+    try {
+      const server = await getServer(id);
+      serverName = server?.name || id;
+    } catch {
+      // Use ID if server name fetch fails
+    }
+
     // Start the server
     await startServer(id);
     
     // Invalidar cache do servidor
     await invalidateServerCache(id);
+    
+    // Log the action
+    await logAction({
+      type: 'server_start',
+      userId,
+      userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+      userEmail: userData?.email || decodedToken.email || '',
+      userPhotoUrl: userData?.photoURL,
+      serverId: id,
+      serverName,
+      success: true,
+    });
     
     return NextResponse.json({ success: true, message: 'Server starting' });
   } catch (error) {

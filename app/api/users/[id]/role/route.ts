@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { logAction } from '@/lib/action-logger';
 
 export async function PUT(
   request: NextRequest,
@@ -8,9 +9,9 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { isAdmin } = body;
+    const { isAdmin: newIsAdmin } = body;
 
-    if (typeof isAdmin !== 'boolean') {
+    if (typeof newIsAdmin !== 'boolean') {
       return NextResponse.json(
         { error: 'Invalid isAdmin value' },
         { status: 400 }
@@ -42,10 +43,32 @@ export async function PUT(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
+    // Get target user data for logging
+    const targetUserDoc = await adminDb().collection('users').doc(id).get();
+    const targetUserData = targetUserDoc.exists ? targetUserDoc.data() : null;
+    const previousRole = targetUserData?.isAdmin ? 'admin' : 'user';
+    const newRole = newIsAdmin ? 'admin' : 'user';
+
     // Update the target user's role
     await adminDb().collection('users').doc(id).update({
-      isAdmin,
+      isAdmin: newIsAdmin,
       updatedAt: new Date(),
+    });
+
+    // Log the action
+    await logAction({
+      type: 'user_role_change',
+      userId,
+      userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+      userEmail: userData?.email || decodedToken.email || '',
+      userPhotoUrl: userData?.photoURL,
+      targetUserId: id,
+      targetUserName: targetUserData?.displayName || targetUserData?.name || targetUserData?.email || 'Unknown',
+      details: {
+        previousRole,
+        newRole,
+      },
+      success: true,
     });
 
     return NextResponse.json({ success: true, message: 'User role updated' });

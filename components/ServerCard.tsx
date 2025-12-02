@@ -24,7 +24,8 @@ import {
   Copy, 
   Check,
   Terminal,
-  ExternalLink
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { Card, CardContent } from '@/components/ui/card';
@@ -82,6 +83,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
   const [commandOption, setCommandOption] = useState('');
   const [sendingCommand, setSendingCommand] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const lastActionTimeRef = useRef<number>(0);
@@ -103,16 +105,86 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
     return statusMap[status] || t('status.unknown');
   };
 
-  const STATUS_CONFIG: Record<number, { color: string; bgColor: string; borderColor: string }> = {
-    0: { color: 'text-gray-500', bgColor: 'bg-gray-500/10', borderColor: 'border-gray-500/20' },
-    1: { color: 'text-green-500', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/20' },
-    2: { color: 'text-yellow-500', bgColor: 'bg-yellow-500/10', borderColor: 'border-yellow-500/20' },
-    3: { color: 'text-orange-500', bgColor: 'bg-orange-500/10', borderColor: 'border-orange-500/20' },
-    4: { color: 'text-blue-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/20' },
-    5: { color: 'text-cyan-500', bgColor: 'bg-cyan-500/10', borderColor: 'border-cyan-500/20' },
-    6: { color: 'text-indigo-500', bgColor: 'bg-indigo-500/10', borderColor: 'border-indigo-500/20' },
-    7: { color: 'text-red-500', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/20' },
-    10: { color: 'text-amber-500', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/20' },
+  const STATUS_CONFIG: Record<number, { 
+    color: string; 
+    bgColor: string; 
+    borderColor: string;
+    glowColor: string;
+    gradientFrom: string;
+    gradientTo: string;
+  }> = {
+    0: { 
+      color: 'text-slate-400', 
+      bgColor: 'bg-slate-500/10', 
+      borderColor: 'border-slate-500/20',
+      glowColor: 'shadow-slate-500/20',
+      gradientFrom: 'from-slate-500',
+      gradientTo: 'to-slate-600'
+    },
+    1: { 
+      color: 'text-emerald-500', 
+      bgColor: 'bg-emerald-500/10', 
+      borderColor: 'border-emerald-500/30',
+      glowColor: 'shadow-emerald-500/25',
+      gradientFrom: 'from-emerald-500',
+      gradientTo: 'to-green-600'
+    },
+    2: { 
+      color: 'text-amber-500', 
+      bgColor: 'bg-amber-500/10', 
+      borderColor: 'border-amber-500/30',
+      glowColor: 'shadow-amber-500/25',
+      gradientFrom: 'from-amber-500',
+      gradientTo: 'to-yellow-600'
+    },
+    3: { 
+      color: 'text-orange-500', 
+      bgColor: 'bg-orange-500/10', 
+      borderColor: 'border-orange-500/30',
+      glowColor: 'shadow-orange-500/25',
+      gradientFrom: 'from-orange-500',
+      gradientTo: 'to-red-600'
+    },
+    4: { 
+      color: 'text-blue-500', 
+      bgColor: 'bg-blue-500/10', 
+      borderColor: 'border-blue-500/30',
+      glowColor: 'shadow-blue-500/25',
+      gradientFrom: 'from-blue-500',
+      gradientTo: 'to-indigo-600'
+    },
+    5: { 
+      color: 'text-cyan-500', 
+      bgColor: 'bg-cyan-500/10', 
+      borderColor: 'border-cyan-500/30',
+      glowColor: 'shadow-cyan-500/25',
+      gradientFrom: 'from-cyan-500',
+      gradientTo: 'to-blue-600'
+    },
+    6: { 
+      color: 'text-indigo-500', 
+      bgColor: 'bg-indigo-500/10', 
+      borderColor: 'border-indigo-500/30',
+      glowColor: 'shadow-indigo-500/25',
+      gradientFrom: 'from-indigo-500',
+      gradientTo: 'to-purple-600'
+    },
+    7: { 
+      color: 'text-red-500', 
+      bgColor: 'bg-red-500/10', 
+      borderColor: 'border-red-500/30',
+      glowColor: 'shadow-red-500/25',
+      gradientFrom: 'from-red-500',
+      gradientTo: 'to-rose-600'
+    },
+    10: { 
+      color: 'text-violet-500', 
+      bgColor: 'bg-violet-500/10', 
+      borderColor: 'border-violet-500/30',
+      glowColor: 'shadow-violet-500/25',
+      gradientFrom: 'from-violet-500',
+      gradientTo: 'to-purple-600'
+    },
   };
 
   const statusInfo = STATUS_CONFIG[server.status] || STATUS_CONFIG[0];
@@ -120,6 +192,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
   const isOnline = server.status === 1;
   const isOffline = server.status === 0;
   const isTransitioning = [2, 3, 4, 5, 6, 10].includes(server.status);
+  const playerPercentage = server.players ? (server.players.count / server.players.max) * 100 : 0;
 
   useEffect(() => {
     setServer(initialServer);
@@ -149,11 +222,9 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'status' && data.server) {
-              // Previne que estados de transição sejam sobrescritos por mensagens antigas
               const timeSinceLastAction = Date.now() - lastActionTimeRef.current;
               const isTransitioningStatus = [2, 3, 4, 5, 6, 10].includes(data.server.status);
               
-              // Se acabamos de executar uma ação (< 2s), só aceita estados de transição ou finais
               if (timeSinceLastAction < 2000 && !isTransitioningStatus && data.server.status !== 0 && data.server.status !== 1) {
                 return;
               }
@@ -218,10 +289,8 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
         description: `${server.name} ${actionNames[action]}...`,
       });
 
-      // Marcar tempo da ação para evitar race conditions com SSE
       lastActionTimeRef.current = Date.now();
       
-      // Atualiza estado local imediatamente
       const newStatus = action === 'start' ? 2 : action === 'stop' ? 3 : 4;
       setServer(prev => ({ ...prev, status: newStatus }));
       
@@ -312,144 +381,221 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
     <>
       <Card 
         className={cn(
-          "group relative overflow-hidden transition-all duration-300 cursor-pointer",
-          "hover:shadow-xl hover:-translate-y-1",
-          isOnline && "ring-1 ring-green-500/20 hover:ring-green-500/40",
-          isTransitioning && "ring-1 ring-yellow-500/20",
-          error && "ring-1 ring-destructive/20"
+          "group relative overflow-hidden cursor-pointer",
+          "bg-gradient-to-br from-card via-card to-card/80",
+          "border border-border/50",
+          "transition-all duration-500 ease-out",
+          "hover:shadow-2xl hover:-translate-y-2",
+          isOnline && "hover:shadow-emerald-500/10 hover:border-emerald-500/30",
+          isOffline && "hover:shadow-slate-500/10 hover:border-slate-500/30",
+          isTransitioning && "hover:shadow-amber-500/10 hover:border-amber-500/30",
+          error && "border-destructive/30"
         )}
         onClick={handleCardClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Barra de status no topo */}
+        {/* Gradient overlay on hover */}
         <div className={cn(
-          "h-1 w-full",
-          isOnline && "bg-gradient-to-r from-green-500 to-emerald-500",
-          isOffline && "bg-gray-300 dark:bg-gray-700",
-          isTransitioning && "bg-gradient-to-r from-yellow-500 to-orange-500 animate-pulse"
+          "absolute inset-0 opacity-0 transition-opacity duration-500",
+          "bg-gradient-to-br from-primary/5 via-transparent to-transparent",
+          isHovered && "opacity-100"
         )} />
 
-        <CardContent className="p-4">
-          {/* Header: Ícone + Info */}
-          <div className="flex items-start gap-3 mb-4">
-            {/* Ícone do servidor */}
+        {/* Status accent bar */}
+        <div className={cn(
+          "absolute top-0 left-0 right-0 h-1",
+          "bg-gradient-to-r",
+          statusInfo.gradientFrom, statusInfo.gradientTo,
+          isTransitioning && "animate-pulse"
+        )} />
+
+        {/* Live indicator glow */}
+        {isLive && isOnline && (
+          <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none" />
+        )}
+
+        <CardContent className="relative p-5">
+          {/* Header */}
+          <div className="flex items-start gap-4 mb-5">
+            {/* Server Icon with status ring */}
             <div className="relative flex-shrink-0">
-              {iconUrl ? (
-                <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md ring-1 ring-border">
+              <div className={cn(
+                "relative w-14 h-14 rounded-2xl overflow-hidden",
+                "ring-2 ring-offset-2 ring-offset-background transition-all duration-300",
+                isOnline && "ring-emerald-500/50",
+                isOffline && "ring-slate-500/30",
+                isTransitioning && "ring-amber-500/50",
+                isHovered && "scale-105"
+              )}>
+                {iconUrl ? (
                   <img 
                     src={iconUrl} 
                     alt={server.name}
                     className="w-full h-full object-cover"
                   />
-                </div>
-              ) : (
-                <div className={cn(
-                  "w-12 h-12 rounded-xl flex items-center justify-center shadow-md",
-                  statusInfo.bgColor, statusInfo.borderColor, "border"
-                )}>
-                  {isOnline ? (
-                    <Wifi className={cn("h-5 w-5", statusInfo.color)} />
-                  ) : (
-                    <WifiOff className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              )}
+                ) : (
+                  <div className={cn(
+                    "w-full h-full flex items-center justify-center",
+                    "bg-gradient-to-br",
+                    statusInfo.gradientFrom, statusInfo.gradientTo
+                  )}>
+                    {isOnline ? (
+                      <Wifi className="h-6 w-6 text-white" />
+                    ) : isTransitioning ? (
+                      <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    ) : (
+                      <WifiOff className="h-6 w-6 text-white/80" />
+                    )}
+                  </div>
+                )}
+              </div>
+              
               {/* Status dot */}
               <div className={cn(
-                "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background",
-                isOnline && "bg-green-500",
-                isOffline && "bg-gray-400",
-                isTransitioning && "bg-yellow-500 animate-pulse"
-              )} />
+                "absolute -bottom-1 -right-1 w-4 h-4 rounded-full",
+                "border-2 border-background shadow-lg",
+                "transition-all duration-300",
+                isOnline && "bg-emerald-500",
+                isOffline && "bg-slate-400",
+                isTransitioning && "bg-amber-500 animate-pulse"
+              )}>
+                {isOnline && (
+                  <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-50" />
+                )}
+              </div>
             </div>
 
-            {/* Nome e endereço */}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-base truncate mb-1 group-hover:text-primary transition-colors">
-                {server.name}
-              </h3>
+            {/* Server info */}
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className={cn(
+                  "font-bold text-lg truncate transition-colors duration-300",
+                  isHovered && "text-primary"
+                )}>
+                  {server.name}
+                </h3>
+                
+                {/* Live badge */}
+                {isLive && (
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "flex-shrink-0 gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                      "border-emerald-500/30 text-emerald-600 dark:text-emerald-400",
+                      "bg-emerald-500/10"
+                    )}
+                  >
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                    {tCommon('live')}
+                  </Badge>
+                )}
+              </div>
+              
+              {/* Address */}
               <button
                 onClick={handleCopyAddress}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors group/addr"
-              >
-                <Globe className="h-3 w-3 flex-shrink-0" />
-                <code className="truncate max-w-[140px]">{server.address}</code>
-                {addressCopied ? (
-                  <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
-                ) : (
-                  <Copy className="h-3 w-3 opacity-0 group-hover/addr:opacity-100 transition-opacity flex-shrink-0" />
+                className={cn(
+                  "flex items-center gap-2 text-sm text-muted-foreground",
+                  "hover:text-foreground transition-colors group/addr"
                 )}
+              >
+                <Globe className="h-3.5 w-3.5 flex-shrink-0" />
+                <code className="truncate max-w-[160px] font-mono text-xs">{server.address}</code>
+                <span className={cn(
+                  "transition-all duration-200",
+                  addressCopied ? "opacity-100" : "opacity-0 group-hover/addr:opacity-100"
+                )}>
+                  {addressCopied ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </span>
               </button>
             </div>
-
-            {/* Live indicator */}
-            {isLive && (
-              <div className="flex items-center gap-1 text-[10px] text-green-600 dark:text-green-400">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-                <span className="hidden sm:inline">{tCommon('live')}</span>
-              </div>
-            )}
           </div>
 
-          {/* Status e Players */}
-          <div className="flex items-center justify-between gap-2 mb-4">
+          {/* Status and players row */}
+          <div className="flex items-center justify-between gap-3 mb-4">
             <Badge 
-              variant="outline"
+              variant="secondary"
               className={cn(
-                "gap-1.5 font-medium",
-                statusInfo.bgColor, statusInfo.borderColor, statusInfo.color
+                "gap-1.5 font-semibold px-3 py-1",
+                "transition-all duration-300",
+                statusInfo.bgColor, statusInfo.color,
+                "border", statusInfo.borderColor
               )}
             >
-              {isOnline && <Zap className="h-3 w-3" />}
-              {isOffline && <WifiOff className="h-3 w-3" />}
-              {isTransitioning && <Clock className="h-3 w-3 animate-spin" />}
+              {isOnline && <Zap className="h-3.5 w-3.5" />}
+              {isOffline && <WifiOff className="h-3.5 w-3.5" />}
+              {isTransitioning && <Clock className="h-3.5 w-3.5 animate-spin" />}
               {statusLabel}
             </Badge>
 
             {server.players && (
-              <div className="flex items-center gap-1.5 text-sm">
+              <div className={cn(
+                "flex items-center gap-2 px-3 py-1 rounded-full",
+                "bg-muted/50 border border-border/50"
+              )}>
                 <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="font-medium tabular-nums">
+                <span className="font-bold tabular-nums text-sm">
                   {server.players.count}
-                  <span className="text-muted-foreground">/{server.players.max}</span>
+                  <span className="text-muted-foreground font-normal">/{server.players.max}</span>
                 </span>
               </div>
             )}
           </div>
 
-          {/* Barra de jogadores */}
+          {/* Player capacity bar */}
           {server.players && (
-            <div className="mb-4">
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+            <div className="mb-5">
+              <div className="h-2 bg-muted/50 rounded-full overflow-hidden backdrop-blur-sm">
                 <div 
                   className={cn(
-                    "h-full rounded-full transition-all duration-500",
-                    isOnline ? "bg-gradient-to-r from-green-500 to-emerald-500" : "bg-gray-400"
+                    "h-full rounded-full transition-all duration-700 ease-out",
+                    "bg-gradient-to-r",
+                    isOnline ? "from-emerald-500 to-green-400" : "from-slate-400 to-slate-500",
+                    playerPercentage > 80 && isOnline && "from-amber-500 to-orange-400",
+                    playerPercentage === 100 && isOnline && "from-red-500 to-rose-400"
                   )}
-                  style={{ width: `${Math.max((server.players.count / server.players.max) * 100, 2)}%` }}
+                  style={{ width: `${Math.max(playerPercentage, 2)}%` }}
                 />
               </div>
+              {playerPercentage > 80 && isOnline && (
+                <p className="text-[10px] text-amber-500 mt-1 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  {locale === 'pt-BR' ? 'Servidor quase cheio!' : 'Server almost full!'}
+                </p>
+              )}
             </div>
           )}
 
-          {/* Erro */}
+          {/* Error message */}
           {error && (
-            <div className="flex items-center gap-2 text-xs text-destructive mb-3 p-2 rounded-lg bg-destructive/10">
-              <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-destructive mb-4 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20">
+              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">{error}</span>
             </div>
           )}
 
-          {/* Ações */}
+          {/* Actions */}
           <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-            {/* Offline: Mostrar botão iniciar */}
+            {/* Offline: Start button */}
             {isOffline && (
               <Button
                 onClick={() => handleAction('start')}
                 disabled={loading !== null}
-                className="flex-1 gap-2"
+                className={cn(
+                  "flex-1 gap-2 font-semibold",
+                  "bg-gradient-to-r from-emerald-600 to-green-600",
+                  "hover:from-emerald-500 hover:to-green-500",
+                  "shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40",
+                  "transition-all duration-300"
+                )}
                 size="sm"
               >
                 {loading === 'start' ? (
@@ -461,12 +607,12 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
               </Button>
             )}
 
-            {/* Transição: Mostrar estado */}
+            {/* Transitioning: Status button */}
             {isTransitioning && (
               <Button
                 disabled
                 variant="outline"
-                className="flex-1 gap-2"
+                className="flex-1 gap-2 font-semibold"
                 size="sm"
               >
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -474,14 +620,18 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
               </Button>
             )}
 
-            {/* Online: Mostrar controles */}
+            {/* Online: Control buttons */}
             {isOnline && (
               <>
                 <Button
                   onClick={() => setConfirmDialog({ open: true, action: 'stop' })}
                   disabled={loading !== null}
                   variant="destructive"
-                  className="flex-1 gap-2"
+                  className={cn(
+                    "flex-1 gap-2 font-semibold",
+                    "shadow-lg shadow-red-500/20 hover:shadow-red-500/30",
+                    "transition-all duration-300"
+                  )}
                   size="sm"
                 >
                   {loading === 'stop' ? (
@@ -497,7 +647,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                   disabled={loading !== null}
                   variant="outline"
                   size="sm"
-                  className="gap-2"
+                  className="gap-2 font-semibold hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300"
                 >
                   {loading === 'restart' ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -513,50 +663,63 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                     disabled={loading !== null}
                     variant="outline"
                     size="sm"
-                    className="gap-2"
+                    className="gap-2 font-semibold hover:bg-violet-500/10 hover:border-violet-500/30 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-300"
                   >
                     <Terminal className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('actions.command')}</span>
                   </Button>
                 )}
               </>
             )}
 
-            {/* Botão Ver detalhes */}
+            {/* View details button */}
             <Button
               onClick={handleCardClick}
               variant="ghost"
               size="sm"
-              className="gap-1 ml-auto"
+              className={cn(
+                "gap-1 ml-auto transition-all duration-300",
+                isHovered && "translate-x-0.5"
+              )}
             >
-              <ExternalLink className="h-4 w-4" />
+              <ChevronRight className={cn(
+                "h-4 w-4 transition-transform duration-300",
+                isHovered && "translate-x-0.5"
+              )} />
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Dialog de Confirmação */}
+      {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, action: null })}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <div className={cn(
+                "p-2 rounded-full",
+                confirmDialog.action === 'stop' ? "bg-destructive/10" : "bg-blue-500/10"
+              )}>
+                <AlertTriangle className={cn(
+                  "h-5 w-5",
+                  confirmDialog.action === 'stop' ? "text-destructive" : "text-blue-500"
+                )} />
+              </div>
               {t('actions.confirmAction')}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="pt-2">
               {confirmDialog.action === 'stop' && (
                 locale === 'pt-BR' 
-                  ? <>Tem certeza que deseja <strong>parar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados.</>
-                  : <>Are you sure you want to <strong>stop</strong> the server <strong>{server.name}</strong>? Online players will be disconnected.</>
+                  ? <>Tem certeza que deseja <strong className="text-destructive">parar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados.</>
+                  : <>Are you sure you want to <strong className="text-destructive">stop</strong> the server <strong>{server.name}</strong>? Online players will be disconnected.</>
               )}
               {confirmDialog.action === 'restart' && (
                 locale === 'pt-BR'
-                  ? <>Tem certeza que deseja <strong>reiniciar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados temporariamente.</>
-                  : <>Are you sure you want to <strong>restart</strong> the server <strong>{server.name}</strong>? Online players will be temporarily disconnected.</>
+                  ? <>Tem certeza que deseja <strong className="text-blue-500">reiniciar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados temporariamente.</>
+                  : <>Are you sure you want to <strong className="text-blue-500">restart</strong> the server <strong>{server.name}</strong>? Online players will be temporarily disconnected.</>
               )}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setConfirmDialog({ open: false, action: null })}>
               {tCommon('cancel')}
             </Button>
@@ -575,7 +738,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de Comando */}
+      {/* Command Dialog */}
       <Dialog open={commandDialog} onOpenChange={(open) => {
         setCommandDialog(open);
         if (!open) {
@@ -587,7 +750,9 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Terminal className="h-5 w-5" />
+              <div className="p-2 rounded-full bg-violet-500/10">
+                <Terminal className="h-5 w-5 text-violet-500" />
+              </div>
               {t('actions.sendCommand')}
             </DialogTitle>
             <DialogDescription>
@@ -716,11 +881,15 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setCommandDialog(false)}>
               {tCommon('cancel')}
             </Button>
-            <Button onClick={handleSendCommand} disabled={sendingCommand}>
+            <Button 
+              onClick={handleSendCommand} 
+              disabled={sendingCommand}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500"
+            >
               {sendingCommand ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (

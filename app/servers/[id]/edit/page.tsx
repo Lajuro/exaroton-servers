@@ -6,7 +6,8 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
-import { GlobalLoading } from '@/components/GlobalLoading';
+import { PageTransition } from '@/components/GlobalLoading';
+import { ServerDetailSkeleton } from '@/components/ServerDetailSkeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -313,12 +314,14 @@ export default function ServerEditPage({ params }: EditPageProps) {
     setHasUnsavedChanges(true);
   };
 
-  if (authLoading || loading) {
-    return <GlobalLoading message={t('loadingEditor')} />;
-  }
+  const isLoading = authLoading || loading;
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageTransition
+      isLoading={isLoading}
+      loadingComponent={<ServerDetailSkeleton />}
+    >
+      <div className="min-h-screen bg-background">
       <Navbar />
       
       {/* Header com banner editável */}
@@ -721,5 +724,6 @@ export default function ServerEditPage({ params }: EditPageProps) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </PageTransition>
   );
 }

@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
 import { AdminSkeleton } from '@/components/AdminSkeleton';
+import { PageTransition } from '@/components/GlobalLoading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -229,12 +230,14 @@ export default function AdminPage() {
   const adminCount = users.filter(u => u.isAdmin).length;
   const totalServers = servers.length;
 
-  if (authLoading || !user?.isAdmin) {
-    return <AdminSkeleton />;
-  }
+  const isPageLoading = authLoading || !user?.isAdmin;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <PageTransition
+      isLoading={isPageLoading}
+      loadingComponent={<AdminSkeleton />}
+    >
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Navbar />
 
       <main className="container mx-auto px-4 py-8 space-y-8">
@@ -652,5 +655,6 @@ export default function AdminPage() {
         )}
       </main>
     </div>
+    </PageTransition>
   );
 }

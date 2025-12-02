@@ -46,6 +46,11 @@
   },
   "common": {
     "loading": "Carregando...",
+    "loadingServers": "Carregando servidores...",
+    "loadingPanel": "Carregando painel...",
+    "loadingServer": "Carregando servidor...",
+    "updating": "Atualizando...",
+    "redirecting": "Redirecionando...",
     "error": "Erro",
     "success": "Sucesso",
     "cancel": "Cancelar",
@@ -81,7 +86,8 @@
     "serverUnavailable": "Servidor indisponível. Verifique se o app está rodando.",
     "errorOccurred": "Ocorreu um erro",
     "stop": "Parar",
-    "start": "Iniciar"
+    "start": "Iniciar",
+    "restart": "Reiniciar"
   },
   "auth": {
     "login": "Entrar",
@@ -288,7 +294,14 @@
     "content": {
       "title": "Conteúdo",
       "description": "Informações adicionais do servidor",
-      "noContent": "Sem conteúdo disponível"
+      "noContent": "Sem conteúdo disponível",
+      "documents": {
+        "title": "Documentos",
+        "noDocuments": "Nenhum documento foi adicionado ainda.",
+        "view": "Visualizar",
+        "download": "Download",
+        "delete": "Excluir"
+      }
     },
     "access": {
       "title": "Acesso",
@@ -522,7 +535,8 @@
       "document_upload": "Upload de documento",
       "document_delete": "Excluir documento",
       "login": "Login",
-      "logout": "Logout"
+      "logout": "Logout",
+      "register": "Cadastro"
     },
     "actionDescriptions": {
       "server_start": "iniciou o servidor {server}",
@@ -536,7 +550,8 @@
       "document_upload": "enviou documento {document}",
       "document_delete": "excluiu documento {document}",
       "login": "fez login",
-      "logout": "fez logout"
+      "logout": "fez logout",
+      "register": "se cadastrou no sistema"
     },
     "details": "Detalhes",
     "viewDetails": "Ver detalhes",
@@ -605,7 +620,12 @@
       "title": "Documentos",
       "description": "PDFs com informações adicionais (máx. 10MB cada)",
       "addPdf": "Adicionar documento PDF",
-      "fileSize": "{size} KB"
+      "fileSize": "{size} KB",
+      "noDocuments": "Nenhum documento foi adicionado ainda.",
+      "count": "({count})",
+      "view": "Visualizar",
+      "download": "Download",
+      "delete": "Excluir"
     },
     "banner": "Banner",
     "deleteConfirm": {
@@ -712,5 +732,51 @@
     "needMaterials": "Precisa de {material} x{count}",
     "soundOn": "Som ligado",
     "soundOff": "Som desligado"
+  },
+  "serverDetails": {
+    "backToDashboard": "Voltar ao Dashboard",
+    "status": {
+      "offline": "Offline",
+      "online": "Online",
+      "starting": "Iniciando",
+      "stopping": "Parando",
+      "restarting": "Reiniciando",
+      "saving": "Salvando",
+      "loading": "Carregando",
+      "crashed": "Travou",
+      "pending": "Pendente",
+      "preparing": "Preparando"
+    },
+    "stats": {
+      "players": "Jogadores",
+      "ram": "Memória RAM",
+      "software": "Software",
+      "host": "Host"
+    },
+    "tabs": {
+      "console": "Console",
+      "rules": "Regras",
+      "documents": "Documentos",
+      "history": "Histórico"
+    },
+    "errors": {
+      "title": "Erro ao carregar servidor",
+      "fetchFailed": "Falha ao buscar dados do servidor",
+      "unknown": "Erro desconhecido"
+    }
+  },
+  "serverContent": {
+    "rules": {
+      "noRules": "Nenhuma regra definida para este servidor."
+    },
+    "documents": {
+      "title": "Documentos",
+      "noDocuments": "Nenhum documento disponível.",
+      "openDocument": "Abrir documento",
+      "downloadDocument": "Baixar documento",
+      "viewPdf": "Visualizar PDF",
+      "documentUnavailable": "Documento indisponível",
+      "documentSize": "Tamanho"
+    }
   }
 }

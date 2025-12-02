@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { logAction } from '@/lib/action-logger';
+import { getServers } from '@/lib/exaroton';
 
 export async function PUT(
   request: NextRequest,
@@ -8,9 +10,9 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { serverAccess } = body;
+    const { serverAccess: newServerAccess } = body;
 
-    if (!Array.isArray(serverAccess)) {
+    if (!Array.isArray(newServerAccess)) {
       return NextResponse.json(
         { error: 'Invalid serverAccess value' },
         { status: 400 }
@@ -42,11 +44,64 @@ export async function PUT(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
+    // Get target user data for logging
+    const targetUserDoc = await adminDb().collection('users').doc(id).get();
+    const targetUserData = targetUserDoc.exists ? targetUserDoc.data() : null;
+    const previousServerAccess = targetUserData?.serverAccess || [];
+
     // Update the target user's server access
     await adminDb().collection('users').doc(id).update({
-      serverAccess,
+      serverAccess: newServerAccess,
       updatedAt: new Date(),
     });
+
+    // Determine which servers were granted or revoked
+    const granted = newServerAccess.filter((s: string) => !previousServerAccess.includes(s));
+    const revoked = previousServerAccess.filter((s: string) => !newServerAccess.includes(s));
+
+    // Get server names for logging
+    let serverNames: Record<string, string> = {};
+    try {
+      const servers = await getServers();
+      serverNames = servers.reduce((acc: Record<string, string>, s: any) => {
+        acc[s.id] = s.name;
+        return acc;
+      }, {});
+    } catch {
+      // Continue without server names
+    }
+
+    // Log grant actions
+    for (const serverId of granted) {
+      await logAction({
+        type: 'user_access_grant',
+        userId,
+        userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+        userEmail: userData?.email || decodedToken.email || '',
+        userPhotoUrl: userData?.photoURL,
+        targetUserId: id,
+        targetUserName: targetUserData?.displayName || targetUserData?.name || targetUserData?.email || 'Unknown',
+        serverId,
+        serverName: serverNames[serverId] || serverId,
+        success: true,
+      });
+    }
+
+    // Log revoke actions
+    for (const serverId of revoked) {
+      await logAction({
+        type: 'user_access_revoke',
+        userId,
+        userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+        userEmail: userData?.email || decodedToken.email || '',
+        userPhotoUrl: userData?.photoURL,
+        targetUserId: id,
+        targetUserName: targetUserData?.displayName || targetUserData?.name || targetUserData?.email || 'Unknown',
+        serverId,
+        serverName: serverNames[serverId] || serverId,
+        success: true,
+      });
+    }
 
     return NextResponse.json({ success: true, message: 'Server access updated' });
   } catch (error) {
@@ -121,6 +176,30 @@ export async function POST(
     await adminDb().collection('users').doc(id).update({
       serverAccess,
       updatedAt: new Date(),
+    });
+
+    // Get server name for logging
+    let serverName = serverId;
+    try {
+      const servers = await getServers();
+      const server = servers.find((s: any) => s.id === serverId);
+      serverName = server?.name || serverId;
+    } catch {
+      // Continue with ID
+    }
+
+    // Log the action
+    await logAction({
+      type: action === 'grant' ? 'user_access_grant' : 'user_access_revoke',
+      userId,
+      userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+      userEmail: userData?.email || decodedToken.email || '',
+      userPhotoUrl: userData?.photoURL,
+      targetUserId: id,
+      targetUserName: targetUserData?.displayName || targetUserData?.name || targetUserData?.email || 'Unknown',
+      serverId,
+      serverName,
+      success: true,
     });
 
     return NextResponse.json({ 

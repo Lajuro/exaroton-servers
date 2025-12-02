@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stopServer, getServerPlayers } from '@/lib/exaroton';
+import { stopServer, getServerPlayers, getServer } from '@/lib/exaroton';
 import { adminAuth, adminDb, invalidateServerCache } from '@/lib/firebase-admin';
+import { logAction } from '@/lib/action-logger';
 
 export async function POST(
   request: NextRequest,
@@ -45,11 +46,32 @@ export async function POST(
       }
     }
 
+    // Get server info for logging
+    let serverName = id;
+    try {
+      const server = await getServer(id);
+      serverName = server?.name || id;
+    } catch {
+      // Use ID if server name fetch fails
+    }
+
     // Stop the server
     await stopServer(id);
     
     // Invalidar cache do servidor
     await invalidateServerCache(id);
+    
+    // Log the action
+    await logAction({
+      type: 'server_stop',
+      userId,
+      userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+      userEmail: userData?.email || decodedToken.email || '',
+      userPhotoUrl: userData?.photoURL,
+      serverId: id,
+      serverName,
+      success: true,
+    });
     
     return NextResponse.json({ success: true, message: 'Server stopping' });
   } catch (error) {

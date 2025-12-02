@@ -3,6 +3,8 @@ import { adminAuth, adminDb, adminStorage } from '@/lib/firebase-admin';
 import Busboy from 'busboy';
 import sharp from 'sharp';
 import { Readable } from 'stream';
+import { logAction } from '@/lib/action-logger';
+import { getServer } from '@/lib/exaroton';
 
 // Configurações de validação
 const MAX_FILE_SIZE = {
@@ -158,6 +160,46 @@ export async function POST(
       }, { merge: true });
     }
 
+    // Get server name for logging
+    let serverName = serverId;
+    try {
+      const server = await getServer(serverId);
+      serverName = server?.name || serverId;
+    } catch {
+      // Continue with ID
+    }
+
+    // Log the action
+    if (uploadType === 'document') {
+      await logAction({
+        type: 'document_upload',
+        userId,
+        userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+        userEmail: userData?.email || decodedToken.email || '',
+        userPhotoUrl: userData?.photoURL,
+        serverId,
+        serverName,
+        details: {
+          documentName: filename,
+        },
+        success: true,
+      });
+    } else {
+      await logAction({
+        type: 'content_update',
+        userId,
+        userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+        userEmail: userData?.email || decodedToken.email || '',
+        userPhotoUrl: userData?.photoURL,
+        serverId,
+        serverName,
+        details: {
+          fieldUpdated: uploadType === 'banner' ? 'bannerUrl' : 'iconUrl',
+        },
+        success: true,
+      });
+    }
+
     return NextResponse.json({ 
       success: true, 
       url: publicUrl,
@@ -223,6 +265,8 @@ export async function DELETE(
         return NextResponse.json({ error: 'Document not found' }, { status: 404 });
       }
 
+      const documentName = doc.name;
+
       // Extrair path do URL
       const url = new URL(doc.url);
       const path = decodeURIComponent(url.pathname.split('/').slice(2).join('/'));
@@ -240,6 +284,30 @@ export async function DELETE(
         documents: updatedDocuments,
         updatedAt: new Date(),
         lastEditedBy: userId,
+      });
+
+      // Get server name for logging
+      let serverName = serverId;
+      try {
+        const server = await getServer(serverId);
+        serverName = server?.name || serverId;
+      } catch {
+        // Continue with ID
+      }
+
+      // Log document deletion
+      await logAction({
+        type: 'document_delete',
+        userId,
+        userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+        userEmail: userData?.email || decodedToken.email || '',
+        userPhotoUrl: userData?.photoURL,
+        serverId,
+        serverName,
+        details: {
+          documentName,
+        },
+        success: true,
       });
     } else if (type === 'banner' || type === 'icon') {
       // Remover banner ou icon
@@ -263,6 +331,32 @@ export async function DELETE(
           [fieldName]: null,
           updatedAt: new Date(),
           lastEditedBy: userId,
+        });
+
+        // Get server name for logging
+        let serverName = serverId;
+        try {
+          const server = await getServer(serverId);
+          serverName = server?.name || serverId;
+        } catch {
+          // Continue with ID
+        }
+
+        // Log content update (banner/icon removal)
+        await logAction({
+          type: 'content_update',
+          userId,
+          userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+          userEmail: userData?.email || decodedToken.email || '',
+          userPhotoUrl: userData?.photoURL,
+          serverId,
+          serverName,
+          details: {
+            fieldUpdated: fieldName,
+            previousValue: fileUrl,
+            newValue: 'removed',
+          },
+          success: true,
         });
       }
     } else {

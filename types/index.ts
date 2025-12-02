@@ -203,7 +203,8 @@ export type ActionType =
   | 'document_upload'
   | 'document_delete'
   | 'login'
-  | 'logout';
+  | 'logout'
+  | 'register';
 
 /**
  * Registro de ação no histórico

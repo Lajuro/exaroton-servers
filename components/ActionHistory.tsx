@@ -53,6 +53,7 @@ import {
   XCircle,
   RefreshCw,
   Eye,
+  UserCheck,
 } from 'lucide-react';
 
 const actionTypeIcons: Record<ActionType, React.ElementType> = {
@@ -68,6 +69,7 @@ const actionTypeIcons: Record<ActionType, React.ElementType> = {
   document_delete: Trash2,
   login: LogIn,
   logout: LogOut,
+  register: UserCheck,
 };
 
 const actionTypeColors: Record<ActionType, string> = {
@@ -83,6 +85,7 @@ const actionTypeColors: Record<ActionType, string> = {
   document_delete: 'bg-rose-500/10 text-rose-500 border-rose-500/30',
   login: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30',
   logout: 'bg-slate-500/10 text-slate-500 border-slate-500/30',
+  register: 'bg-teal-500/10 text-teal-500 border-teal-500/30',
 };
 
 interface ActionHistoryProps {
@@ -267,7 +270,7 @@ export function ActionHistory({ serverId, userId, compact = false, limit = 20 }:
     'server_start', 'server_stop', 'server_restart', 'server_command',
     'user_access_grant', 'user_access_revoke', 'user_role_change',
     'content_update', 'document_upload', 'document_delete',
-    'login', 'logout'
+    'login', 'logout', 'register'
   ];
 
   return (

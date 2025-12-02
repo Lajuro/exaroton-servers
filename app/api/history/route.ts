@@ -3,8 +3,6 @@ import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { ActionLog, ActionType } from '@/types';
 
-const db = adminDb();
-
 // Helper to verify admin token
 async function verifyAdminToken(request: NextRequest): Promise<{ uid: string; email: string; name: string; photoURL?: string; isAdmin: boolean } | null> {
   const authHeader = request.headers.get('Authorization');
@@ -16,12 +14,19 @@ async function verifyAdminToken(request: NextRequest): Promise<{ uid: string; em
   try {
     const auth = adminAuth();
     const decodedToken = await auth.verifyIdToken(token);
+    
+    // Check isAdmin in Firestore since custom claims might not be set
+    const db = adminDb();
+    const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+    const userData = userDoc.data();
+    const isAdmin = userData?.isAdmin === true || decodedToken.admin === true;
+    
     return {
       uid: decodedToken.uid,
       email: decodedToken.email || '',
-      name: decodedToken.name || decodedToken.email || 'Unknown',
-      photoURL: decodedToken.picture,
-      isAdmin: decodedToken.admin === true,
+      name: decodedToken.name || userData?.displayName || decodedToken.email || 'Unknown',
+      photoURL: decodedToken.picture || userData?.photoURL,
+      isAdmin,
     };
   } catch (error) {
     console.error('Error verifying token:', error);
@@ -48,6 +53,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const db = adminDb();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const serverId = searchParams.get('serverId');
@@ -147,6 +153,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const db = adminDb();
     const body = await request.json();
     const { type, serverId, serverName, targetUserId, targetUserName, details, success = true, errorMessage } = body;
 

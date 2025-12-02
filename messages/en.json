@@ -46,6 +46,11 @@
   },
   "common": {
     "loading": "Loading...",
+    "loadingServers": "Loading servers...",
+    "loadingPanel": "Loading panel...",
+    "loadingServer": "Loading server...",
+    "updating": "Updating...",
+    "redirecting": "Redirecting...",
     "error": "Error",
     "success": "Success",
     "cancel": "Cancel",
@@ -81,7 +86,8 @@
     "serverUnavailable": "Server unavailable. Check if the app is running.",
     "errorOccurred": "An error occurred",
     "stop": "Stop",
-    "start": "Start"
+    "start": "Start",
+    "restart": "Restart"
   },
   "auth": {
     "login": "Sign in",
@@ -288,7 +294,14 @@
     "content": {
       "title": "Content",
       "description": "Additional server information",
-      "noContent": "No content available"
+      "noContent": "No content available",
+      "documents": {
+        "title": "Documents",
+        "noDocuments": "No documents have been added yet.",
+        "view": "View",
+        "download": "Download",
+        "delete": "Delete"
+      }
     },
     "access": {
       "title": "Access",
@@ -560,7 +573,12 @@
       "title": "Documents",
       "description": "PDFs with additional information (max. 10MB each)",
       "addPdf": "Add PDF document",
-      "fileSize": "{size} KB"
+      "fileSize": "{size} KB",
+      "noDocuments": "No documents have been added yet.",
+      "count": "({count})",
+      "view": "View",
+      "download": "Download",
+      "delete": "Delete"
     },
     "banner": "Banner",
     "deleteConfirm": {
@@ -587,7 +605,8 @@
       "document_upload": "Document upload",
       "document_delete": "Delete document",
       "login": "Login",
-      "logout": "Logout"
+      "logout": "Logout",
+      "register": "Registration"
     },
     "actionDescriptions": {
       "server_start": "started server {server}",
@@ -601,7 +620,8 @@
       "document_upload": "uploaded document {document}",
       "document_delete": "deleted document {document}",
       "login": "logged in",
-      "logout": "logged out"
+      "logout": "logged out",
+      "register": "registered in the system"
     },
     "details": "Details",
     "viewDetails": "View details",
@@ -712,5 +732,51 @@
     "needMaterials": "Need {material} x{count}",
     "soundOn": "Sound on",
     "soundOff": "Sound off"
+  },
+  "serverDetails": {
+    "backToDashboard": "Back to Dashboard",
+    "status": {
+      "offline": "Offline",
+      "online": "Online",
+      "starting": "Starting",
+      "stopping": "Stopping",
+      "restarting": "Restarting",
+      "saving": "Saving",
+      "loading": "Loading",
+      "crashed": "Crashed",
+      "pending": "Pending",
+      "preparing": "Preparing"
+    },
+    "stats": {
+      "players": "Players",
+      "ram": "RAM",
+      "software": "Software",
+      "host": "Host"
+    },
+    "tabs": {
+      "console": "Console",
+      "rules": "Rules",
+      "documents": "Documents",
+      "history": "History"
+    },
+    "errors": {
+      "title": "Error loading server",
+      "fetchFailed": "Failed to fetch server data",
+      "unknown": "Unknown error"
+    }
+  },
+  "serverContent": {
+    "rules": {
+      "noRules": "No rules defined for this server."
+    },
+    "documents": {
+      "title": "Documents",
+      "noDocuments": "No documents available.",
+      "openDocument": "Open document",
+      "downloadDocument": "Download document",
+      "viewPdf": "View PDF",
+      "documentUnavailable": "Document unavailable",
+      "documentSize": "Size"
+    }
   }
 }
