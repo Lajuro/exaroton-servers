@@ -29,7 +29,6 @@ export async function GET(
 
     const { id: serverId } = await params;
     const client = getExarotonClient();
-    // @ts-expect-error - exaroton types may be outdated
     const server = client.server(serverId);
 
     // Create SSE response

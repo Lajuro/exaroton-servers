@@ -18,6 +18,7 @@ import { ServerControls } from '@/components/ServerControls';
 import { ServerConsole } from '@/components/ServerConsole';
 import { ServerPiP } from '@/components/ServerPiP';
 import { useToast } from '@/components/ui/use-toast';
+import { useServerCommand } from '@/lib/useServerCommand';
 import { 
   Users, 
   Settings, 
@@ -60,9 +61,14 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const [_fromCache, setFromCache] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [sendingCommand, setSendingCommand] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const lastActionTimeRef = useRef<number>(0);
+
+  // Use centralized command hook
+  const { sendCommand: handleSendCommand, isLoading: sendingCommand } = useServerCommand({
+    serverId,
+    serverName: server?.name,
+  });
 
   useEffect(() => {
     params.then(p => setServerId(p.id));
@@ -245,39 +251,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
     });
   };
 
-  const handleSendCommand = async (command: string) => {
-    try {
-      setSendingCommand(true);
-      const token = await auth.currentUser?.getIdToken();
-      
-      const response = await fetch(`/api/servers/${serverId}/command`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ command }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to send command');
-      }
-
-      toast({
-        title: t('toast.commandSent'),
-        description: t('commandExecuted', { command }),
-      });
-    } catch (err: any) {
-      toast({
-        title: tCommon('error'),
-        description: err.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setSendingCommand(false);
-    }
-  };
+  // handleSendCommand is now provided by useServerCommand hook
 
   if (authLoading || loading) {
     return <GlobalLoading message={t('loadingServer')} />;
@@ -312,7 +286,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const statusInfo = statusConfig[server.status] || statusConfig[0];
   const canControl = user?.isAdmin || user?.serverAccess?.includes(serverId);
   const isOnline = server.status === 1;
-  const playersPercentage = (server.players.count / server.players.max) * 100;
+  const playersPercentage = server.players ? (server.players.count / server.players.max) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -375,7 +349,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       
                       <Badge variant="outline" className="gap-1.5">
                         <Users className="h-3 w-3" />
-                        {server.players.count}/{server.players.max} {t('players')}
+                        {server.players?.count ?? 0}/{server.players?.max ?? 0} {t('players')}
                       </Badge>
                     </div>
 
@@ -495,7 +469,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       </div>
                       {t('info.software')}
                     </span>
-                    <span className="font-medium text-sm">{server.software.name}</span>
+                    <span className="font-medium text-sm">{server.software?.name ?? 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
                     <span className="text-muted-foreground flex items-center gap-3 text-sm">
@@ -504,7 +478,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       </div>
                       {t('info.version')}
                     </span>
-                    <span className="font-medium text-sm">{server.software.version}</span>
+                    <span className="font-medium text-sm">{server.software?.version ?? 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
                     <span className="text-muted-foreground flex items-center gap-3 text-sm">
@@ -513,7 +487,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       </div>
                       {t('info.slots')}
                     </span>
-                    <span className="font-medium text-sm">{server.players.max} {t('players')}</span>
+                    <span className="font-medium text-sm">{server.players?.max ?? 0} {t('players')}</span>
                   </div>
                   {server.ram && (
                     <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">

@@ -38,6 +38,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
+import { sendServerCommand } from '@/lib/useServerCommand';
 
 interface ConsoleLine {
   id: string;
@@ -257,8 +258,8 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
     }
   };
 
-  // Send command to server
-  const sendCommand = async (cmdToSend?: string) => {
+  // Send command to server using centralized function
+  const sendCommandToServer = async (cmdToSend?: string) => {
     const cmd = cmdToSend || command.trim();
     if (!cmd || sendingCommand || !isAdmin) return;
 
@@ -282,18 +283,15 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         return;
       }
 
-      const response = await fetch(`/api/servers/${serverId}/command`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ command: cmd }),
+      // Use centralized sendServerCommand function
+      const result = await sendServerCommand({
+        serverId,
+        command: cmd,
+        token,
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        addLine(tCommon('error'), data.error || (locale === 'pt-BR' ? 'Falha ao executar comando' : 'Failed to execute command'), 'error');
+      if (!result.success) {
+        addLine(tCommon('error'), result.error || (locale === 'pt-BR' ? 'Falha ao executar comando' : 'Failed to execute command'), 'error');
         setCommandSuccess(false);
       } else {
         setCommandSuccess(true);
@@ -312,7 +310,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
   // Handle key press in input
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      sendCommand();
+      sendCommandToServer();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (commandHistory.length > 0) {
@@ -637,7 +635,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
                           setCommand(qc.cmd);
                           inputRef.current?.focus();
                         } else {
-                          sendCommand(qc.cmd);
+                          sendCommandToServer(qc.cmd);
                         }
                       }}
                     >
@@ -715,7 +713,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
             </div>
             
             <Button
-              onClick={() => sendCommand()}
+              onClick={() => sendCommandToServer()}
               disabled={!isConnected || serverStatus !== 1 || sendingCommand || !command.trim()}
               className={cn(
                 'min-w-[60px] transition-all',

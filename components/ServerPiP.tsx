@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Square, RotateCcw, Send, X, PictureInPicture2, Users, Wifi, WifiOff, Loader2, Coins, Clock, TrendingDown } from 'lucide-react';
+import { PictureInPicture2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import { useTranslations } from 'next-intl';
 import { ActiveServerSession } from '@/types';
+import { sendServerCommand } from '@/lib/useServerCommand';
 
 interface ServerPiPProps {
   serverId: string;
@@ -259,7 +259,8 @@ export function ServerPiP({
     }
   };
 
-  const sendCommand = async () => {
+  // Send command using centralized function
+  const sendCommandToPiP = async () => {
     if (!user || !command.trim() || isLoading) return;
     
     setIsLoading('command');
@@ -269,16 +270,14 @@ export function ServerPiP({
       const token = await auth.currentUser?.getIdToken();
       if (!token) return;
       
-      const response = await fetch(`/api/servers/${serverId}/command`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ command: command.trim() }),
+      // Use centralized sendServerCommand function
+      const result = await sendServerCommand({
+        serverId,
+        command: command.trim(),
+        token,
       });
 
-      if (response.ok) {
+      if (result.success) {
         setLastCommandStatus('success');
         setCommand('');
         setTimeout(() => setLastCommandStatus(null), 2000);
@@ -565,12 +564,15 @@ export function ServerPiP({
     }
   };
 
-  // Close PiP window
-  const closePiP = () => {
+  // Close PiP window - available for external use
+  const _closePiP = () => {
     pipWindow?.close();
     setPipWindow(null);
     onClose?.();
   };
+
+  // Export closePiP through ref if needed
+  void _closePiP;
 
   const statusInfo = getStatusInfo();
   const isOnline = status === STATUS.ONLINE;
@@ -762,12 +764,12 @@ export function ServerPiP({
             placeholder="Digite o comando..."
             value={command}
             onChange={(e) => setCommand(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendCommand()}
+            onKeyDown={(e) => e.key === 'Enter' && sendCommandToPiP()}
             disabled={isLoading === 'command'}
           />
           <button 
             className="pip-send-btn"
-            onClick={sendCommand}
+            onClick={sendCommandToPiP}
             disabled={!command.trim() || isLoading === 'command'}
           >
             {isLoading === 'command' ? (

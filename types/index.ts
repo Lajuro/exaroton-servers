@@ -22,14 +22,14 @@ export interface ExarotonServer {
   address: string;
   motd: string;
   status: number;
-  host: string;
-  port: number;
-  players: {
+  host: string | null;
+  port: number | null;
+  players?: {
     max: number;
     count: number;
     list: string[];
   };
-  software: {
+  software?: {
     id: string;
     name: string;
     version: string;

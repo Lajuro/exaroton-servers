@@ -45,6 +45,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useTranslations, useLocale } from 'next-intl';
+import { useServerCommand } from '@/lib/useServerCommand';
 
 interface Server {
   id: string;
@@ -81,13 +82,24 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
   const [commandType, setCommandType] = useState<CommandType>('custom');
   const [command, setCommand] = useState('');
   const [commandOption, setCommandOption] = useState('');
-  const [sendingCommand, setSendingCommand] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const lastActionTimeRef = useRef<number>(0);
   const { toast } = useToast();
+
+  // Use centralized command hook
+  const { sendCommand: sendServerCmd, isLoading: sendingCommand } = useServerCommand({
+    serverId: server.id,
+    serverName: server.name,
+    onSuccess: () => {
+      setCommand('');
+      setCommandOption('');
+      setCommandType('custom');
+      setCommandDialog(false);
+    },
+  });
 
   // Get status label from translations
   const getStatusLabel = (status: number) => {
@@ -339,38 +351,9 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
       finalCommand = `gamemode ${commandOption} @a`;
     }
 
-    setSendingCommand(true);
-    try {
-      const token = await auth.currentUser?.getIdToken(true);
-      if (!token) throw new Error('Not authenticated');
-
-      const response = await fetch(`/api/servers/${server.id}/command`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ command: finalCommand }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to execute command');
-
-      toast({
-        title: t('actions.commandExecuted'),
-        description: `"${finalCommand}" ${locale === 'pt-BR' ? 'enviado com sucesso.' : 'sent successfully.'}`,
-      });
-
-      setCommand('');
-      setCommandOption('');
-      setCommandType('custom');
-      setCommandDialog(false);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : tCommon('errorOccurred');
-      toast({ title: tCommon('error'), description: message, variant: 'destructive' });
-    } finally {
-      setSendingCommand(false);
-    }
+    // Use the centralized hook to send command
+    // The hook handles authentication, API calls, toasts, and onSuccess callback
+    await sendServerCmd(finalCommand);
   };
 
   const handleCardClick = () => {
