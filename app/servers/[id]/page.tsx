@@ -16,6 +16,7 @@ import { AccessInstructions } from '@/components/AccessInstructions';
 import { DocumentList } from '@/components/DocumentList';
 import { ServerControls } from '@/components/ServerControls';
 import { ServerConsole } from '@/components/ServerConsole';
+import { ServerPiP } from '@/components/ServerPiP';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   Users, 
@@ -396,6 +397,17 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                   
                   {/* Ações */}
                   <div className="flex items-center gap-2">
+                    {/* Picture-in-Picture Button */}
+                    {canControl && (
+                      <ServerPiP
+                        serverId={serverId}
+                        serverName={server.name}
+                        serverAddress={server.address}
+                        serverIcon={content?.iconUrl}
+                        initialStatus={server.status}
+                        initialPlayers={server.players}
+                      />
+                    )}
                     <Button
                       variant="outline"
                       size="icon"
