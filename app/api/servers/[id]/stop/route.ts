@@ -56,88 +56,97 @@ export async function POST(
       // Use ID if server name fetch fails
     }
 
-    // Get current credits before stopping the server
+    // Stop the server FIRST - this is the main action
+    await stopServer(id);
+    
+    // Invalidar cache do servidor
+    await invalidateServerCache(id);
+
+    // Get current credits after stopping the server
     let creditsAtEnd = 0;
     try {
       const client = getExarotonClient();
       const account = await (client as any).getAccount();
       creditsAtEnd = account.credits;
     } catch (error) {
-      console.error('Error fetching credits before stop:', error);
+      console.error('Error fetching credits after stop:', error);
     }
 
-    // Find and complete the active session
-    const sessionsRef = adminDb().collection('serverSessions');
-    const activeSessionQuery = await sessionsRef
-      .where('serverId', '==', id)
-      .where('status', '==', 'active')
-      .orderBy('startedAt', 'desc')
-      .limit(1)
-      .get();
-
+    // Find and complete the active session (non-blocking)
     let sessionDetails: {
       creditsAtStart: number;
       creditsSpent: number;
       duration: string;
     } | null = null;
 
-    if (!activeSessionQuery.empty) {
-      const sessionDoc = activeSessionQuery.docs[0];
-      const sessionData = sessionDoc.data();
-      const creditsAtStart = sessionData.creditsAtStart || 0;
-      const creditsSpent = Math.max(0, creditsAtStart - creditsAtEnd);
-      
-      const startedAt = sessionData.startedAt?.toDate?.() || new Date(sessionData.startedAt);
-      const stoppedAt = new Date();
-      const durationMs = stoppedAt.getTime() - startedAt.getTime();
-      const durationMinutes = Math.floor(durationMs / 60000);
-      const durationHours = Math.floor(durationMinutes / 60);
-      const remainingMinutes = durationMinutes % 60;
-      const duration = durationHours > 0 
-        ? `${durationHours}h ${remainingMinutes}m`
-        : `${durationMinutes}m`;
+    try {
+      const sessionsRef = adminDb().collection('serverSessions');
+      const activeSessionQuery = await sessionsRef
+        .where('serverId', '==', id)
+        .where('status', '==', 'active')
+        .orderBy('startedAt', 'desc')
+        .limit(1)
+        .get();
 
-      // Update the session with end data
-      await sessionDoc.ref.update({
-        stoppedBy: {
-          userId,
-          userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
-          userEmail: userData?.email || decodedToken.email || '',
-        },
-        stoppedAt: FieldValue.serverTimestamp(),
-        creditsAtEnd,
-        creditsSpent,
-        status: 'completed',
-      });
+      if (!activeSessionQuery.empty) {
+        const sessionDoc = activeSessionQuery.docs[0];
+        const sessionData = sessionDoc.data();
+        const creditsAtStart = sessionData.creditsAtStart || 0;
+        const creditsSpent = Math.max(0, creditsAtStart - creditsAtEnd);
+        
+        const startedAt = sessionData.startedAt?.toDate?.() || new Date(sessionData.startedAt);
+        const stoppedAt = new Date();
+        const durationMs = stoppedAt.getTime() - startedAt.getTime();
+        const durationMinutes = Math.floor(durationMs / 60000);
+        const durationHours = Math.floor(durationMinutes / 60);
+        const remainingMinutes = durationMinutes % 60;
+        const duration = durationHours > 0 
+          ? `${durationHours}h ${remainingMinutes}m`
+          : `${durationMinutes}m`;
 
-      sessionDetails = {
-        creditsAtStart,
-        creditsSpent,
-        duration,
-      };
+        // Update the session with end data
+        await sessionDoc.ref.update({
+          stoppedBy: {
+            userId,
+            userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+            userEmail: userData?.email || decodedToken.email || '',
+          },
+          stoppedAt: FieldValue.serverTimestamp(),
+          creditsAtEnd,
+          creditsSpent,
+          status: 'completed',
+        });
+
+        sessionDetails = {
+          creditsAtStart,
+          creditsSpent,
+          duration,
+        };
+      }
+    } catch (sessionError) {
+      // Log but don't fail - session tracking is secondary to stopping the server
+      console.error('Error updating session (non-critical):', sessionError);
     }
-
-    // Stop the server
-    await stopServer(id);
     
-    // Invalidar cache do servidor
-    await invalidateServerCache(id);
-    
-    // Log the action with credit details
-    await logAction({
-      type: 'server_stop',
-      userId,
-      userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
-      userEmail: userData?.email || decodedToken.email || '',
-      userPhotoUrl: userData?.photoURL,
-      serverId: id,
-      serverName,
-      success: true,
-      details: sessionDetails ? {
-        previousValue: `${sessionDetails.creditsAtStart} credits`,
-        newValue: `${creditsAtEnd} credits (spent: ${sessionDetails.creditsSpent.toFixed(2)}, duration: ${sessionDetails.duration})`,
-      } : undefined,
-    });
+    // Log the action with credit details (non-blocking)
+    try {
+      await logAction({
+        type: 'server_stop',
+        userId,
+        userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+        userEmail: userData?.email || decodedToken.email || '',
+        userPhotoUrl: userData?.photoURL,
+        serverId: id,
+        serverName,
+        success: true,
+        details: sessionDetails ? {
+          previousValue: `${sessionDetails.creditsAtStart} credits`,
+          newValue: `${creditsAtEnd} credits (spent: ${sessionDetails.creditsSpent.toFixed(2)}, duration: ${sessionDetails.duration})`,
+        } : undefined,
+      });
+    } catch (logError) {
+      console.error('Error logging action (non-critical):', logError);
+    }
     
     return NextResponse.json({ 
       success: true, 

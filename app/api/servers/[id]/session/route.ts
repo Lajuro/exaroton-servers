@@ -28,13 +28,23 @@ export async function GET(
     }
 
     // Buscar sessão ativa do servidor
-    const sessionsRef = adminDb().collection('serverSessions');
-    const activeSessionQuery = await sessionsRef
-      .where('serverId', '==', id)
-      .where('status', '==', 'active')
-      .orderBy('startedAt', 'desc')
-      .limit(1)
-      .get();
+    let activeSessionQuery;
+    try {
+      const sessionsRef = adminDb().collection('serverSessions');
+      activeSessionQuery = await sessionsRef
+        .where('serverId', '==', id)
+        .where('status', '==', 'active')
+        .orderBy('startedAt', 'desc')
+        .limit(1)
+        .get();
+    } catch (queryError: any) {
+      // If index doesn't exist yet, return null session
+      if (queryError.code === 9 || queryError.message?.includes('index')) {
+        console.warn('Firestore index not ready for serverSessions, returning null session');
+        return NextResponse.json({ session: null });
+      }
+      throw queryError;
+    }
 
     if (activeSessionQuery.empty) {
       return NextResponse.json({ session: null });
