@@ -266,3 +266,59 @@ export interface ActionLogResponse {
   page: number;
   pageSize: number;
 }
+
+// ========================================
+// SERVER SESSION TRACKING TYPES
+// ========================================
+
+/**
+ * Sessão de um servidor - rastreia quando foi ligado/desligado e créditos gastos
+ */
+export interface ServerSession {
+  id: string;
+  serverId: string;
+  serverName: string;
+  
+  // Quem iniciou a sessão
+  startedBy: {
+    userId: string;
+    userName: string;
+    userEmail: string;
+  };
+  
+  // Quem encerrou a sessão (pode ser diferente de quem iniciou)
+  stoppedBy?: {
+    userId: string;
+    userName: string;
+    userEmail: string;
+  };
+  
+  // Timestamps
+  startedAt: Date;
+  stoppedAt?: Date;
+  
+  // Créditos
+  creditsAtStart: number;
+  creditsAtEnd?: number;
+  creditsSpent?: number;
+  
+  // Status da sessão
+  status: 'active' | 'completed' | 'crashed';
+  
+  // RAM do servidor (para referência)
+  serverRam?: number;
+}
+
+/**
+ * Sessão ativa de um servidor (para exibição no PiP)
+ */
+export interface ActiveServerSession {
+  sessionId: string;
+  serverId: string;
+  serverName: string;
+  startedAt: Date;
+  creditsAtStart: number;
+  currentCredits: number;
+  creditsSpent: number;
+  elapsedTime: number; // em segundos
+}

@@ -778,5 +778,12 @@
       "documentUnavailable": "Document unavailable",
       "documentSize": "Size"
     }
+  },
+  "pip": {
+    "creditsTracker": "Credits Usage",
+    "creditsAtStart": "Credits at start",
+    "currentCredits": "Current credits",
+    "creditsSpent": "Credits spent",
+    "uptime": "Uptime"
   }
 }

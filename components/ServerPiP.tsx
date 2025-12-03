@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Square, RotateCcw, Send, X, PictureInPicture2, Users, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { Play, Square, RotateCcw, Send, X, PictureInPicture2, Users, Wifi, WifiOff, Loader2, Coins, Clock, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import { useTranslations } from 'next-intl';
+import { ActiveServerSession } from '@/types';
 
 interface ServerPiPProps {
   serverId: string;
@@ -48,6 +49,7 @@ export function ServerPiP({
 }: ServerPiPProps) {
   const { user } = useAuth();
   const t = useTranslations('servers');
+  const tPiP = useTranslations('pip');
   
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
   const [pipSupported, setPipSupported] = useState(false);
@@ -58,12 +60,95 @@ export function ServerPiP({
   const [showCommandInput, setShowCommandInput] = useState(false);
   const [lastCommandStatus, setLastCommandStatus] = useState<'success' | 'error' | null>(null);
   
+  // Credit tracking state
+  const [session, setSession] = useState<ActiveServerSession | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const sessionIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check PiP support
   useEffect(() => {
     setPipSupported('documentPictureInPicture' in window);
+  }, []);
+
+  // Fetch active session for credit tracking
+  const fetchSession = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+      
+      const response = await fetch(`/api/servers/${serverId}/session`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.session) {
+          setSession(data.session);
+          setElapsedTime(data.session.elapsedTime);
+        } else {
+          setSession(null);
+          setElapsedTime(0);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching session:', error);
+    }
+  }, [serverId, user]);
+
+  // Fetch session when server comes online or initially
+  useEffect(() => {
+    const isOnlineStatus = status === STATUS.ONLINE;
+    if (isOnlineStatus && user) {
+      fetchSession();
+    } else if (status === STATUS.OFFLINE) {
+      setSession(null);
+      setElapsedTime(0);
+    }
+  }, [status, user, fetchSession]);
+
+  // Update elapsed time every second and refresh credits every 30 seconds
+  useEffect(() => {
+    if (!session) return;
+    
+    const timer = setInterval(() => {
+      setElapsedTime(prev => prev + 1);
+    }, 1000);
+    
+    // Refresh session data every 30 seconds for credit updates
+    const refreshInterval = setInterval(() => {
+      fetchSession();
+    }, 30000);
+    
+    sessionIntervalRef.current = timer;
+    
+    return () => {
+      clearInterval(timer);
+      clearInterval(refreshInterval);
+      if (sessionIntervalRef.current) {
+        clearInterval(sessionIntervalRef.current);
+      }
+    };
+  }, [session, fetchSession]);
+
+  // Format elapsed time
+  const formatElapsedTime = useCallback((seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    }
+    return `${secs}s`;
   }, []);
 
   // Subscribe to server updates via SSE
@@ -217,8 +302,8 @@ export function ServerPiP({
     try {
       // @ts-expect-error - Document PiP API is not fully typed yet
       const pip = await window.documentPictureInPicture.requestWindow({
-        width: 320,
-        height: 200,
+        width: 340,
+        height: 280,
       });
 
       // Copy styles to PiP window
@@ -418,6 +503,54 @@ export function ServerPiP({
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        .pip-credits {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-bottom: 10px;
+          padding: 8px 10px;
+          background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+          border: 1px solid rgba(234, 179, 8, 0.3);
+          border-radius: 6px;
+        }
+        .pip-credits-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          color: rgba(255,255,255,0.7);
+        }
+        .pip-credits-header svg {
+          color: #eab308;
+        }
+        .pip-credits-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 11px;
+        }
+        .pip-credits-label {
+          color: rgba(255,255,255,0.6);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .pip-credits-value {
+          font-weight: 600;
+          font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+        }
+        .pip-credits-value.start {
+          color: #22c55e;
+        }
+        .pip-credits-value.current {
+          color: #3b82f6;
+        }
+        .pip-credits-value.spent {
+          color: #ef4444;
+        }
+        .pip-credits-value.time {
+          color: #a78bfa;
+        }
       `;
       pip.document.head.appendChild(customStyle);
 
@@ -485,6 +618,58 @@ export function ServerPiP({
           </div>
         )}
       </div>
+
+      {/* Credit Tracker */}
+      {isOnline && session && (
+        <div className="pip-credits">
+          <div className="pip-credits-header">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+            <span>{tPiP('creditsTracker')}</span>
+          </div>
+          <div className="pip-credits-row">
+            <span className="pip-credits-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              </svg>
+              {tPiP('creditsAtStart')}
+            </span>
+            <span className="pip-credits-value start">{session.creditsAtStart.toFixed(2)}</span>
+          </div>
+          <div className="pip-credits-row">
+            <span className="pip-credits-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              {tPiP('currentCredits')}
+            </span>
+            <span className="pip-credits-value current">{session.currentCredits.toFixed(2)}</span>
+          </div>
+          <div className="pip-credits-row">
+            <span className="pip-credits-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+              </svg>
+              {tPiP('creditsSpent')}
+            </span>
+            <span className="pip-credits-value spent">-{session.creditsSpent.toFixed(2)}</span>
+          </div>
+          <div className="pip-credits-row">
+            <span className="pip-credits-label">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              {tPiP('uptime')}
+            </span>
+            <span className="pip-credits-value time">{formatElapsedTime(elapsedTime)}</span>
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="pip-actions">

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { startServer, getServer } from '@/lib/exaroton';
+import { startServer, getServer, getExarotonClient } from '@/lib/exaroton';
 import { adminAuth, adminDb, invalidateServerCache } from '@/lib/firebase-admin';
 import { logAction } from '@/lib/action-logger';
+import { FieldValue } from 'firebase-admin/firestore';
+import { ServerSession } from '@/types';
 
 export async function POST(
   request: NextRequest,
@@ -37,15 +39,48 @@ export async function POST(
 
     // Get server info for logging
     let serverName = id;
+    let serverRam = 0;
     try {
       const server = await getServer(id);
       serverName = server?.name || id;
+      serverRam = server?.ram || 0;
     } catch {
       // Use ID if server name fetch fails
     }
 
+    // Get current credits before starting the server
+    let creditsAtStart = 0;
+    try {
+      const client = getExarotonClient();
+      const account = await (client as any).getAccount();
+      creditsAtStart = account.credits;
+    } catch (error) {
+      console.error('Error fetching credits before start:', error);
+    }
+
     // Start the server
     await startServer(id);
+    
+    // Create a new server session record
+    const sessionData: Omit<ServerSession, 'id'> = {
+      serverId: id,
+      serverName,
+      startedBy: {
+        userId,
+        userName: userData?.displayName || userData?.name || userData?.email || 'Unknown',
+        userEmail: userData?.email || decodedToken.email || '',
+      },
+      startedAt: new Date(),
+      creditsAtStart,
+      status: 'active',
+      serverRam,
+    };
+
+    // Save session to Firestore
+    await adminDb().collection('serverSessions').add({
+      ...sessionData,
+      startedAt: FieldValue.serverTimestamp(),
+    });
     
     // Invalidar cache do servidor
     await invalidateServerCache(id);
@@ -60,9 +95,16 @@ export async function POST(
       serverId: id,
       serverName,
       success: true,
+      details: {
+        previousValue: `${creditsAtStart} credits`,
+      },
     });
     
-    return NextResponse.json({ success: true, message: 'Server starting' });
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Server starting',
+      creditsAtStart,
+    });
   } catch (error) {
     console.error('Error starting server:', error);
     const message = error instanceof Error ? error.message : 'Failed to start server';
@@ -72,3 +114,4 @@ export async function POST(
     );
   }
 }
+
