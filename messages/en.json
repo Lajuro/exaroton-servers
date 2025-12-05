@@ -253,6 +253,28 @@
       "credits": "Credits",
       "creditsUnit": "credits"
     },
+    "playerHistory": {
+      "onlinePlayers": "Online Players",
+      "serverOffline": "Server offline",
+      "noPlayersOnline": "No players online",
+      "waitingForPlayers": "Waiting for players to join...",
+      "online": "Online",
+      "serverCapacity": "Server capacity",
+      "playerRanking": "Player Ranking",
+      "uniquePlayers": "unique players",
+      "noPlayersYet": "No players registered",
+      "noPlayersYetDesc": "History will start when players join",
+      "ranking": "Ranking",
+      "recentPlayers": "Recent",
+      "sessions": "sessions",
+      "lastSeen": "Last seen",
+      "lastActive": "Last active",
+      "andMorePlayers": "and {count} more players...",
+      "errorLoading": "Error loading history",
+      "tryAgain": "Try again",
+      "onlineNow": "Online now",
+      "lastOnline": "Last online"
+    },
     "console": {
       "title": "Server Console",
       "placeholder": "Enter a command...",
@@ -333,6 +355,32 @@
       "timeLabel": "Time",
       "weatherLabel": "Weather",
       "gamemodeLabel": "Game Mode (for all)",
+      "quickCommands": "Quick commands",
+      "quickCommandsPlaceholder": "Select a command...",
+      "commandInput": {
+        "placeholder": "Type a command (without /)",
+        "send": "Send",
+        "sending": "Sending...",
+        "hint": "Press Enter to send",
+        "adminOnly": "Only admins can execute commands",
+        "serverMustBeOnline": "Server must be online to send commands"
+      },
+      "quickCommandsList": {
+        "sayHello": "Say Hello",
+        "listPlayers": "List Players",
+        "setDay": "Set Day",
+        "setNight": "Set Night",
+        "clearWeather": "Clear Weather",
+        "peaceful": "Peaceful Mode",
+        "normal": "Normal Mode"
+      },
+      "cannotStopWithPlayers": "Cannot stop server while players are online",
+      "stopConfirmTitle": "Stop server?",
+      "stopConfirmDescription": "Are you sure you want to stop the server?",
+      "stopConfirmWithPlayers": "There are {count} player(s) online. Are you sure you want to stop the server?",
+      "restartConfirmTitle": "Restart server?",
+      "restartConfirmDescription": "Are you sure you want to restart the server?",
+      "restartConfirmWithPlayers": "There are {count} player(s) online. Are you sure you want to restart the server?",
       "times": {
         "day": "Day",
         "noon": "Noon",
@@ -359,7 +407,17 @@
       "sent": "Command sent",
       "executed": "Command executed",
       "executedDesc": "\"{command}\" sent successfully.",
-      "serverAction": "{name} {action}..."
+      "serverAction": "{name} {action}...",
+      "phases": {
+        "initiating": "Initiating...",
+        "processing": "Processing...",
+        "completing": "Completing..."
+      },
+      "waitingMessages": {
+        "start": "Please wait while the server is starting",
+        "stop": "Please wait while the server is shutting down",
+        "restart": "Please wait while the server restarts"
+      }
     },
     "toast": {
       "commandSent": "Command sent",
@@ -784,6 +842,14 @@
     "creditsAtStart": "Credits at start",
     "currentCredits": "Current credits",
     "creditsSpent": "Credits spent",
-    "uptime": "Uptime"
+    "uptime": "Uptime",
+    "commandPlaceholder": "Type command...",
+    "commandButton": "Cmd",
+    "openPiP": "Open in Picture-in-Picture"
+  },
+  "players": {
+    "title": "Online Players",
+    "noPlayers": "No players online",
+    "playersCount": "{count} player(s) online"
   }
 }

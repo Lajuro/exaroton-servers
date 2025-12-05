@@ -67,10 +67,22 @@ export function ServerPiP({
   const containerRef = useRef<HTMLDivElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const sessionIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const isUnmountedRef = useRef(false);
+
+  // Maximum reconnection attempts for PiP
+  const MAX_RECONNECT_ATTEMPTS = 3;
+  const RECONNECT_DELAY = 3000;
 
   // Check PiP support
   useEffect(() => {
     setPipSupported('documentPictureInPicture' in window);
+    isUnmountedRef.current = false;
+    
+    return () => {
+      isUnmountedRef.current = true;
+    };
   }, []);
 
   // Fetch active session for credit tracking
@@ -155,18 +167,42 @@ export function ServerPiP({
   useEffect(() => {
     if (!user) return;
 
+    // Cleanup function
+    const cleanup = () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    };
+
     const connectSSE = async () => {
+      // Don't connect if unmounted
+      if (isUnmountedRef.current) return;
+      
+      // Clean up existing connection
+      cleanup();
+
       try {
         const token = await auth.currentUser?.getIdToken();
-        if (!token) return;
+        if (!token || isUnmountedRef.current) return;
         
         const eventSource = new EventSource(
           `/api/servers/${serverId}/stream?token=${encodeURIComponent(token)}`
         );
 
         eventSource.onmessage = (event) => {
+          // Don't process if unmounted
+          if (isUnmountedRef.current) return;
+          
           try {
             const data = JSON.parse(event.data);
+            // Reset reconnect attempts on successful message
+            reconnectAttemptsRef.current = 0;
+            
             if (data.type === 'status' && typeof data.status === 'number') {
               setStatus(data.status);
             }
@@ -187,9 +223,28 @@ export function ServerPiP({
         };
 
         eventSource.onerror = () => {
+          // Don't reconnect if unmounted
+          if (isUnmountedRef.current) {
+            eventSource.close();
+            return;
+          }
+          
           eventSource.close();
-          // Reconnect after 5 seconds
-          setTimeout(connectSSE, 5000);
+          eventSourceRef.current = null;
+          
+          // Only attempt reconnection if under max attempts
+          if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+            reconnectAttemptsRef.current++;
+            console.log(`[PiP SSE] Reconnecting (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
+            
+            reconnectTimeoutRef.current = setTimeout(() => {
+              if (!isUnmountedRef.current) {
+                connectSSE();
+              }
+            }, RECONNECT_DELAY);
+          } else {
+            console.log('[PiP SSE] Max reconnection attempts reached');
+          }
         };
 
         eventSourceRef.current = eventSource;
@@ -198,11 +253,10 @@ export function ServerPiP({
       }
     };
 
+    reconnectAttemptsRef.current = 0;
     connectSSE();
 
-    return () => {
-      eventSourceRef.current?.close();
-    };
+    return cleanup;
   }, [serverId, user]);
 
   // Get status info
@@ -740,7 +794,7 @@ export function ServerPiP({
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
-              Cmd
+              {tPiP('commandButton')}
             </button>
           </>
         )}
@@ -761,7 +815,7 @@ export function ServerPiP({
           <input
             type="text"
             className={`pip-input ${lastCommandStatus === 'success' ? 'success' : lastCommandStatus === 'error' ? 'error' : ''}`}
-            placeholder="Digite o comando..."
+            placeholder={tPiP('commandPlaceholder')}
             value={command}
             onChange={(e) => setCommand(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendCommandToPiP()}
@@ -810,7 +864,7 @@ export function ServerPiP({
           size="sm"
           onClick={openPiP}
           className="gap-2"
-          title="Abrir em Picture-in-Picture"
+          title={tPiP('openPiP')}
         >
           <PictureInPicture2 className="h-4 w-4" />
           <span className="hidden sm:inline">PiP</span>

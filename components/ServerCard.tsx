@@ -46,6 +46,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useTranslations, useLocale } from 'next-intl';
 import { useServerCommand } from '@/lib/useServerCommand';
+import { OnlinePlayersCompact } from '@/components/OnlinePlayers';
+import { LastOnlineBadge } from '@/components/PlayerHistory';
 
 interface Server {
   id: string;
@@ -55,6 +57,7 @@ interface Server {
   players?: {
     count: number;
     max: number;
+    list?: string[];
   };
 }
 
@@ -63,11 +66,12 @@ interface ServerCardProps {
   isAdmin: boolean;
   onUpdate: () => void;
   iconUrl?: string;
+  lastOnlineAt?: Date | string;
 }
 
 type CommandType = 'custom' | 'message' | 'time' | 'weather' | 'gamemode';
 
-export default function ServerCard({ server: initialServer, isAdmin, onUpdate, iconUrl }: ServerCardProps) {
+export default function ServerCard({ server: initialServer, isAdmin, onUpdate, iconUrl, lastOnlineAt }: ServerCardProps) {
   const router = useRouter();
   const t = useTranslations('servers');
   const tCommon = useTranslations('common');
@@ -532,6 +536,27 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
               </div>
             )}
           </div>
+
+          {/* Online players preview */}
+          {isOnline && server.players && server.players.list && server.players.list.length > 0 && (
+            <div className="mb-4">
+              <OnlinePlayersCompact 
+                players={server.players.list} 
+                maxShow={4}
+                className="justify-start"
+              />
+            </div>
+          )}
+
+          {/* Last online indicator for offline servers */}
+          {isOffline && lastOnlineAt && (
+            <div className="mb-4">
+              <LastOnlineBadge 
+                lastOnlineAt={lastOnlineAt}
+                serverStatus={server.status}
+              />
+            </div>
+          )}
 
           {/* Player capacity bar */}
           {server.players && (

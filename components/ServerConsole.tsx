@@ -54,6 +54,10 @@ interface ServerConsoleProps {
   isAdmin: boolean;
 }
 
+// Maximum number of reconnection attempts
+const MAX_RECONNECT_ATTEMPTS = 3;
+const RECONNECT_DELAY = 3000;
+
 export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: ServerConsoleProps) {
   const t = useTranslations('servers.console');
   const tCommon = useTranslations('common');
@@ -80,6 +84,10 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
   const eventSourceRef = useRef<EventSource | null>(null);
   const lineIdCounter = useRef(0);
   const historyDropdownRef = useRef<HTMLDivElement>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const isUnmountedRef = useRef(false);
+  const hasManuallyDisconnectedRef = useRef(false);
 
   // Quick commands for Minecraft servers
   const quickCommands = useMemo(() => [
@@ -120,37 +128,83 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Add a line to console (defined before connect to avoid hoisting issues)
+  const addLine = useCallback((prefix: string, text: string, type: ConsoleLine['type']) => {
+    const newLine: ConsoleLine = {
+      id: `line-${lineIdCounter.current++}`,
+      line: prefix ? `[${prefix}] ${text}` : text,
+      timestamp: new Date().toISOString(),
+      type,
+    };
+    setLines(prev => [...prev.slice(-500), newLine]);
+  }, []);
+
+  // Classify log line type
+  const classifyLine = useCallback((line: string): ConsoleLine['type'] => {
+    const lowerLine = line.toLowerCase();
+    if (lowerLine.includes('error') || lowerLine.includes('exception') || lowerLine.includes('failed')) {
+      return 'error';
+    }
+    if (lowerLine.includes('warn')) {
+      return 'warning';
+    }
+    if (lowerLine.includes('info')) {
+      return 'info';
+    }
+    return 'log';
+  }, []);
+
+  // Cleanup function for SSE connection
+  const cleanupSSE = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+  }, []);
+
   // Connect to console stream
   const connect = useCallback(async () => {
-    if (!isAdmin || serverStatus !== 1) return;
+    if (!isAdmin || serverStatus !== 1 || isUnmountedRef.current) return;
+    
+    // Don't reconnect if manually disconnected
+    if (hasManuallyDisconnectedRef.current) return;
     
     setIsConnecting(true);
     setError(null);
 
     try {
       const token = await auth.currentUser?.getIdToken(true);
-      if (!token) {
+      if (!token || isUnmountedRef.current) {
         setError(tCommon('notAuthenticated'));
         setIsConnecting(false);
         return;
       }
 
-      // Close existing connection
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
+      // Clean up existing connection
+      cleanupSSE();
 
       const eventSource = new EventSource(
         `/api/servers/${serverId}/console?token=${encodeURIComponent(token)}`
       );
 
       eventSource.onopen = () => {
+        if (isUnmountedRef.current) {
+          eventSource.close();
+          return;
+        }
         setIsConnected(true);
         setIsConnecting(false);
+        reconnectAttemptsRef.current = 0;
         addLine(t('system'), t('connectedToServer'), 'info');
       };
 
       eventSource.onmessage = (event) => {
+        if (isUnmountedRef.current) return;
+        
         try {
           const data = JSON.parse(event.data);
           
@@ -176,10 +230,32 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
       };
 
       eventSource.onerror = () => {
+        if (isUnmountedRef.current) {
+          eventSource.close();
+          return;
+        }
+        
         setIsConnected(false);
         setIsConnecting(false);
+        eventSource.close();
+        eventSourceRef.current = null;
+        
         if (eventSource.readyState === EventSource.CLOSED) {
           addLine(t('system'), t('connectionLost'), 'warning');
+        }
+        
+        // Only attempt reconnection if not manually disconnected and under max attempts
+        if (!hasManuallyDisconnectedRef.current && 
+            reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS && 
+            serverStatus === 1) {
+          reconnectAttemptsRef.current++;
+          console.log(`[Console SSE] Reconnecting (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
+          
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (!isUnmountedRef.current && !hasManuallyDisconnectedRef.current) {
+              connect();
+            }
+          }, RECONNECT_DELAY);
         }
       };
 
@@ -188,64 +264,36 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
       setError(t('connectionError'));
       setIsConnecting(false);
     }
-  }, [serverId, serverStatus, isAdmin, t, tCommon]);
+  }, [serverId, serverStatus, isAdmin, t, tCommon, cleanupSSE, addLine, classifyLine]);
 
   // Disconnect from console stream
   const disconnect = useCallback(() => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
-    }
+    hasManuallyDisconnectedRef.current = true;
+    cleanupSSE();
     setIsConnected(false);
     addLine(t('system'), t('disconnectedFromConsole'), 'info');
-  }, [t]);
+  }, [t, cleanupSSE, addLine]);
 
   // Cleanup on unmount
   useEffect(() => {
+    isUnmountedRef.current = false;
+    
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
+      isUnmountedRef.current = true;
+      cleanupSSE();
     };
-  }, []);
+  }, [cleanupSSE]);
 
-  // Auto-connect when server comes online
+  // Handle server status changes
   useEffect(() => {
-    if (serverStatus === 1 && isAdmin && !isConnected && !isConnecting) {
-      const timer = setTimeout(() => {
-        connect();
-      }, 2000);
-      return () => clearTimeout(timer);
-    } else if (serverStatus !== 1 && isConnected) {
-      disconnect();
+    // Reset manual disconnect flag when server goes offline
+    if (serverStatus !== 1) {
+      hasManuallyDisconnectedRef.current = false;
+      if (isConnected) {
+        disconnect();
+      }
     }
-  }, [serverStatus, isAdmin, isConnected, isConnecting, connect, disconnect]);
-
-  // Add a line to console
-  const addLine = (prefix: string, text: string, type: ConsoleLine['type']) => {
-    const newLine: ConsoleLine = {
-      id: `line-${lineIdCounter.current++}`,
-      line: prefix ? `[${prefix}] ${text}` : text,
-      timestamp: new Date().toISOString(),
-      type,
-    };
-    setLines(prev => [...prev.slice(-500), newLine]);
-  };
-
-  // Classify log line type
-  const classifyLine = (line: string): ConsoleLine['type'] => {
-    const lowerLine = line.toLowerCase();
-    if (lowerLine.includes('error') || lowerLine.includes('exception') || lowerLine.includes('failed')) {
-      return 'error';
-    }
-    if (lowerLine.includes('warn')) {
-      return 'warning';
-    }
-    if (lowerLine.includes('info')) {
-      return 'info';
-    }
-    return 'log';
-  };
+  }, [serverStatus, isConnected, disconnect]);
 
   // Copy line to clipboard
   const copyLine = async (line: string, id: string) => {

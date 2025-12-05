@@ -253,6 +253,28 @@
       "credits": "Créditos",
       "creditsUnit": "créditos"
     },
+    "playerHistory": {
+      "onlinePlayers": "Jogadores Online",
+      "serverOffline": "Servidor offline",
+      "noPlayersOnline": "Nenhum jogador online",
+      "waitingForPlayers": "Aguardando jogadores entrarem...",
+      "online": "Online",
+      "serverCapacity": "Capacidade do servidor",
+      "playerRanking": "Ranking de Jogadores",
+      "uniquePlayers": "jogadores únicos",
+      "noPlayersYet": "Nenhum jogador registrado",
+      "noPlayersYetDesc": "O histórico começará quando jogadores entrarem",
+      "ranking": "Ranking",
+      "recentPlayers": "Recentes",
+      "sessions": "sessões",
+      "lastSeen": "Última vez visto",
+      "lastActive": "Última atividade",
+      "andMorePlayers": "e mais {count} jogadores...",
+      "errorLoading": "Erro ao carregar histórico",
+      "tryAgain": "Tentar novamente",
+      "onlineNow": "Online agora",
+      "lastOnline": "Última vez online"
+    },
     "console": {
       "title": "Console do Servidor",
       "placeholder": "Digite um comando...",
@@ -333,6 +355,32 @@
       "timeLabel": "Horário",
       "weatherLabel": "Clima",
       "gamemodeLabel": "Modo de Jogo (para todos)",
+      "quickCommands": "Comandos rápidos",
+      "quickCommandsPlaceholder": "Selecione um comando...",
+      "commandInput": {
+        "placeholder": "Digite um comando (sem /)",
+        "send": "Enviar",
+        "sending": "Enviando...",
+        "hint": "Pressione Enter para enviar",
+        "adminOnly": "Apenas admins podem executar comandos",
+        "serverMustBeOnline": "O servidor precisa estar online para enviar comandos"
+      },
+      "quickCommandsList": {
+        "sayHello": "Dizer Olá",
+        "listPlayers": "Listar Jogadores",
+        "setDay": "Definir Dia",
+        "setNight": "Definir Noite",
+        "clearWeather": "Limpar Clima",
+        "peaceful": "Modo Pacífico",
+        "normal": "Modo Normal"
+      },
+      "cannotStopWithPlayers": "Não é possível parar o servidor enquanto há jogadores online",
+      "stopConfirmTitle": "Parar servidor?",
+      "stopConfirmDescription": "Tem certeza que deseja parar o servidor?",
+      "stopConfirmWithPlayers": "Existem {count} jogador(es) online. Tem certeza que deseja parar o servidor?",
+      "restartConfirmTitle": "Reiniciar servidor?",
+      "restartConfirmDescription": "Tem certeza que deseja reiniciar o servidor?",
+      "restartConfirmWithPlayers": "Existem {count} jogador(es) online. Tem certeza que deseja reiniciar o servidor?",
       "times": {
         "day": "Dia",
         "noon": "Meio-dia",
@@ -359,7 +407,17 @@
       "sent": "Comando enviado",
       "executed": "Comando executado",
       "executedDesc": "\"{command}\" enviado com sucesso.",
-      "serverAction": "{name} {action}..."
+      "serverAction": "{name} {action}...",
+      "phases": {
+        "initiating": "Iniciando...",
+        "processing": "Processando...",
+        "completing": "Finalizando..."
+      },
+      "waitingMessages": {
+        "start": "Aguarde enquanto o servidor é iniciado",
+        "stop": "Aguarde enquanto o servidor é desligado",
+        "restart": "Aguarde enquanto o servidor reinicia"
+      }
     },
     "toast": {
       "commandSent": "Comando enviado",
@@ -784,6 +842,14 @@
     "creditsAtStart": "Créditos ao ligar",
     "currentCredits": "Créditos atuais",
     "creditsSpent": "Créditos gastos",
-    "uptime": "Tempo ligado"
+    "uptime": "Tempo ligado",
+    "commandPlaceholder": "Digite o comando...",
+    "commandButton": "Cmd",
+    "openPiP": "Abrir em Picture-in-Picture"
+  },
+  "players": {
+    "title": "Jogadores Online",
+    "noPlayers": "Nenhum jogador online",
+    "playersCount": "{count} jogador(es) online"
   }
 }

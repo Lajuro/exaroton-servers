@@ -137,6 +137,16 @@
     }
   }
 
+  /* Shimmer effect for power buttons */
+  @keyframes shimmer-translate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
   .animate-skeleton {
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
   }

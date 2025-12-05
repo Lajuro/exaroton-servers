@@ -322,3 +322,72 @@ export interface ActiveServerSession {
   creditsSpent: number;
   elapsedTime: number; // em segundos
 }
+
+// ========================================
+// PLAYER HISTORY TYPES
+// ========================================
+
+/**
+ * Sessão de um jogador em um servidor
+ */
+export interface PlayerSession {
+  id: string;
+  serverId: string;
+  serverName: string;
+  playerName: string;
+  playerUuid?: string; // UUID do Minecraft, se disponível
+  joinedAt: Date;
+  leftAt?: Date;
+  duration?: number; // em segundos
+}
+
+/**
+ * Histórico de um jogador em um servidor
+ */
+export interface PlayerHistory {
+  id: string;
+  serverId: string;
+  playerName: string;
+  playerUuid?: string;
+  
+  // Estatísticas
+  totalPlaytime: number; // em segundos
+  sessionCount: number;
+  firstSeen: Date;
+  lastSeen: Date;
+  
+  // Sessões recentes
+  recentSessions: PlayerSession[];
+}
+
+/**
+ * Ranking de jogadores de um servidor
+ */
+export interface PlayerRanking {
+  serverId: string;
+  players: PlayerRankingEntry[];
+  updatedAt: Date;
+}
+
+/**
+ * Entrada no ranking de jogadores
+ */
+export interface PlayerRankingEntry {
+  rank: number;
+  playerName: string;
+  playerUuid?: string;
+  totalPlaytime: number; // em segundos
+  sessionCount: number;
+  lastSeen: Date;
+  averageSessionDuration: number; // em segundos
+}
+
+/**
+ * Status de última vez online do servidor
+ */
+export interface ServerLastOnline {
+  serverId: string;
+  lastOnlineAt?: Date;
+  lastSeenPlayers?: string[];
+  wasOnlineRecently: boolean;
+}

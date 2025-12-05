@@ -43,6 +43,7 @@ interface Server {
   players?: {
     count: number;
     max: number;
+    list?: string[];
   };
 }
 
