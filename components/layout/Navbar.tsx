@@ -31,7 +31,8 @@ import {
   LogOut, 
   Shield, 
   Crown,
-  LayoutDashboard
+  LayoutDashboard,
+  BarChart3
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -68,6 +69,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    { href: '/dashboard/stats', label: t('stats'), icon: BarChart3 },
     ...(user?.isAdmin ? [{ href: '/admin', label: t('admin'), icon: Shield }] : []),
   ];
 
@@ -221,6 +223,19 @@ export default function Navbar() {
                       <div>
                         <p className="font-medium">{t('dashboard')}</p>
                         <p className="text-xs text-muted-foreground">{t('viewServers')}</p>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem 
+                      onClick={() => router.push('/dashboard/stats')}
+                      className="gap-3 py-2.5 cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-md bg-purple-500/10">
+                        <BarChart3 className="h-4 w-4 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{t('stats')}</p>
+                        <p className="text-xs text-muted-foreground">{t('viewStats')}</p>
                       </div>
                     </DropdownMenuItem>
 
