@@ -64,11 +64,27 @@ export async function GET(
           // Only subscribe to console if server is online (status 1)
           if (server.status === 1) {
             // Subscribe to console stream
+            // Note: The tail option would need to be sent directly via websocket
+            // For now, just subscribe to get live console output
             server.subscribe('console');
             console.log(`[Console SSE] Subscribed to console for ${serverId}`);
 
+            // Handle console stream started confirmation
+            server.on('console:started', () => {
+              console.log(`[Console SSE] Console stream started for ${serverId}`);
+              sendMessage('console', { 
+                line: '[Console connected]', 
+                timestamp: new Date().toISOString(),
+                type: 'system'
+              });
+            });
+
             // Handle console lines
-            const consoleHandler = (line: string) => {
+            // The exaroton API sends data as an object with line and rawLine properties
+            const consoleHandler = (data: { line: string; rawLine: string }) => {
+              // Use cleaned line (data.line) instead of raw line
+              const line = data.line || data.rawLine || String(data);
+              console.log(`[Console SSE] Line received: ${line.substring(0, 80)}...`);
               sendMessage('console', { line, timestamp: new Date().toISOString() });
             };
 

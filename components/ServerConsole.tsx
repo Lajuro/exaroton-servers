@@ -36,15 +36,49 @@ import {
   X,
   Copy,
   Check,
+  LogIn,
+  LogOut,
+  MessageSquare,
+  AlertTriangle,
+  XCircle,
+  Server,
+  Skull,
+  Shield,
+  Award,
+  Sparkles,
+  Clock,
+  MousePointerClick,
 } from 'lucide-react';
+import { PlayerActionMenu } from '@/components/PlayerActionMenu';
 import { useTranslations, useLocale } from 'next-intl';
 import { sendServerCommand } from '@/lib/useServerCommand';
+
+// Enhanced log types for Minecraft server events
+type LogType = 
+  | 'log'
+  | 'info'
+  | 'warning'
+  | 'error'
+  | 'command'
+  | 'player_join'
+  | 'player_leave'
+  | 'player_death'
+  | 'chat'
+  | 'achievement'
+  | 'server_start'
+  | 'server_stop'
+  | 'plugin'
+  | 'world'
+  | 'system';
 
 interface ConsoleLine {
   id: string;
   line: string;
+  rawLine: string;
   timestamp: string;
-  type: 'log' | 'info' | 'warning' | 'error' | 'command';
+  type: LogType;
+  player?: string;
+  message?: string;
 }
 
 interface ServerConsoleProps {
@@ -78,6 +112,11 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
   const [showSearch, setShowSearch] = useState(false);
   const [copiedLine, setCopiedLine] = useState<string | null>(null);
   const [commandSuccess, setCommandSuccess] = useState<boolean | null>(null);
+  
+  // Player action menu state
+  const [playerActionMenuOpen, setPlayerActionMenuOpen] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<string>('');
+  const [selectedPlayerMessage, setSelectedPlayerMessage] = useState<string | undefined>(undefined);
   
   const consoleRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -128,31 +167,214 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Keyboard shortcuts for console
+  useEffect(() => {
+    const handleKeyboardShortcuts = (e: KeyboardEvent) => {
+      // Only handle shortcuts when not typing in an input (except for the console input)
+      const target = e.target as HTMLElement;
+      const isConsoleInput = target === inputRef.current;
+      const isOtherInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      
+      // Ctrl+L or Cmd+L to clear console
+      if ((e.ctrlKey || e.metaKey) && e.key === 'l' && !isOtherInput) {
+        e.preventDefault();
+        clearConsole();
+        return;
+      }
+      
+      // Ctrl+K or Cmd+K to focus input
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+        return;
+      }
+      
+      // Escape to minimize when expanded, or close search
+      if (e.key === 'Escape') {
+        if (showSearch) {
+          setShowSearch(false);
+          setSearchQuery('');
+          return;
+        }
+        if (isExpanded) {
+          setIsExpanded(false);
+          return;
+        }
+      }
+      
+      // Ctrl+F or Cmd+F to toggle search (only when console is focused or expanded)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f' && (isConsoleInput || isExpanded)) {
+        e.preventDefault();
+        setShowSearch(prev => !prev);
+        return;
+      }
+      
+      // Ctrl+D or Cmd+D to download logs (when console is focused)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd' && isConsoleInput && lines.length > 0) {
+        e.preventDefault();
+        downloadLogs();
+        return;
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+    return () => document.removeEventListener('keydown', handleKeyboardShortcuts);
+  }, [isExpanded, showSearch, lines.length]);
+
+  // Classify log line type with advanced Minecraft log parsing
+  const classifyLine = useCallback((line: string): { type: LogType; player?: string; message?: string } => {
+    const lowerLine = line.toLowerCase();
+    
+    // Player join patterns
+    // [Server thread/INFO]: Player123 joined the game
+    // [Server thread/INFO]: Player123[/IP:PORT] logged in with entity id
+    const joinPatterns = [
+      /(\w+) joined the game/i,
+      /(\w+)\[\/[\d.:]+\] logged in/i,
+      /UUID of player (\w+) is/i,
+    ];
+    for (const pattern of joinPatterns) {
+      const match = line.match(pattern);
+      if (match) {
+        return { type: 'player_join', player: match[1] };
+      }
+    }
+    
+    // Player leave patterns
+    // [Server thread/INFO]: Player123 left the game
+    // [Server thread/INFO]: Player123 lost connection: Disconnected
+    const leavePatterns = [
+      /(\w+) left the game/i,
+      /(\w+) lost connection/i,
+      /(\w+) has disconnected/i,
+    ];
+    for (const pattern of leavePatterns) {
+      const match = line.match(pattern);
+      if (match) {
+        return { type: 'player_leave', player: match[1] };
+      }
+    }
+    
+    // Player death patterns
+    // [Server thread/INFO]: Player123 was slain by Zombie
+    // [Server thread/INFO]: Player123 fell from a high place
+    const deathPatterns = [
+      /(\w+) was slain by/i,
+      /(\w+) was killed by/i,
+      /(\w+) was shot by/i,
+      /(\w+) drowned/i,
+      /(\w+) fell from/i,
+      /(\w+) fell out of the world/i,
+      /(\w+) hit the ground too hard/i,
+      /(\w+) burned to death/i,
+      /(\w+) went up in flames/i,
+      /(\w+) tried to swim in lava/i,
+      /(\w+) suffocated in a wall/i,
+      /(\w+) starved to death/i,
+      /(\w+) was pricked to death/i,
+      /(\w+) blew up/i,
+      /(\w+) was blown up/i,
+      /(\w+) withered away/i,
+      /(\w+) was pummeled/i,
+      /(\w+) died/i,
+    ];
+    for (const pattern of deathPatterns) {
+      const match = line.match(pattern);
+      if (match) {
+        return { type: 'player_death', player: match[1], message: line };
+      }
+    }
+    
+    // Chat messages
+    // <Player123> Hello everyone!
+    const chatMatch = line.match(/<(\w+)>\s*(.+)/);
+    if (chatMatch) {
+      return { type: 'chat', player: chatMatch[1], message: chatMatch[2] };
+    }
+    
+    // Achievement/Advancement patterns
+    // [Server thread/INFO]: Player123 has made the advancement [Getting Wood]
+    // [Server thread/INFO]: Player123 has completed the challenge [Return to Sender]
+    const achievementPatterns = [
+      /(\w+) has made the advancement/i,
+      /(\w+) has completed the challenge/i,
+      /(\w+) has reached the goal/i,
+      /(\w+) earned the achievement/i,
+    ];
+    for (const pattern of achievementPatterns) {
+      const match = line.match(pattern);
+      if (match) {
+        return { type: 'achievement', player: match[1], message: line };
+      }
+    }
+    
+    // Server start/stop patterns
+    if (lowerLine.includes('done') && lowerLine.includes('for help')) {
+      return { type: 'server_start' };
+    }
+    if (lowerLine.includes('stopping the server') || lowerLine.includes('stopping server')) {
+      return { type: 'server_stop' };
+    }
+    if (lowerLine.includes('starting minecraft server')) {
+      return { type: 'server_start' };
+    }
+    
+    // Plugin loading patterns
+    if (lowerLine.includes('[plugin]') || lowerLine.includes('loading plugin') || lowerLine.includes('enabling plugin')) {
+      return { type: 'plugin' };
+    }
+    
+    // World loading patterns
+    if (lowerLine.includes('preparing level') || lowerLine.includes('preparing spawn') || lowerLine.includes('loading world')) {
+      return { type: 'world' };
+    }
+    
+    // Error patterns
+    if (lowerLine.includes('error') || lowerLine.includes('exception') || lowerLine.includes('failed') || lowerLine.includes('cannot')) {
+      return { type: 'error' };
+    }
+    
+    // Warning patterns
+    if (lowerLine.includes('warn') || lowerLine.includes('can\'t keep up')) {
+      return { type: 'warning' };
+    }
+    
+    // Info patterns
+    if (lowerLine.includes('/info]') || lowerLine.includes('[info]')) {
+      return { type: 'info' };
+    }
+    
+    return { type: 'log' };
+  }, []);
+
   // Add a line to console (defined before connect to avoid hoisting issues)
-  const addLine = useCallback((prefix: string, text: string, type: ConsoleLine['type']) => {
+  const addLine = useCallback((prefix: string, text: string, type: LogType, extra?: { player?: string; message?: string }) => {
     const newLine: ConsoleLine = {
       id: `line-${lineIdCounter.current++}`,
       line: prefix ? `[${prefix}] ${text}` : text,
+      rawLine: text,
       timestamp: new Date().toISOString(),
       type,
+      player: extra?.player,
+      message: extra?.message,
     };
     setLines(prev => [...prev.slice(-500), newLine]);
   }, []);
 
-  // Classify log line type
-  const classifyLine = useCallback((line: string): ConsoleLine['type'] => {
-    const lowerLine = line.toLowerCase();
-    if (lowerLine.includes('error') || lowerLine.includes('exception') || lowerLine.includes('failed')) {
-      return 'error';
-    }
-    if (lowerLine.includes('warn')) {
-      return 'warning';
-    }
-    if (lowerLine.includes('info')) {
-      return 'info';
-    }
-    return 'log';
-  }, []);
+  // Add a raw console line with automatic classification
+  const addConsoleLine = useCallback((rawLine: string) => {
+    const classified = classifyLine(rawLine);
+    const newLine: ConsoleLine = {
+      id: `line-${lineIdCounter.current++}`,
+      line: rawLine,
+      rawLine: rawLine,
+      timestamp: new Date().toISOString(),
+      type: classified.type,
+      player: classified.player,
+      message: classified.message,
+    };
+    setLines(prev => [...prev.slice(-500), newLine]);
+  }, [classifyLine]);
 
   // Cleanup function for SSE connection
   const cleanupSSE = useCallback(() => {
@@ -199,7 +421,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         setIsConnected(true);
         setIsConnecting(false);
         reconnectAttemptsRef.current = 0;
-        addLine(t('system'), t('connectedToServer'), 'info');
+        addLine(t('system'), t('connectedToServer'), 'system');
       };
 
       eventSource.onmessage = (event) => {
@@ -207,13 +429,18 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         
         try {
           const data = JSON.parse(event.data);
+          console.log('[Console SSE Frontend] Received:', data.type, data);
           
           switch (data.type) {
             case 'connected':
-              addLine(t('system'), t('connectedTo', { serverName: data.serverName }), 'info');
+              addLine(t('system'), t('connectedTo', { serverName: data.serverName }), 'system');
               break;
             case 'console':
-              addLine('', data.line, classifyLine(data.line));
+              // Use the advanced classification for console lines
+              if (data.line) {
+                console.log('[Console SSE Frontend] Processing line:', data.line.substring(0, 80));
+                addConsoleLine(data.line);
+              }
               break;
             case 'status':
               if (data.status !== 1) {
@@ -221,7 +448,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
               }
               break;
             case 'info':
-              addLine(t('system'), data.message, 'info');
+              addLine(t('system'), data.message, 'system');
               break;
           }
         } catch (err) {
@@ -264,14 +491,14 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
       setError(t('connectionError'));
       setIsConnecting(false);
     }
-  }, [serverId, serverStatus, isAdmin, t, tCommon, cleanupSSE, addLine, classifyLine]);
+  }, [serverId, serverStatus, isAdmin, t, tCommon, cleanupSSE, addLine, addConsoleLine]);
 
   // Disconnect from console stream
   const disconnect = useCallback(() => {
     hasManuallyDisconnectedRef.current = true;
     cleanupSSE();
     setIsConnected(false);
-    addLine(t('system'), t('disconnectedFromConsole'), 'info');
+    addLine(t('system'), t('disconnectedFromConsole'), 'system');
   }, [t, cleanupSSE, addLine]);
 
   // Cleanup on unmount
@@ -305,6 +532,45 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
       console.error('Failed to copy:', err);
     }
   };
+
+  // Handle player action menu command execution
+  const executePlayerCommand = useCallback(async (cmd: string): Promise<void> => {
+    if (!cmd || !isAdmin) return;
+
+    setSendingCommand(true);
+    addLine(t('command'), cmd, 'command');
+
+    try {
+      const token = await auth.currentUser?.getIdToken(true);
+      if (!token) {
+        addLine(tCommon('error'), tCommon('notAuthenticated'), 'error');
+        return;
+      }
+
+      const result = await sendServerCommand({
+        serverId,
+        command: cmd,
+        token,
+      });
+
+      if (!result.success) {
+        addLine(tCommon('error'), result.error || (locale === 'pt-BR' ? 'Falha ao executar comando' : 'Failed to execute command'), 'error');
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setSendingCommand(false);
+    }
+  }, [isAdmin, serverId, locale, addLine, t, tCommon]);
+
+  // Open player action menu
+  const openPlayerActionMenu = useCallback((playerName: string, message?: string) => {
+    if (!isAdmin || serverStatus !== 1) return;
+    setSelectedPlayer(playerName);
+    setSelectedPlayerMessage(message);
+    setPlayerActionMenuOpen(true);
+  }, [isAdmin, serverStatus]);
 
   // Send command to server using centralized function
   const sendCommandToServer = async (cmdToSend?: string) => {
@@ -384,7 +650,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
   // Clear console
   const clearConsole = () => {
     setLines([]);
-    addLine(t('system'), t('consoleCleared'), 'info');
+    addLine(t('system'), t('consoleCleared'), 'system');
   };
 
   // Download logs
@@ -399,18 +665,75 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
     URL.revokeObjectURL(url);
   };
 
-  // Get line styles
-  const getLineStyles = (type: ConsoleLine['type']) => {
-    const baseStyles = 'leading-relaxed font-mono text-[13px] px-2 py-0.5 rounded group hover:bg-white/5 transition-colors';
+  // Get icon for log type
+  const getLogIcon = (type: LogType) => {
+    const iconClass = 'h-3.5 w-3.5 flex-shrink-0';
     switch (type) {
+      case 'player_join':
+        return <LogIn className={cn(iconClass, 'text-green-400')} />;
+      case 'player_leave':
+        return <LogOut className={cn(iconClass, 'text-red-400')} />;
+      case 'player_death':
+        return <Skull className={cn(iconClass, 'text-red-500')} />;
+      case 'chat':
+        return <MessageSquare className={cn(iconClass, 'text-blue-400')} />;
+      case 'achievement':
+        return <Award className={cn(iconClass, 'text-yellow-400')} />;
+      case 'server_start':
+        return <Sparkles className={cn(iconClass, 'text-green-500')} />;
+      case 'server_stop':
+        return <XCircle className={cn(iconClass, 'text-red-500')} />;
+      case 'plugin':
+        return <Shield className={cn(iconClass, 'text-purple-400')} />;
+      case 'world':
+        return <Server className={cn(iconClass, 'text-cyan-400')} />;
       case 'error':
-        return cn(baseStyles, 'text-red-400 bg-red-500/5 border-l-2 border-red-500/50');
+        return <XCircle className={cn(iconClass, 'text-red-400')} />;
+      case 'warning':
+        return <AlertTriangle className={cn(iconClass, 'text-amber-400')} />;
+      case 'command':
+        return <Terminal className={cn(iconClass, 'text-emerald-400')} />;
+      case 'system':
+        return <Info className={cn(iconClass, 'text-blue-400')} />;
+      case 'info':
+        return <Info className={cn(iconClass, 'text-blue-400')} />;
+      default:
+        return <Clock className={cn(iconClass, 'text-gray-500')} />;
+    }
+  };
+
+  // Get line styles
+  const getLineStyles = (type: LogType) => {
+    const baseStyles = 'leading-relaxed font-mono text-[13px] px-3 py-1.5 rounded-md group hover:bg-white/5 transition-colors flex items-start gap-2';
+    switch (type) {
+      case 'player_join':
+        return cn(baseStyles, 'text-green-400 bg-green-500/5 border-l-2 border-green-500');
+      case 'player_leave':
+        return cn(baseStyles, 'text-red-400 bg-red-500/5 border-l-2 border-red-500/70');
+      case 'player_death':
+        return cn(baseStyles, 'text-red-300 bg-red-900/20 border-l-2 border-red-700');
+      case 'chat':
+        return cn(baseStyles, 'text-blue-300 bg-blue-500/5 border-l-2 border-blue-500');
+      case 'achievement':
+        return cn(baseStyles, 'text-yellow-300 bg-yellow-500/10 border-l-2 border-yellow-500');
+      case 'server_start':
+        return cn(baseStyles, 'text-green-300 bg-green-500/10 border-l-2 border-green-600 font-semibold');
+      case 'server_stop':
+        return cn(baseStyles, 'text-red-300 bg-red-500/10 border-l-2 border-red-600 font-semibold');
+      case 'plugin':
+        return cn(baseStyles, 'text-purple-400 bg-purple-500/5 border-l-2 border-purple-500/50');
+      case 'world':
+        return cn(baseStyles, 'text-cyan-400 bg-cyan-500/5 border-l-2 border-cyan-500/50');
+      case 'error':
+        return cn(baseStyles, 'text-red-400 bg-red-500/10 border-l-2 border-red-500');
       case 'warning':
         return cn(baseStyles, 'text-amber-400 bg-amber-500/5 border-l-2 border-amber-500/50');
-      case 'info':
-        return cn(baseStyles, 'text-blue-400');
       case 'command':
         return cn(baseStyles, 'text-emerald-400 font-semibold bg-emerald-500/10 border-l-2 border-emerald-500');
+      case 'system':
+        return cn(baseStyles, 'text-blue-400 bg-blue-500/5 border-l-2 border-blue-500/50 italic');
+      case 'info':
+        return cn(baseStyles, 'text-blue-400');
       default:
         return cn(baseStyles, 'text-gray-300');
     }
@@ -622,7 +945,7 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
             className={cn(
               'bg-gray-950 rounded-lg overflow-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent',
               'border border-white/5 shadow-inner',
-              isExpanded ? 'h-[calc(100vh-320px)]' : 'h-72'
+              isExpanded ? 'h-[calc(100vh-320px)]' : 'h-80'
             )}
           >
             {filteredLines.length === 0 ? (
@@ -633,27 +956,84 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
                 </span>
               </div>
             ) : (
-              <div className="p-2 space-y-0.5">
-                {filteredLines.map((line) => (
-                  <div key={line.id} className={cn(getLineStyles(line.type), 'relative')}>
-                    <span className="text-gray-600 text-[11px] mr-2 font-normal">
-                      {new Date(line.timestamp).toLocaleTimeString()}
-                    </span>
-                    <span className="break-all">{line.line}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => copyLine(line.line, line.id)}
-                    >
-                      {copiedLine === line.id ? (
-                        <Check className="h-3 w-3 text-green-400" />
-                      ) : (
-                        <Copy className="h-3 w-3" />
+              <div className="p-2 space-y-1">
+                {filteredLines.map((line) => {
+                  const isClickable = isAdmin && serverStatus === 1 && line.player;
+                  
+                  return (
+                    <div 
+                      key={line.id} 
+                      className={cn(
+                        getLineStyles(line.type), 
+                        'relative pr-10',
+                        isClickable && 'cursor-pointer hover:ring-2 hover:ring-primary/40 hover:bg-primary/5 transition-all'
                       )}
-                    </Button>
-                  </div>
-                ))}
+                      onClick={isClickable ? () => openPlayerActionMenu(line.player!, line.message || line.line) : undefined}
+                    >
+                      {/* Icon */}
+                      {getLogIcon(line.type)}
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-gray-600 text-[10px] font-normal tabular-nums">
+                            {new Date(line.timestamp).toLocaleTimeString()}
+                          </span>
+                          
+                          {/* Player badge for player events - now clickable */}
+                          {line.player && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      'text-[10px] px-1.5 py-0 h-4 font-medium transition-all',
+                                      line.type === 'player_join' && 'border-green-500/50 text-green-400 bg-green-500/10',
+                                      line.type === 'player_leave' && 'border-red-500/50 text-red-400 bg-red-500/10',
+                                      line.type === 'player_death' && 'border-red-700/50 text-red-300 bg-red-900/20',
+                                      line.type === 'chat' && 'border-blue-500/50 text-blue-400 bg-blue-500/10',
+                                      line.type === 'achievement' && 'border-yellow-500/50 text-yellow-400 bg-yellow-500/10',
+                                      isClickable && 'hover:scale-105 hover:shadow-lg'
+                                    )}
+                                  >
+                                    {isClickable && <MousePointerClick className="h-2.5 w-2.5 mr-0.5" />}
+                                    {line.player}
+                                  </Badge>
+                                </TooltipTrigger>
+                                {isClickable && (
+                                  <TooltipContent side="top" className="text-xs">
+                                    {locale === 'pt-BR' ? 'Clique para ações do jogador' : 'Click for player actions'}
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                        
+                        {/* Log message */}
+                        <span className="break-all block mt-0.5">{line.line}</span>
+                      </div>
+                      
+                      {/* Copy button */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyLine(line.line, line.id);
+                        }}
+                      >
+                        {copiedLine === line.id ? (
+                          <Check className="h-3 w-3 text-green-400" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -784,9 +1164,27 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
           <p className="text-xs text-muted-foreground flex items-center gap-2">
             <Terminal className="h-3 w-3" />
             {t('historyHint', { lines: lines.length })}
+            <span className="ml-auto text-[10px] opacity-60 hidden sm:flex items-center gap-3">
+              <span><kbd className="px-1 py-0.5 bg-gray-800 rounded text-[9px]">Ctrl+L</kbd> {locale === 'pt-BR' ? 'limpar' : 'clear'}</span>
+              <span><kbd className="px-1 py-0.5 bg-gray-800 rounded text-[9px]">Ctrl+K</kbd> {locale === 'pt-BR' ? 'focar' : 'focus'}</span>
+              <span><kbd className="px-1 py-0.5 bg-gray-800 rounded text-[9px]">Ctrl+F</kbd> {locale === 'pt-BR' ? 'buscar' : 'search'}</span>
+            </span>
           </p>
         </CardContent>
       </Card>
+
+      {/* Player Action Menu */}
+      <PlayerActionMenu
+        isOpen={playerActionMenuOpen}
+        onClose={() => {
+          setPlayerActionMenuOpen(false);
+          setSelectedPlayer('');
+          setSelectedPlayerMessage(undefined);
+        }}
+        playerName={selectedPlayer}
+        onExecuteCommand={executePlayerCommand}
+        recentMessage={selectedPlayerMessage}
+      />
     </TooltipProvider>
   );
 }
