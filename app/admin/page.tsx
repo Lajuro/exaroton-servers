@@ -37,6 +37,7 @@ import {
   ArrowDownAZ,
 } from 'lucide-react';
 import { ActionHistory } from '@/components/ActionHistory';
+import { ImpersonateButton } from '@/components/ImpersonationBanner';
 
 interface User {
   id: string;
@@ -504,18 +505,35 @@ export default function AdminPage() {
                           )}
                         </div>
 
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="gap-1.5"
-                              onClick={() => handleEditUser(userItem)}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                              <span className="hidden sm:inline">{tCommon('edit')}</span>
-                            </Button>
-                          </DialogTrigger>
+                        <div className="flex items-center gap-2">
+                          {/* Só mostra botão de impersonar para não-admins */}
+                          {!userItem.isAdmin && (
+                            <ImpersonateButton 
+                              user={{
+                                uid: userItem.id,
+                                email: userItem.email,
+                                displayName: userItem.name,
+                                photoURL: userItem.photoURL,
+                                isAdmin: userItem.isAdmin,
+                                serverAccess: userItem.serverAccess || [],
+                                createdAt: new Date(userItem.createdAt),
+                                updatedAt: new Date(),
+                              }}
+                            />
+                          )}
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1.5"
+                                onClick={() => handleEditUser(userItem)}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                                <span className="hidden sm:inline">{tCommon('edit')}</span>
+                              </Button>
+                            </DialogTrigger>
                           <DialogContent className="sm:max-w-md">
                             <DialogHeader>
                               <DialogTitle className="flex items-center gap-3">
@@ -640,6 +658,7 @@ export default function AdminPage() {
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
+                        </div>
                       </div>
                     </div>
                   ))}

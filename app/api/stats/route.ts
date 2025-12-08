@@ -34,6 +34,23 @@ export async function GET(request: NextRequest) {
     const userData = userDoc.data();
     const isAdmin = userData?.isAdmin === true;
 
+    // Check for impersonation header (admin-only)
+    const impersonateUserId = request.headers.get('X-Impersonate-User');
+    let effectiveUserId = decodedToken.uid;
+    let effectiveIsAdmin = isAdmin;
+    let effectiveServerAccess = userData?.serverAccess || [];
+
+    if (impersonateUserId && isAdmin) {
+      // Admin is impersonating another user
+      const impersonatedDoc = await db.collection('users').doc(impersonateUserId).get();
+      if (impersonatedDoc.exists) {
+        const impersonatedData = impersonatedDoc.data();
+        effectiveUserId = impersonateUserId;
+        effectiveIsAdmin = false; // Always treat as non-admin when impersonating
+        effectiveServerAccess = impersonatedData?.serverAccess || [];
+      }
+    }
+
     // Calculate date ranges
     const now = new Date();
     const thirtyDaysAgo = new Date(now);
@@ -44,12 +61,18 @@ export async function GET(request: NextRequest) {
 
     // Get credit snapshots (últimos 30 dias)
     const snapshotsRef = db.collection('creditSnapshots');
-    const snapshotsQuery = await snapshotsRef
-      .where('timestamp', '>=', thirtyDaysAgo)
-      .orderBy('timestamp', 'asc')
-      .get();
+    let snapshotsQuery;
+    try {
+      snapshotsQuery = await snapshotsRef
+        .where('timestamp', '>=', thirtyDaysAgo)
+        .orderBy('timestamp', 'asc')
+        .get();
+    } catch (queryError) {
+      console.error('Error querying creditSnapshots:', queryError);
+      snapshotsQuery = { docs: [] } as unknown as FirebaseFirestore.QuerySnapshot;
+    }
 
-    const snapshots: CreditSnapshot[] = snapshotsQuery.docs.map(doc => {
+    const snapshots: CreditSnapshot[] = snapshotsQuery.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -60,9 +83,9 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Get current credits (apenas admin)
+    // Get current credits (apenas admin real, não impersonando)
     let currentCredits = 0;
-    if (isAdmin) {
+    if (effectiveIsAdmin) {
       try {
         const client = getExarotonClient();
         const account = await (client as any).getAccount();
@@ -109,20 +132,26 @@ export async function GET(request: NextRequest) {
     const actionsRef = db.collection('actionLogs');
     let actionsQuery;
     
-    if (isAdmin) {
-      actionsQuery = await actionsRef
-        .where('timestamp', '>=', thirtyDaysAgo)
-        .orderBy('timestamp', 'asc')
-        .get();
-    } else {
-      actionsQuery = await actionsRef
-        .where('userId', '==', decodedToken.uid)
-        .where('timestamp', '>=', thirtyDaysAgo)
-        .orderBy('timestamp', 'asc')
-        .get();
+    try {
+      if (effectiveIsAdmin) {
+        actionsQuery = await actionsRef
+          .where('timestamp', '>=', thirtyDaysAgo)
+          .orderBy('timestamp', 'desc')
+          .get();
+      } else {
+        actionsQuery = await actionsRef
+          .where('userId', '==', effectiveUserId)
+          .where('timestamp', '>=', thirtyDaysAgo)
+          .orderBy('timestamp', 'desc')
+          .get();
+      }
+    } catch (queryError) {
+      console.error('Error querying actionLogs:', queryError);
+      // Return empty actions if query fails (e.g., missing index)
+      actionsQuery = { docs: [] } as unknown as FirebaseFirestore.QuerySnapshot;
     }
 
-    const actions: ActionLog[] = actionsQuery.docs.map(doc => {
+    const actions: ActionLog[] = actionsQuery.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -215,9 +244,9 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 3);
 
-    // Calculate user activity (apenas admin)
+    // Calculate user activity (apenas admin real)
     let userActivity: { userId: string; userName: string; photoUrl?: string; actionCount: number }[] = [];
-    if (isAdmin) {
+    if (effectiveIsAdmin) {
       const userActions: { [key: string]: { name: string; photoUrl?: string; count: number } } = {};
       actions.forEach(action => {
         if (!userActions[action.userId]) {
@@ -257,7 +286,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      isAdmin,
+      isAdmin: effectiveIsAdmin,
       credits: {
         summary: creditsSummary,
         chartData: creditsChartData,

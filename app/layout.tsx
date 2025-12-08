@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import { ImpersonationProvider } from "@/lib/impersonation-context";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 
@@ -177,9 +179,12 @@ export default async function RootLayout({
             storageKey="theme"
           >
             <AuthProvider>
-              {children}
-              <Toaster />
-              <PWAInstallPrompt />
+              <ImpersonationProvider>
+                {children}
+                <ImpersonationBanner />
+                <Toaster />
+                <PWAInstallPrompt />
+              </ImpersonationProvider>
             </AuthProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

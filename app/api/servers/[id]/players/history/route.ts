@@ -142,15 +142,27 @@ export async function GET(
 
     // Calcular ranking
     const ranking: PlayerRankingEntry[] = Object.values(playerHistories)
-      .map((p) => ({
-        rank: 0,
-        playerName: p.playerName,
-        playerUuid: p.playerUuid,
-        totalPlaytime: p.totalPlaytime,
-        sessionCount: p.sessionCount,
-        lastSeen: p.lastSeen,
-        averageSessionDuration: p.sessionCount > 0 ? p.totalPlaytime / p.sessionCount : 0,
-      }))
+      .map((p) => {
+        // Converter lastSeen para Date se for Timestamp do Firestore
+        let lastSeenDate: Date;
+        if (p.lastSeen && typeof p.lastSeen === 'object' && 'toDate' in p.lastSeen) {
+          lastSeenDate = (p.lastSeen as { toDate: () => Date }).toDate();
+        } else if (p.lastSeen) {
+          lastSeenDate = new Date(p.lastSeen);
+        } else {
+          lastSeenDate = new Date();
+        }
+
+        return {
+          rank: 0,
+          playerName: p.playerName,
+          playerUuid: p.playerUuid,
+          totalPlaytime: p.totalPlaytime || 0,
+          sessionCount: p.sessionCount || 0,
+          lastSeen: lastSeenDate,
+          averageSessionDuration: p.sessionCount > 0 ? (p.totalPlaytime || 0) / p.sessionCount : 0,
+        };
+      })
       .sort((a, b) => b.totalPlaytime - a.totalPlaytime)
       .map((p, index) => ({ ...p, rank: index + 1 }))
       .slice(0, 50); // Top 50

@@ -329,12 +329,12 @@ function ServerControls({
 
   return (
     <Card className="border-border/50">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 border-b bg-muted/30">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-purple-500/10">
-              <Settings className="h-5 w-5 text-purple-500" />
-            </div>
+          <CardTitle className="flex items-center gap-2.5 text-lg">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <Settings className="h-4 w-4 text-purple-500" />
+            </span>
             {tServers('commands.controls')}
           </CardTitle>
         </div>

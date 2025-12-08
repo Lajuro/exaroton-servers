@@ -6,6 +6,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
+import { useImpersonation } from '@/lib/impersonation-context';
 import { auth } from '@/lib/firebase';
 import ServerCard from '@/components/ServerCard';
 import { ServerCardSkeleton } from '@/components/ServerCardSkeleton';
@@ -54,10 +55,15 @@ interface ServerIconMap {
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { impersonatedUser, isImpersonating } = useImpersonation();
   const t = useTranslations('dashboard');
   const tCommon = useTranslations('common');
   const tAuth = useTranslations('auth');
   const tServers = useTranslations('servers');
+  
+  // Quando impersonando, o admin não deve ver recursos de admin
+  const effectiveIsAdmin = !isImpersonating && user?.isAdmin;
+  
   const [servers, setServers] = useState<Server[]>([]);
   const [serverIcons, setServerIcons] = useState<ServerIconMap>({});
   const [loading, setLoading] = useState(true);
@@ -86,10 +92,18 @@ export default function DashboardPage() {
         throw new Error('Not authenticated');
       }
 
+      // Criar headers base
+      const headers: HeadersInit = {
+        'Authorization': `Bearer ${token}`,
+      };
+
+      // Se está impersonando, adicionar o header de impersonation
+      if (isImpersonating && impersonatedUser) {
+        headers['X-Impersonate-User'] = impersonatedUser.uid;
+      }
+
       const response = await fetch('/api/servers', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       });
 
       const data = await response.json().catch(() => ({}));
@@ -127,12 +141,13 @@ export default function DashboardPage() {
     }
   };
 
+  // Recarregar servidores quando o usuário mudar ou quando impersonation mudar
   useEffect(() => {
     if (user) {
       fetchServers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, impersonatedUser?.uid]);
 
   const fetchServerIcons = async (serversList: Server[]) => {
     try {
@@ -517,12 +532,12 @@ export default function DashboardPage() {
                   <div className="space-y-2">
                     <p className="text-xl font-semibold">{t('noServersAvailable')}</p>
                     <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                      {user?.isAdmin
+                      {effectiveIsAdmin
                         ? t('configureApiKey')
                         : t('noAccessYet')}
                     </p>
                   </div>
-                  {user?.isAdmin && (
+                  {effectiveIsAdmin && (
                     <Button variant="outline" className="gap-2 mt-4">
                       <AlertCircle className="h-4 w-4" />
                       {t('viewDocs')}
@@ -586,7 +601,7 @@ export default function DashboardPage() {
                   <ServerCard
                     key={server.id}
                     server={server}
-                    isAdmin={user?.isAdmin ?? false}
+                    isAdmin={effectiveIsAdmin ?? false}
                     onUpdate={() => fetchServers()}
                     iconUrl={serverIcons[server.id]}
                   />

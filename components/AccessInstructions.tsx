@@ -15,15 +15,15 @@ export function AccessInstructions({ content }: AccessInstructionsProps) {
   if (!content) {
     return (
       <Card className="border-border/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-blue-500/10">
-              <BookOpen className="h-5 w-5 text-blue-500" />
-            </div>
+        <CardHeader className="pb-3 border-b bg-muted/30">
+          <CardTitle className="flex items-center gap-2.5 text-lg">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20">
+              <BookOpen className="h-4 w-4 text-blue-500" />
+            </span>
             {t('howToConnect')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <div className="p-4 rounded-full bg-muted/50 mb-3">
               <FileQuestion className="h-8 w-8 text-muted-foreground/50" />
@@ -39,15 +39,15 @@ export function AccessInstructions({ content }: AccessInstructionsProps) {
 
   return (
     <Card className="border-border/50">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <div className="p-2 rounded-lg bg-blue-500/10">
-            <BookOpen className="h-5 w-5 text-blue-500" />
-          </div>
+      <CardHeader className="pb-3 border-b bg-muted/30">
+        <CardTitle className="flex items-center gap-2.5 text-lg">
+          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <BookOpen className="h-4 w-4 text-blue-500" />
+          </span>
           {t('howToConnect')}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         <MarkdownRenderer content={content} />
       </CardContent>
     </Card>

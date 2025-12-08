@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { startServer, getServer, getExarotonClient } from '@/lib/exaroton';
 import { adminAuth, adminDb, invalidateServerCache } from '@/lib/firebase-admin';
 import { logAction } from '@/lib/action-logger';
+import { executeServerAutomation } from '@/lib/automation-executor';
 import { FieldValue } from 'firebase-admin/firestore';
 import { ServerSession } from '@/types';
 
@@ -98,6 +99,13 @@ export async function POST(
       details: {
         previousValue: `${creditsAtStart} credits`,
       },
+    });
+
+    // Execute start automation in background (non-blocking)
+    // Note: This will execute immediately, but for commands that need
+    // the server to be fully online, the automation should include delays
+    executeServerAutomation(id, 'start', userId).catch(err => {
+      console.error('[Automation] Error executing start automation:', err);
     });
     
     return NextResponse.json({ 

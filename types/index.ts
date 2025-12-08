@@ -391,3 +391,144 @@ export interface ServerLastOnline {
   lastSeenPlayers?: string[];
   wasOnlineRecently: boolean;
 }
+
+// ========================================
+// SERVER AUTOMATION TYPES
+// ========================================
+
+/**
+ * Tipo de ação de automação disponível
+ */
+export type AutomationActionType = 
+  | 'command'        // Executar um comando do Minecraft
+  | 'title'          // Mostrar título na tela
+  | 'subtitle'       // Mostrar subtítulo na tela
+  | 'actionbar'      // Mostrar mensagem na action bar
+  | 'message'        // Enviar mensagem no chat (say ou tellraw)
+  | 'delay'          // Aguardar X segundos
+  | 'countdown'      // Contador regressivo com mensagem
+  | 'sound'          // Tocar um som
+  | 'effect'         // Aplicar efeito em jogadores
+  | 'time'           // Alterar horário do jogo
+  | 'weather';       // Alterar clima
+
+/**
+ * Ação individual em uma sequência de automação
+ */
+export interface AutomationAction {
+  id: string;
+  type: AutomationActionType;
+  order: number; // Ordem de execução (para drag-and-drop)
+  enabled: boolean;
+  
+  // Configurações específicas por tipo
+  config: {
+    // command
+    command?: string;
+    
+    // title, subtitle, actionbar, message
+    text?: string;
+    color?: string; // Cor do texto Minecraft (gold, red, green, etc)
+    bold?: boolean;
+    italic?: boolean;
+    
+    // title specific
+    fadeIn?: number;  // Ticks (20 ticks = 1 segundo)
+    stay?: number;    // Ticks
+    fadeOut?: number; // Ticks
+    
+    // delay
+    delaySeconds?: number;
+    
+    // countdown
+    countdownFrom?: number; // Número inicial do contador
+    countdownMessage?: string; // Mensagem com {seconds} placeholder
+    countdownInterval?: number; // Intervalo em segundos (default 1)
+    
+    // sound
+    soundName?: string; // Ex: minecraft:entity.player.levelup
+    volume?: number;
+    pitch?: number;
+    
+    // effect
+    effectName?: string; // Ex: minecraft:speed
+    duration?: number; // em segundos
+    amplifier?: number;
+    
+    // time
+    timeValue?: number; // 0-24000 (0=amanhecer, 6000=meio-dia, 18000=meia-noite)
+    
+    // weather
+    weatherType?: 'clear' | 'rain' | 'thunder';
+    weatherDuration?: number; // em segundos
+    
+    // Seletor de alvo (para comandos que precisam)
+    targetSelector?: string; // @a, @p, @r, @e, @s ou nome específico
+  };
+}
+
+/**
+ * Sequência de ações de automação
+ */
+export interface AutomationSequence {
+  id: string;
+  name: string;
+  description?: string;
+  enabled: boolean;
+  actions: AutomationAction[];
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+}
+
+/**
+ * Configuração de automação para um servidor
+ */
+export interface ServerAutomation {
+  serverId: string;
+  
+  // Sequências de automação
+  onStart?: AutomationSequence;    // Executar ao iniciar o servidor
+  onStop?: AutomationSequence;     // Executar antes de parar o servidor
+  onPlayerJoin?: AutomationSequence;  // Executar quando um jogador entra (futuro)
+  onPlayerLeave?: AutomationSequence; // Executar quando um jogador sai (futuro)
+  
+  // Configurações globais
+  enabled: boolean;
+  
+  // Metadados
+  createdAt: Date;
+  updatedAt: Date;
+  lastEditedBy: string;
+}
+
+/**
+ * Template predefinido de ação para facilitar a criação
+ */
+export interface AutomationActionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  type: AutomationActionType;
+  defaultConfig: AutomationAction['config'];
+  category: 'message' | 'visual' | 'gameplay' | 'timing' | 'advanced';
+}
+
+/**
+ * Log de execução de automação
+ */
+export interface AutomationExecutionLog {
+  id: string;
+  serverId: string;
+  sequenceId: string;
+  sequenceName: string;
+  trigger: 'start' | 'stop' | 'playerJoin' | 'playerLeave';
+  executedAt: Date;
+  executedBy: string;
+  success: boolean;
+  actionsExecuted: number;
+  actionsFailed: number;
+  errors?: string[];
+  duration: number; // em ms
+}

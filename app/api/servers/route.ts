@@ -14,15 +14,30 @@ export async function GET(request: NextRequest) {
     
     // Verify the token
     const decodedToken = await adminAuth().verifyIdToken(token);
-    const userId = decodedToken.uid;
+    const realUserId = decodedToken.uid;
 
-    // Get user data from Firestore
-    const userDoc = await adminDb().collection('users').doc(userId).get();
-    if (!userDoc.exists) {
+    // Get real user data from Firestore
+    const realUserDoc = await adminDb().collection('users').doc(realUserId).get();
+    if (!realUserDoc.exists) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const userData = userDoc.data();
+    const realUserData = realUserDoc.data();
+    const isRealUserAdmin = realUserData?.isAdmin === true;
+
+    // Check for impersonation header (only admins can impersonate)
+    const impersonateUserId = request.headers.get('X-Impersonate-User');
+    let userData = realUserData;
+    let userId = realUserId;
+
+    if (impersonateUserId && isRealUserAdmin && impersonateUserId !== realUserId) {
+      // Admin is impersonating another user
+      const impersonatedUserDoc = await adminDb().collection('users').doc(impersonateUserId).get();
+      if (impersonatedUserDoc.exists) {
+        userData = impersonatedUserDoc.data();
+        userId = impersonateUserId;
+      }
+    }
     
     // Verificar se deve usar cache (query param forceRefresh=true bypassa cache)
     const forceRefresh = request.nextUrl.searchParams.get('forceRefresh') === 'true';

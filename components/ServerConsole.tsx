@@ -742,13 +742,15 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
   if (!isAdmin) {
     return (
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Terminal className="h-5 w-5 text-primary" />
+        <CardHeader className="pb-3 border-b bg-muted/30">
+          <CardTitle className="flex items-center gap-2.5 text-lg">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 border border-primary/20">
+              <Terminal className="h-4 w-4 text-primary" />
+            </span>
             {t('title')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/30 rounded-lg">
             <AlertCircle className="h-4 w-4 flex-shrink-0" />
             <span>{t('adminOnly')}</span>
@@ -765,15 +767,15 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
         isExpanded && 'fixed inset-4 z-50 border-primary/30 shadow-2xl'
       )}>
         {/* Header */}
-        <CardHeader className="pb-3 bg-gradient-to-r from-gray-900/50 to-gray-800/50">
+        <CardHeader className="pb-3 border-b bg-muted/30">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="relative">
-                <Terminal className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2.5 text-lg">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 relative">
+                <Terminal className="h-4 w-4 text-primary" />
                 {isConnected && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse border-2 border-background" />
                 )}
-              </div>
+              </span>
               <span>{t('title')}</span>
               <Badge 
                 variant="outline" 

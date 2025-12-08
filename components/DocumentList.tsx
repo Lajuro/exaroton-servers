@@ -60,15 +60,15 @@ export function DocumentList({ documents, canEdit = false, onDelete }: DocumentL
   if (documents.length === 0) {
     return (
       <Card className="border-border/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-red-500/10">
-              <FileText className="h-5 w-5 text-red-500" />
-            </div>
+        <CardHeader className="pb-3 border-b bg-muted/30">
+          <CardTitle className="flex items-center gap-2.5 text-lg">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20">
+              <FileText className="h-4 w-4 text-red-500" />
+            </span>
             {t('title')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <div className="p-4 rounded-full bg-muted/50 mb-3">
               <File className="h-8 w-8 text-muted-foreground/50" />
@@ -85,18 +85,18 @@ export function DocumentList({ documents, canEdit = false, onDelete }: DocumentL
   return (
     <>
       <Card className="border-border/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-red-500/10">
-              <FileText className="h-5 w-5 text-red-500" />
-            </div>
+        <CardHeader className="pb-3 border-b bg-muted/30">
+          <CardTitle className="flex items-center gap-2.5 text-lg">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20">
+              <FileText className="h-4 w-4 text-red-500" />
+            </span>
             {t('title')}
             <Badge variant="secondary" className="ml-auto text-xs">
               {documents.length}
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="space-y-2">
             {documents.map((doc, index) => (
               <div

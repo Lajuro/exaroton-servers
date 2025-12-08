@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
+import { useImpersonation } from '@/lib/impersonation-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
 import { GlobalLoading } from '@/components/GlobalLoading';
@@ -32,7 +33,8 @@ import {
   Clock,
   MemoryStick,
   ArrowLeft,
-  Globe
+  Globe,
+  Wand2
 } from 'lucide-react';
 import { ExarotonServer, ServerContent } from '@/types';
 
@@ -68,8 +70,13 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { isImpersonating } = useImpersonation();
   const t = useTranslations('servers');
   const tCommon = useTranslations('common');
+  
+  // Quando impersonando, o admin não deve ver recursos de admin
+  const effectiveIsAdmin = !isImpersonating && user?.isAdmin;
+  
   const [serverId, setServerId] = useState<string>('');
   const [server, setServer] = useState<ExarotonServer | null>(null);
   const [content, setContent] = useState<ServerContent | null>(null);
@@ -477,6 +484,16 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                         {tCommon('edit')}
                       </Button>
                     )}
+                    {effectiveIsAdmin && (
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push(`/servers/${serverId}/settings`)}
+                        className="bg-background/50 backdrop-blur-sm gap-2"
+                      >
+                        <Wand2 className="h-4 w-4" />
+                        {t('automation')}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -508,12 +525,12 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
             <AccessInstructions content={content?.accessInstructions} />
 
             {/* Console do Servidor (apenas para admins) */}
-            {user?.isAdmin && (
+            {effectiveIsAdmin && (
               <ServerConsole
                 serverId={serverId}
                 serverName={server.name}
                 serverStatus={server.status}
-                isAdmin={user?.isAdmin || false}
+                isAdmin={effectiveIsAdmin || false}
               />
             )}
           </div>
@@ -527,7 +544,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
               sendingCommand={sendingCommand}
               onAction={handleAction}
               onSendCommand={handleSendCommand}
-              isAdmin={user?.isAdmin}
+              isAdmin={effectiveIsAdmin}
             />
 
             {/* Ranking de Jogadores */}
@@ -543,15 +560,15 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
 
             {/* Informações do servidor */}
             <Card className="border-border/50">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <div className="p-2 rounded-lg bg-purple-500/10">
-                    <Server className="h-5 w-5 text-purple-500" />
-                  </div>
+              <CardHeader className="pb-3 border-b bg-muted/30">
+                <CardTitle className="flex items-center gap-2.5 text-lg">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                    <Server className="h-4 w-4 text-purple-500" />
+                  </span>
                   {t('info.title')}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
                     <span className="text-muted-foreground flex items-center gap-3 text-sm">

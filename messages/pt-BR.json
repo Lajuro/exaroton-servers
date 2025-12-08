@@ -264,16 +264,21 @@
       "serverCapacity": "Capacidade do servidor",
       "playerRanking": "Ranking de Jogadores",
       "uniquePlayers": "jogadores únicos",
+      "totalUniquePlayers": "{count} jogadores únicos jogaram neste servidor",
       "noPlayersYet": "Nenhum jogador registrado",
       "noPlayersYetDesc": "O histórico começará quando jogadores entrarem",
       "ranking": "Ranking",
       "recentPlayers": "Recentes",
+      "topPlayers": "Top jogadores por tempo de jogo",
+      "recentlyActive": "Jogadores recentemente ativos",
       "sessions": "sessões",
       "lastSeen": "Última vez visto",
       "lastActive": "Última atividade",
       "andMorePlayers": "e mais {count} jogadores...",
       "errorLoading": "Erro ao carregar histórico",
       "tryAgain": "Tentar novamente",
+      "refresh": "Atualizar",
+      "refreshing": "Atualizando...",
       "onlineNow": "Online agora",
       "lastOnline": "Última vez online"
     },
@@ -533,7 +538,8 @@
     "errorLoading": "Erro ao carregar",
     "backToDashboard": "Voltar ao Dashboard",
     "copiedToClipboard": "{label} copiado para a área de transferência.",
-    "commandExecuted": "Comando \"{command}\" executado com sucesso."
+    "commandExecuted": "Comando \"{command}\" executado com sucesso.",
+    "automation": "Automação"
   },
   "login": {
     "controlPanel": "Painel de Controle",
@@ -956,6 +962,7 @@
   "stats": {
     "title": "Estatísticas",
     "subtitle": "Visão geral do uso dos servidores e consumo de créditos",
+    "summary": "Resumo estatístico",
     "last30Days": "Últimos 30 dias",
     "currentCredits": "Créditos Atuais",
     "spent30Days": "-{amount} nos últimos 30 dias",
@@ -964,6 +971,13 @@
     "totalActions": "Total de Ações",
     "failedActions": "{count} falha(s)",
     "serverStarts": "Inicializações",
+    "creditsTooltip": "Saldo atual da conta Exaroton",
+    "avgPerDayTooltip": "Consumo médio diário de créditos",
+    "totalActionsTooltip": "Todas as ações de servidor nos últimos 30 dias",
+    "serverStartsTooltip": "Número de inicializações de servidor no período",
+    "creditsChartTooltip": "Mostra a evolução do seu saldo de créditos ao longo do tempo",
+    "hoursOnlineLabel": "Horas online",
+    "noActionData": "Nenhum dado de ação disponível",
     "tabs": {
       "credits": "Créditos",
       "actions": "Ações",
@@ -997,5 +1011,150 @@
     "mostActiveUsersDesc": "Ranking de usuários por quantidade de ações",
     "noUserData": "Nenhum dado de usuário disponível",
     "actionsCount": "{count} ação(ões)"
+  },
+  "impersonation": {
+    "viewAs": "Ver como",
+    "viewingAs": "Visualizando como outro usuário",
+    "actionsAsAdmin": "Suas ações ainda são registradas como admin",
+    "exitView": "Voltar ao Admin",
+    "exit": "Sair",
+    "serversAccess": "{count} servidor(es)",
+    "startViewing": "Iniciar visualização",
+    "stopViewing": "Parar visualização",
+    "simulatingUser": "Simulando usuário",
+    "youAreViewing": "Você está vendo a aplicação como",
+    "allActionsLogged": "Todas as ações são registradas na sua conta de admin",
+    "cannotImpersonateSelf": "Você não pode simular a si mesmo",
+    "adminOnlyFeature": "Recurso disponível apenas para administradores"
+  },
+  "automation": {
+    "title": "Automação do Servidor",
+    "description": "Configure sequências automáticas de comandos para {serverName}",
+    "enabled": "Ativo",
+    "disabled": "Desativado",
+    "enableAutomation": "Ativar automação",
+    "unsavedChanges": "Você tem alterações não salvas. Não esqueça de salvar!",
+    "savedSuccessfully": "Configurações de automação salvas com sucesso",
+    "actions": "ações",
+    "addAction": "Adicionar Ação",
+    "noActions": "Nenhuma ação configurada",
+    "noActionsDescription": "Adicione ações para criar uma sequência de automação. Arraste para reordenar.",
+    "testSequence": "Testar Sequência",
+    "testSuccess": "Teste executado com sucesso",
+    "testSuccessDescription": "{count} ação(ões) executadas, {failed} falharam",
+    "testSkipped": "Teste ignorado",
+    "triggers": {
+      "onStart": "Ao Iniciar Servidor",
+      "onStop": "Ao Parar Servidor",
+      "onPlayerJoin": "Quando Jogador Entrar",
+      "onPlayerLeave": "Quando Jogador Sair"
+    },
+    "triggerDescriptions": {
+      "onStart": "Comandos executados quando {serverName} inicia",
+      "onStop": "Comandos executados antes de {serverName} parar",
+      "onPlayerJoin": "Comandos executados quando um jogador entra",
+      "onPlayerLeave": "Comandos executados quando um jogador sai"
+    },
+    "categories": {
+      "messages": "Mensagens",
+      "timing": "Tempo",
+      "effects": "Efeitos",
+      "world": "Mundo",
+      "advanced": "Avançado"
+    },
+    "types": {
+      "command": "Comando Personalizado",
+      "title": "Título",
+      "subtitle": "Subtítulo",
+      "actionbar": "Barra de Ação",
+      "message": "Mensagem no Chat",
+      "delay": "Atraso",
+      "countdown": "Contagem Regressiva",
+      "sound": "Tocar Som",
+      "effect": "Aplicar Efeito",
+      "time": "Definir Horário",
+      "weather": "Definir Clima"
+    },
+    "fields": {
+      "command": "Comando",
+      "text": "Texto",
+      "message": "Mensagem",
+      "color": "Cor",
+      "target": "Alvo",
+      "bold": "Negrito",
+      "italic": "Itálico",
+      "fadeIn": "Fade In (ticks)",
+      "stay": "Permanecer (ticks)",
+      "fadeOut": "Fade Out (ticks)",
+      "delaySeconds": "Atraso",
+      "seconds": "segundos",
+      "countdownFrom": "Contar de",
+      "interval": "Intervalo (s)",
+      "countdownMessage": "Mensagem",
+      "soundName": "Nome do Som",
+      "volume": "Volume",
+      "pitch": "Pitch",
+      "effectName": "Nome do Efeito",
+      "duration": "Duração",
+      "amplifier": "Amplificador",
+      "timeValue": "Horário",
+      "weatherType": "Tipo de Clima",
+      "weatherDuration": "Duração"
+    },
+    "placeholders": {
+      "command": "say Olá Mundo",
+      "text": "Bem-vindo ao servidor!",
+      "message": "Anúncio do servidor..."
+    },
+    "hints": {
+      "countdownMessage": "Use {seconds} como placeholder para o número da contagem"
+    },
+    "targets": {
+      "allPlayers": "Todos os Jogadores (@a)",
+      "nearestPlayer": "Jogador Mais Próximo (@p)",
+      "randomPlayer": "Jogador Aleatório (@r)"
+    },
+    "time": {
+      "dawn": "Amanhecer",
+      "day": "Dia",
+      "noon": "Meio-dia",
+      "sunset": "Pôr do Sol",
+      "night": "Noite",
+      "midnight": "Meia-noite"
+    },
+    "weather": {
+      "clear": "Limpo",
+      "rain": "Chuva",
+      "thunder": "Tempestade"
+    },
+    "tips": {
+      "title": "Dicas",
+      "tip1": "Use atrasos entre ações para criar transições suaves",
+      "tip2": "A contagem regressiva é perfeita para avisos de desligamento",
+      "tip3": "Comandos executam na ordem mostrada - arraste para reordenar",
+      "tip4": "Teste sua sequência com o servidor online para visualizar"
+    },
+    "errors": {
+      "adminRequired": "Acesso de administrador necessário para configurar automação",
+      "serverMustBeOnline": "Servidor precisa estar online",
+      "serverMustBeOnlineDescription": "Inicie o servidor primeiro para testar sequências de automação"
+    }
+  },
+  "serverSettings": {
+    "title": "Configurações do Servidor",
+    "subtitle": "Configure opções avançadas do servidor",
+    "accessDenied": "Acesso Negado",
+    "adminRequired": "Apenas administradores podem acessar as configurações do servidor",
+    "backToServer": "Voltar ao Servidor",
+    "backToDashboard": "Voltar ao Dashboard",
+    "tabs": {
+      "automation": "Automação",
+      "general": "Geral"
+    },
+    "general": {
+      "title": "Configurações Gerais",
+      "description": "Configuração básica do servidor"
+    },
+    "comingSoon": "Em breve..."
   }
 }

@@ -145,15 +145,15 @@ export default function OnlinePlayers({
   if (!isOnline) {
     return (
       <Card className={cn("border-border/50", className)}>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-muted/50">
-              <Users className="h-5 w-5 text-muted-foreground" />
-            </div>
+        <CardHeader className="pb-3 border-b bg-muted/30">
+          <CardTitle className="flex items-center gap-2.5 text-lg">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-muted/50 border border-muted-foreground/20">
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </span>
             {t('onlinePlayers')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <div className="p-3 rounded-full bg-muted/50 mb-3">
               <Gamepad2 className="h-6 w-6 text-muted-foreground" />
@@ -170,18 +170,18 @@ export default function OnlinePlayers({
   if (players.length === 0) {
     return (
       <Card className={cn("border-border/50", className)}>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-muted/50">
-              <Users className="h-5 w-5 text-muted-foreground" />
-            </div>
+        <CardHeader className="pb-3 border-b bg-muted/30">
+          <CardTitle className="flex items-center gap-2.5 text-lg">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-muted/50 border border-muted-foreground/20">
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </span>
             {t('onlinePlayers')}
             <Badge variant="outline" className="ml-auto">
               0/{maxPlayers}
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <div className="p-3 rounded-full bg-muted/50 mb-3">
               <Users className="h-6 w-6 text-muted-foreground" />
@@ -213,11 +213,11 @@ export default function OnlinePlayers({
 
   return (
     <Card className={cn("border-border/50 overflow-hidden", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <div className="p-2 rounded-lg bg-emerald-500/10">
-            <Users className="h-5 w-5 text-emerald-500" />
-          </div>
+      <CardHeader className="pb-3 border-b bg-muted/30">
+        <CardTitle className="flex items-center gap-2.5 text-lg">
+          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <Users className="h-4 w-4 text-emerald-500" />
+          </span>
           {t('onlinePlayers')}
           <Badge 
             variant="outline" 

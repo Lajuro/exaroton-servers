@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
+import { useImpersonation } from '@/lib/impersonation-context';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useState, useEffect } from 'react';
@@ -37,11 +38,17 @@ import {
 
 export default function Navbar() {
   const { user } = useAuth();
+  const { impersonatedUser, isImpersonating } = useImpersonation();
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations('nav');
   const [scrolled, setScrolled] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+
+  // Usuário efetivo: se está impersonando, usa o impersonado
+  const effectiveUser = isImpersonating && impersonatedUser ? impersonatedUser : user;
+  // Admin real apenas quando NÃO está impersonando
+  const showAdminFeatures = user?.isAdmin && !isImpersonating;
 
   // Detectar scroll para efeito de backdrop
   useEffect(() => {
@@ -57,9 +64,10 @@ export default function Navbar() {
     router.push('/login');
   };
 
-  const getUserInitials = () => {
-    if (!user?.displayName) return 'U';
-    return user.displayName
+  const getUserInitials = (name?: string) => {
+    const displayName = name || effectiveUser?.displayName;
+    if (!displayName) return 'U';
+    return displayName
       .split(' ')
       .map(n => n[0])
       .join('')
@@ -67,10 +75,11 @@ export default function Navbar() {
       .slice(0, 2);
   };
 
+  // Links de navegação - esconde admin quando impersonando
   const navLinks = [
     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { href: '/dashboard/stats', label: t('stats'), icon: BarChart3 },
-    ...(user?.isAdmin ? [{ href: '/admin', label: t('admin'), icon: Shield }] : []),
+    ...(showAdminFeatures ? [{ href: '/admin', label: t('admin'), icon: Shield }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -139,8 +148,8 @@ export default function Navbar() {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Admin Badge - Mobile */}
-              {user?.isAdmin && (
+              {/* Admin Badge - Apenas quando NÃO está impersonando */}
+              {showAdminFeatures && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="hidden sm:flex items-center">
@@ -157,8 +166,8 @@ export default function Navbar() {
                 </Tooltip>
               )}
 
-              {/* Credits Display with HoverCard */}
-              {user?.isAdmin && (
+              {/* Credits Display - Apenas para admin quando NÃO está impersonando */}
+              {showAdminFeatures && (
                 <CreditsHoverCard onGenerateReport={() => setReportDialogOpen(true)} />
               )}
 
@@ -172,7 +181,7 @@ export default function Navbar() {
               <ThemeToggle />
 
               {/* User Menu */}
-              {user && (
+              {effectiveUser && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
@@ -180,7 +189,7 @@ export default function Navbar() {
                       className="relative h-9 w-9 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all"
                     >
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                        <AvatarImage src={effectiveUser.photoURL || undefined} alt={effectiveUser.displayName || 'User'} />
                         <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                           {getUserInitials()}
                         </AvatarFallback>
@@ -193,16 +202,16 @@ export default function Navbar() {
                     {/* User Info Header */}
                     <div className="flex items-center gap-3 p-2 mb-2 rounded-lg bg-muted/50">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.photoURL || undefined} />
+                        <AvatarImage src={effectiveUser.photoURL || undefined} />
                         <AvatarFallback className="bg-primary/10 text-primary">
                           {getUserInitials()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate">{user.displayName}</p>
-                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                        <p className="text-sm font-semibold truncate">{effectiveUser.displayName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{effectiveUser.email}</p>
                       </div>
-                      {user.isAdmin && (
+                      {effectiveUser.isAdmin && !isImpersonating && (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
                           <Crown className="h-2.5 w-2.5 mr-1" />
                           Admin
@@ -239,7 +248,7 @@ export default function Navbar() {
                       </div>
                     </DropdownMenuItem>
 
-                    {user?.isAdmin && (
+                    {showAdminFeatures && (
                       <DropdownMenuItem 
                         onClick={() => router.push('/admin')}
                         className="gap-3 py-2.5 cursor-pointer"

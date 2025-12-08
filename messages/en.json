@@ -264,16 +264,21 @@
       "serverCapacity": "Server capacity",
       "playerRanking": "Player Ranking",
       "uniquePlayers": "unique players",
+      "totalUniquePlayers": "{count} unique players have played on this server",
       "noPlayersYet": "No players registered",
       "noPlayersYetDesc": "History will start when players join",
       "ranking": "Ranking",
       "recentPlayers": "Recent",
+      "topPlayers": "Top players by playtime",
+      "recentlyActive": "Recently active players",
       "sessions": "sessions",
       "lastSeen": "Last seen",
       "lastActive": "Last active",
       "andMorePlayers": "and {count} more players...",
       "errorLoading": "Error loading history",
       "tryAgain": "Try again",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing...",
       "onlineNow": "Online now",
       "lastOnline": "Last online"
     },
@@ -533,7 +538,8 @@
     "errorLoading": "Error loading",
     "backToDashboard": "Back to Dashboard",
     "copiedToClipboard": "{label} copied to clipboard.",
-    "commandExecuted": "Command \"{command}\" executed successfully."
+    "commandExecuted": "Command \"{command}\" executed successfully.",
+    "automation": "Automation"
   },
   "login": {
     "controlPanel": "Control Panel",
@@ -956,6 +962,7 @@
   "stats": {
     "title": "Statistics",
     "subtitle": "Overview of server usage and credit consumption",
+    "summary": "Summary statistics",
     "last30Days": "Last 30 days",
     "currentCredits": "Current Credits",
     "spent30Days": "-{amount} in the last 30 days",
@@ -964,6 +971,13 @@
     "totalActions": "Total Actions",
     "failedActions": "{count} failure(s)",
     "serverStarts": "Server Starts",
+    "creditsTooltip": "Current Exaroton account balance",
+    "avgPerDayTooltip": "Average daily credit consumption",
+    "totalActionsTooltip": "All server actions in the last 30 days",
+    "serverStartsTooltip": "Number of server starts in the period",
+    "creditsChartTooltip": "Shows your credit balance evolution over time",
+    "hoursOnlineLabel": "Hours online",
+    "noActionData": "No action data available",
     "tabs": {
       "credits": "Credits",
       "actions": "Actions",
@@ -997,5 +1011,150 @@
     "mostActiveUsersDesc": "User ranking by action count",
     "noUserData": "No user data available",
     "actionsCount": "{count} action(s)"
+  },
+  "impersonation": {
+    "viewAs": "View as",
+    "viewingAs": "Viewing as another user",
+    "actionsAsAdmin": "Your actions are still logged as admin",
+    "exitView": "Back to Admin",
+    "exit": "Exit",
+    "serversAccess": "{count} server(s)",
+    "startViewing": "Start viewing",
+    "stopViewing": "Stop viewing",
+    "simulatingUser": "Simulating user",
+    "youAreViewing": "You are viewing the application as",
+    "allActionsLogged": "All actions are logged to your admin account",
+    "cannotImpersonateSelf": "You cannot impersonate yourself",
+    "adminOnlyFeature": "Feature available only for administrators"
+  },
+  "automation": {
+    "title": "Server Automation",
+    "description": "Configure automatic command sequences for {serverName}",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enableAutomation": "Enable automation",
+    "unsavedChanges": "You have unsaved changes. Don't forget to save!",
+    "savedSuccessfully": "Automation settings saved successfully",
+    "actions": "actions",
+    "addAction": "Add Action",
+    "noActions": "No actions configured",
+    "noActionsDescription": "Add actions to create an automation sequence. Drag to reorder.",
+    "testSequence": "Test Sequence",
+    "testSuccess": "Test executed successfully",
+    "testSuccessDescription": "{count} action(s) executed, {failed} failed",
+    "testSkipped": "Test skipped",
+    "triggers": {
+      "onStart": "On Server Start",
+      "onStop": "On Server Stop",
+      "onPlayerJoin": "On Player Join",
+      "onPlayerLeave": "On Player Leave"
+    },
+    "triggerDescriptions": {
+      "onStart": "Commands executed when {serverName} starts",
+      "onStop": "Commands executed before {serverName} stops",
+      "onPlayerJoin": "Commands executed when a player joins",
+      "onPlayerLeave": "Commands executed when a player leaves"
+    },
+    "categories": {
+      "messages": "Messages",
+      "timing": "Timing",
+      "effects": "Effects",
+      "world": "World",
+      "advanced": "Advanced"
+    },
+    "types": {
+      "command": "Custom Command",
+      "title": "Title",
+      "subtitle": "Subtitle",
+      "actionbar": "Action Bar",
+      "message": "Chat Message",
+      "delay": "Delay",
+      "countdown": "Countdown",
+      "sound": "Play Sound",
+      "effect": "Apply Effect",
+      "time": "Set Time",
+      "weather": "Set Weather"
+    },
+    "fields": {
+      "command": "Command",
+      "text": "Text",
+      "message": "Message",
+      "color": "Color",
+      "target": "Target",
+      "bold": "Bold",
+      "italic": "Italic",
+      "fadeIn": "Fade In (ticks)",
+      "stay": "Stay (ticks)",
+      "fadeOut": "Fade Out (ticks)",
+      "delaySeconds": "Delay",
+      "seconds": "seconds",
+      "countdownFrom": "Count from",
+      "interval": "Interval (s)",
+      "countdownMessage": "Message",
+      "soundName": "Sound Name",
+      "volume": "Volume",
+      "pitch": "Pitch",
+      "effectName": "Effect Name",
+      "duration": "Duration",
+      "amplifier": "Amplifier",
+      "timeValue": "Time",
+      "weatherType": "Weather Type",
+      "weatherDuration": "Duration"
+    },
+    "placeholders": {
+      "command": "say Hello World",
+      "text": "Welcome to the server!",
+      "message": "Server announcement..."
+    },
+    "hints": {
+      "countdownMessage": "Use {seconds} as placeholder for the countdown number"
+    },
+    "targets": {
+      "allPlayers": "All Players (@a)",
+      "nearestPlayer": "Nearest Player (@p)",
+      "randomPlayer": "Random Player (@r)"
+    },
+    "time": {
+      "dawn": "Dawn",
+      "day": "Day",
+      "noon": "Noon",
+      "sunset": "Sunset",
+      "night": "Night",
+      "midnight": "Midnight"
+    },
+    "weather": {
+      "clear": "Clear",
+      "rain": "Rain",
+      "thunder": "Thunder"
+    },
+    "tips": {
+      "title": "Tips",
+      "tip1": "Use delays between actions to create smooth transitions",
+      "tip2": "The countdown action is perfect for shutdown warnings",
+      "tip3": "Commands execute in the order shown - drag to reorder",
+      "tip4": "Test your sequence with the server online to preview"
+    },
+    "errors": {
+      "adminRequired": "Admin access required to configure automation",
+      "serverMustBeOnline": "Server must be online",
+      "serverMustBeOnlineDescription": "Start the server first to test automation sequences"
+    }
+  },
+  "serverSettings": {
+    "title": "Server Settings",
+    "subtitle": "Configure advanced server options",
+    "accessDenied": "Access Denied",
+    "adminRequired": "Only administrators can access server settings",
+    "backToServer": "Back to Server",
+    "backToDashboard": "Back to Dashboard",
+    "tabs": {
+      "automation": "Automation",
+      "general": "General"
+    },
+    "general": {
+      "title": "General Settings",
+      "description": "Basic server configuration"
+    },
+    "comingSoon": "Coming soon..."
   }
 }

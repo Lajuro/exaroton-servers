@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stopServer, getServerPlayers, getServer, getExarotonClient } from '@/lib/exaroton';
 import { adminAuth, adminDb, invalidateServerCache } from '@/lib/firebase-admin';
 import { logAction } from '@/lib/action-logger';
+import { executeServerAutomation } from '@/lib/automation-executor';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(
@@ -56,7 +57,15 @@ export async function POST(
       // Use ID if server name fetch fails
     }
 
-    // Stop the server FIRST - this is the main action
+    // Execute stop automation BEFORE stopping the server
+    // This allows showing countdown, farewell messages, etc.
+    try {
+      await executeServerAutomation(id, 'stop', userId);
+    } catch (automationError) {
+      console.error('[Automation] Error executing stop automation (continuing with stop):', automationError);
+    }
+
+    // Stop the server AFTER automation
     await stopServer(id);
     
     // Invalidar cache do servidor
