@@ -339,7 +339,7 @@ function ServerControls({
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="pt-6 space-y-4">
         {/* Progress section - only during transitions */}
         {(isTransition || isCompleting) && (
           <div className="space-y-3">
