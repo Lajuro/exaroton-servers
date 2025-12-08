@@ -6,9 +6,10 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
-import { GlobalLoading } from '@/components/GlobalLoading';
+import { PageTransition } from '@/components/GlobalLoading';
+import { ServerSettingsSkeleton } from '@/components/ServerSettingsSkeleton';
 import { AutomationConfig } from '@/components/automation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,7 +18,6 @@ import {
   Settings,
   Wand2,
   Shield,
-  Server,
   AlertCircle,
 } from 'lucide-react';
 import { ExarotonServer } from '@/types';
@@ -86,11 +86,9 @@ export default function ServerSettingsPage({ params }: ServerSettingsPageProps) 
     }
   };
 
-  if (authLoading || loading) {
-    return <GlobalLoading message={tCommon('loading')} />;
-  }
+  const isPageLoading = authLoading || loading;
 
-  if (!user?.isAdmin) {
+  if (!user?.isAdmin && !isPageLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -139,8 +137,12 @@ export default function ServerSettingsPage({ params }: ServerSettingsPageProps) 
   if (!server) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <PageTransition
+      isLoading={isPageLoading}
+      loadingComponent={<ServerSettingsSkeleton />}
+    >
+      <div className="min-h-screen bg-background">
+        <Navbar />
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -205,6 +207,7 @@ export default function ServerSettingsPage({ params }: ServerSettingsPageProps) 
           </TabsContent> */}
         </Tabs>
       </div>
-    </div>
+      </div>
+    </PageTransition>
   );
 }

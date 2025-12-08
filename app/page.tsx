@@ -4,14 +4,12 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth-context';
-import { GlobalLoading } from '@/components/GlobalLoading';
+import { DashboardSkeleton } from '@/components/DashboardSkeleton';
 
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const t = useTranslations('common');
 
   useEffect(() => {
     if (!loading) {
@@ -23,5 +21,7 @@ export default function Home() {
     }
   }, [user, loading, router]);
 
-  return <GlobalLoading message={t('redirecting')} />;
+  // Mostra o skeleton do dashboard enquanto verifica auth e redireciona
+  // Isso evita um loading genérico que depois muda para o skeleton específico
+  return <DashboardSkeleton />;
 }

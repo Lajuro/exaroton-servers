@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { GlobalLoading } from '@/components/GlobalLoading';
+import { LoginSkeleton } from '@/components/LoginSkeleton';
 import Image from 'next/image';
 import { 
   Loader2, 
@@ -114,7 +114,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { user, loading, signInWithGoogle } = useAuth();
   const t = useTranslations('login');
-  const tCommon = useTranslations('common');
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -140,7 +139,7 @@ export default function LoginPage() {
   };
 
   if (loading) {
-    return <GlobalLoading message={tCommon('verifyingAuth')} />;
+    return <LoginSkeleton />;
   }
 
   return (

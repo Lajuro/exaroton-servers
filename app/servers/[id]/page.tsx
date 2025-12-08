@@ -7,7 +7,8 @@ import { useAuth } from '@/lib/auth-context';
 import { useImpersonation } from '@/lib/impersonation-context';
 import { auth } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
-import { GlobalLoading } from '@/components/GlobalLoading';
+import { PageTransition } from '@/components/GlobalLoading';
+import { ServerDetailSkeleton } from '@/components/ServerDetailSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -325,10 +326,9 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
 
   // handleSendCommand is now provided by useServerCommand hook
 
-  if (authLoading || loading) {
-    return <GlobalLoading message={t('loadingServer')} />;
-  }
+  const isPageLoading = authLoading || loading || !server;
 
+  // Error state - render outside PageTransition
   if (error) {
     return (
       <div className="min-h-screen bg-background">
@@ -352,56 +352,57 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
     );
   }
 
-  if (!server) return null;
-
   const statusConfig = getStatusConfig(t);
-  const statusInfo = statusConfig[server.status] || statusConfig[0];
+  const statusInfo = server ? (statusConfig[server.status] || statusConfig[0]) : statusConfig[0];
   const canControl = user?.isAdmin || user?.serverAccess?.includes(serverId);
-  const isOnline = server.status === 1;
-  const playersPercentage = server.players ? (server.players.count / server.players.max) * 100 : 0;
+  const isOnline = server?.status === 1;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <PageTransition
+      isLoading={isPageLoading}
+      loadingComponent={<ServerDetailSkeleton />}
+    >
+      <div className="min-h-screen bg-background">
+        <Navbar />
       
-      {/* Banner com overlay gradiente */}
-      <div className="relative">
-        <ServerBanner 
-          imageUrl={content?.bannerUrl} 
-          serverName={server.name} 
-          position={content?.bannerPosition}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-        
-        {/* Botão voltar flutuante com efeito acrílico */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-4 left-4 bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/10 z-10"
-          onClick={() => router.push('/dashboard')}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Dashboard
-        </Button>
-      </div>
+        {/* Banner com overlay gradiente */}
+        <div className="relative">
+          <ServerBanner 
+            imageUrl={content?.bannerUrl} 
+            serverName={server?.name || ''} 
+            position={content?.bannerPosition}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+          
+          {/* Botão voltar flutuante com efeito acrílico */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 left-4 bg-black/20 hover:bg-black/40 text-white backdrop-blur-md border border-white/10 z-10"
+            onClick={() => router.push('/dashboard')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Dashboard
+          </Button>
+        </div>
 
-      <div className="container mx-auto px-4 -mt-32 relative z-10 pb-12">
-        {/* Header Card com efeito glassmorphism */}
-        <Card className={`mb-6 overflow-hidden border border-white/20 dark:border-white/10 relative shadow-md ${statusInfo.glowColor} bg-white/40 dark:bg-black/30 backdrop-blur-md`}>
-          {/* Status accent bar no topo */}
-          <div className={`absolute top-0 left-0 right-0 h-1 z-10 bg-gradient-to-r ${statusInfo.gradientFrom} ${statusInfo.gradientTo} ${server.status !== 0 && server.status !== 1 ? 'animate-pulse' : ''}`} />
-          
-          {/* Glow effect sutil */}
-          {isOnline && (
-            <div className="absolute top-0 right-0 w-64 h-64 -mr-32 -mt-32 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none" />
-          )}
-          
-          <div className="relative p-6 md:p-8">
+        <div className="container mx-auto px-4 -mt-32 relative z-10 pb-12">
+          {/* Header Card com efeito glassmorphism */}
+          <Card className={`mb-6 overflow-hidden border border-white/20 dark:border-white/10 relative shadow-md ${statusInfo.glowColor} bg-white/40 dark:bg-black/30 backdrop-blur-md`}>
+            {/* Status accent bar no topo */}
+            <div className={`absolute top-0 left-0 right-0 h-1 z-10 bg-gradient-to-r ${statusInfo.gradientFrom} ${statusInfo.gradientTo} ${server?.status !== 0 && server?.status !== 1 ? 'animate-pulse' : ''}`} />
+            
+            {/* Glow effect sutil */}
+            {isOnline && (
+              <div className="absolute top-0 right-0 w-64 h-64 -mr-32 -mt-32 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none" />
+            )}
+            
+            <div className="relative p-6 md:p-8">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Ícone do Servidor */}
               <div className="flex-shrink-0">
                 <div className="relative">
-                  <ServerIcon iconUrl={content?.iconUrl} serverName={server.name} size={120} />
+                  <ServerIcon iconUrl={content?.iconUrl} serverName={server?.name || ''} size={120} />
                   <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-full ${statusInfo.color} border-4 border-background`} />
                 </div>
               </div>
@@ -410,7 +411,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="flex-1">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2 truncate">{server.name}</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2 truncate">{server?.name}</h1>
                     
                     {/* Descrição customizada */}
                     {content?.description && (
@@ -429,7 +430,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       
                       <Badge variant="outline" className="gap-1.5">
                         <Users className="h-3 w-3" />
-                        {server.players?.count ?? 0}/{server.players?.max ?? 0} {t('players')}
+                        {server?.players?.count ?? 0}/{server?.players?.max ?? 0} {t('players')}
                       </Badge>
                     </div>
 
@@ -439,13 +440,13 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                         <Globe className="h-4 w-4 text-primary" />
                       </div>
                       <code className="text-sm md:text-base font-mono font-semibold tracking-tight">
-                        {server.address}
+                        {server?.address}
                       </code>
                       <Button 
                         size="sm" 
                         variant="ghost"
                         className="h-8 w-8 p-0 opacity-60 group-hover/address:opacity-100 transition-opacity"
-                        onClick={() => copyToClipboard(server.address, t('address'))}
+                        onClick={() => copyToClipboard(server?.address || '', t('address'))}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -455,7 +456,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                   {/* Ações */}
                   <div className="flex items-center gap-2">
                     {/* Picture-in-Picture Button */}
-                    {canControl && (
+                    {canControl && server && (
                       <ServerPiP
                         serverId={serverId}
                         serverName={server.name}
@@ -513,7 +514,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
           {/* Coluna principal */}
           <div className="lg:col-span-2 space-y-6">
             {/* Jogadores Online - só aparece quando servidor está online */}
-            {isOnline && (
+            {isOnline && server && (
               <OnlinePlayers
                 players={server.players?.list || []}
                 maxPlayers={server.players?.max || 0}
@@ -525,7 +526,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
             <AccessInstructions content={content?.accessInstructions} />
 
             {/* Console do Servidor (apenas para admins) */}
-            {effectiveIsAdmin && (
+            {effectiveIsAdmin && server && (
               <ServerConsole
                 serverId={serverId}
                 serverName={server.name}
@@ -538,19 +539,21 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Controles */}
-            <ServerControls
-              serverStatus={server.status}
-              actionLoading={actionLoading}
-              sendingCommand={sendingCommand}
-              onAction={handleAction}
-              onSendCommand={handleSendCommand}
-              isAdmin={effectiveIsAdmin}
-            />
+            {server && (
+              <ServerControls
+                serverStatus={server.status}
+                actionLoading={actionLoading}
+                sendingCommand={sendingCommand}
+                onAction={handleAction}
+                onSendCommand={handleSendCommand}
+                isAdmin={effectiveIsAdmin}
+              />
+            )}
 
             {/* Ranking de Jogadores */}
             <PlayerHistoryCard 
               serverId={serverId}
-              serverName={server.name}
+              serverName={server?.name || ''}
             />
 
             {/* Documentos */}
@@ -577,7 +580,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       </div>
                       {t('info.software')}
                     </span>
-                    <span className="font-medium text-sm">{server.software?.name ?? 'N/A'}</span>
+                    <span className="font-medium text-sm">{server?.software?.name ?? 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
                     <span className="text-muted-foreground flex items-center gap-3 text-sm">
@@ -586,7 +589,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       </div>
                       {t('info.version')}
                     </span>
-                    <span className="font-medium text-sm">{server.software?.version ?? 'N/A'}</span>
+                    <span className="font-medium text-sm">{server?.software?.version ?? 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
                     <span className="text-muted-foreground flex items-center gap-3 text-sm">
@@ -595,9 +598,9 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       </div>
                       {t('info.slots')}
                     </span>
-                    <span className="font-medium text-sm">{server.players?.max ?? 0} {t('players')}</span>
+                    <span className="font-medium text-sm">{server?.players?.max ?? 0} {t('players')}</span>
                   </div>
-                  {server.ram && (
+                  {server?.ram && (
                     <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
                       <span className="text-muted-foreground flex items-center gap-3 text-sm">
                         <div className="p-2 rounded-lg bg-purple-500/10">
@@ -608,7 +611,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
                       <span className="font-medium text-sm">{server.ram} GB</span>
                     </div>
                   )}
-                  {typeof server.credits === 'number' && (
+                  {typeof server?.credits === 'number' && (
                     <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-200">
                       <span className="text-muted-foreground flex items-center gap-3 text-sm">
                         <div className="p-2 rounded-lg bg-purple-500/10">
@@ -624,7 +627,8 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
             </Card>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }
