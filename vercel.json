@@ -1,12 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/player-monitor",
-      "schedule": "0 * * * *"
-    },
-    {
       "path": "/api/credits/auto-snapshot",
-      "schedule": "0 * * * *"
+      "schedule": "0 */6 * * *"
     }
   ]
 }
