@@ -198,31 +198,47 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        const currentPlayers = server.players?.list || [];
+        const currentPlayers: string[] = server.players?.list || [];
         
-        // Buscar cache anterior de jogadores
+        // Buscar cache anterior de jogadores e jogadores que já receberam saudação
         const cacheRef = adminDb().collection('playerCache').doc(serverId);
         const cacheDoc = await cacheRef.get();
-        const previousPlayers: string[] = cacheDoc.exists ? cacheDoc.data()?.players || [] : [];
+        const cacheData = cacheDoc.exists ? cacheDoc.data() : null;
+        const previousPlayers: string[] = cacheData?.players || [];
+        const greetedPlayers: string[] = cacheData?.greetedPlayers || [];
+        const lastServerStatus: number = cacheData?.lastServerStatus ?? 0;
         
-        // Detectar jogadores que entraram
+        // Se o servidor acabou de ligar (estava offline), limpar lista de saudados
+        let currentGreetedPlayers = [...greetedPlayers];
+        if (lastServerStatus !== 1 && server.status === 1) {
+          console.log(`[PlayerMonitor] Server ${server.name} just started, clearing greeted players list`);
+          currentGreetedPlayers = [];
+        }
+        
+        // Detectar jogadores que entraram (novos em relação ao cache anterior)
         const playersJoined = currentPlayers.filter((p: string) => !previousPlayers.includes(p));
         
         // Detectar jogadores que saíram
         const playersLeft = previousPlayers.filter((p: string) => !currentPlayers.includes(p));
         
-        let automationsExecuted = 0;
+        // Detectar jogadores online que ainda NÃO receberam saudação
+        const playersNeedingGreeting = currentPlayers.filter((p: string) => !currentGreetedPlayers.includes(p));
         
-        // Executar automações de player join
-        if (hasPlayerJoin && playersJoined.length > 0) {
-          for (const player of playersJoined) {
-            console.log(`[PlayerMonitor] Player joined: ${player} on ${server.name}`);
+        let automationsExecuted = 0;
+        const newlyGreetedPlayers: string[] = [];
+        
+        // Executar automações de player join para TODOS que precisam de saudação
+        // (não apenas os que acabaram de entrar, mas qualquer um que ainda não foi saudado)
+        if (hasPlayerJoin && playersNeedingGreeting.length > 0) {
+          for (const player of playersNeedingGreeting) {
+            console.log(`[PlayerMonitor] Greeting player: ${player} on ${server.name}`);
             const result = await executeSequence(
               serverId,
               automationData.onPlayerJoin,
               player
             );
             automationsExecuted += result.executed;
+            newlyGreetedPlayers.push(player);
           }
         }
         
@@ -239,18 +255,27 @@ export async function GET(request: NextRequest) {
           }
         }
         
+        // Atualizar lista de jogadores saudados
+        // Adicionar os recém-saudados e remover os que saíram
+        const updatedGreetedPlayers = [
+          ...currentGreetedPlayers.filter((p: string) => currentPlayers.includes(p)), // Manter apenas os que ainda estão online
+          ...newlyGreetedPlayers
+        ];
+        
         // Atualizar cache
         await cacheRef.set({
           serverId,
           players: currentPlayers,
+          greetedPlayers: updatedGreetedPlayers,
+          lastServerStatus: server.status,
           lastChecked: new Date(),
         });
         
-        if (playersJoined.length > 0 || playersLeft.length > 0) {
+        if (playersNeedingGreeting.length > 0 || playersLeft.length > 0) {
           results.push({
             serverId,
             serverName: server.name,
-            playersJoined,
+            playersJoined: playersNeedingGreeting, // Reportar quem foi saudado
             playersLeft,
             automationsExecuted,
           });
