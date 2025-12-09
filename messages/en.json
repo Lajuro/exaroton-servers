@@ -1107,12 +1107,14 @@
       "message": "Server announcement..."
     },
     "hints": {
-      "countdownMessage": "Use {seconds} as placeholder for the countdown number"
+      "countdownMessage": "Use {seconds} as placeholder for the countdown number",
+      "playerPlaceholder": "Use ''{player}'' to insert the player's name"
     },
     "targets": {
       "allPlayers": "All Players (@a)",
       "nearestPlayer": "Nearest Player (@p)",
-      "randomPlayer": "Random Player (@r)"
+      "randomPlayer": "Random Player (@r)",
+      "triggeringPlayer": "Joining/Leaving Player"
     },
     "time": {
       "dawn": "Dawn",

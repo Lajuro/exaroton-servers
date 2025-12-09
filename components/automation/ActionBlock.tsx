@@ -45,6 +45,7 @@ interface ActionBlockProps {
   onUpdate: (action: AutomationAction) => void;
   onDelete: () => void;
   onDuplicate: () => void;
+  triggerType?: 'onStart' | 'onStop' | 'onPlayerJoin' | 'onPlayerLeave';
 }
 
 // Configuração de tipos de ação
@@ -142,9 +143,11 @@ const minecraftColors = [
   { value: 'black', label: 'Black', hex: '#000000' },
 ];
 
-export function ActionBlock({ action, onUpdate, onDelete, onDuplicate }: ActionBlockProps) {
+export function ActionBlock({ action, onUpdate, onDelete, onDuplicate, triggerType }: ActionBlockProps) {
   const t = useTranslations('automation');
   const [isExpanded, setIsExpanded] = useState(true);
+  
+  const isPlayerTrigger = triggerType === 'onPlayerJoin' || triggerType === 'onPlayerLeave';
   
   const {
     attributes,
@@ -202,6 +205,11 @@ export function ActionBlock({ action, onUpdate, onDelete, onDuplicate }: ActionB
                 placeholder={t('placeholders.text')}
                 className="mt-1"
               />
+              {isPlayerTrigger && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  💡 {t('hints.playerPlaceholder')}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -238,6 +246,9 @@ export function ActionBlock({ action, onUpdate, onDelete, onDuplicate }: ActionB
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    {isPlayerTrigger && (
+                      <SelectItem value="{player}">{t('targets.triggeringPlayer')}</SelectItem>
+                    )}
                     <SelectItem value="@a">{t('targets.allPlayers')}</SelectItem>
                     <SelectItem value="@p">{t('targets.nearestPlayer')}</SelectItem>
                     <SelectItem value="@r">{t('targets.randomPlayer')}</SelectItem>
@@ -309,6 +320,11 @@ export function ActionBlock({ action, onUpdate, onDelete, onDuplicate }: ActionB
                 placeholder={t('placeholders.message')}
                 className="mt-1"
               />
+              {isPlayerTrigger && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  💡 {t('hints.playerPlaceholder')}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -345,6 +361,9 @@ export function ActionBlock({ action, onUpdate, onDelete, onDuplicate }: ActionB
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    {isPlayerTrigger && (
+                      <SelectItem value="{player}">{t('targets.triggeringPlayer')}</SelectItem>
+                    )}
                     <SelectItem value="@a">{t('targets.allPlayers')}</SelectItem>
                     <SelectItem value="@p">{t('targets.nearestPlayer')}</SelectItem>
                     <SelectItem value="@r">{t('targets.randomPlayer')}</SelectItem>

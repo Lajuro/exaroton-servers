@@ -1107,12 +1107,14 @@
       "message": "Anúncio do servidor..."
     },
     "hints": {
-      "countdownMessage": "Use {seconds} como placeholder para o número da contagem"
+      "countdownMessage": "Use {seconds} como placeholder para o número da contagem",
+      "playerPlaceholder": "Use ''{player}'' para inserir o nome do jogador"
     },
     "targets": {
       "allPlayers": "Todos os Jogadores (@a)",
       "nearestPlayer": "Jogador Mais Próximo (@p)",
-      "randomPlayer": "Jogador Aleatório (@r)"
+      "randomPlayer": "Jogador Aleatório (@r)",
+      "triggeringPlayer": "Jogador que Entrou/Saiu"
     },
     "time": {
       "dawn": "Amanhecer",

@@ -37,10 +37,18 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { trigger } = body as { trigger: 'start' | 'stop' | 'playerJoin' | 'playerLeave' };
+    const { trigger, playerName } = body as { 
+      trigger: 'start' | 'stop' | 'playerJoin' | 'playerLeave';
+      playerName?: string;
+    };
 
     if (!trigger || !['start', 'stop', 'playerJoin', 'playerLeave'].includes(trigger)) {
       return NextResponse.json({ error: 'Invalid trigger type' }, { status: 400 });
+    }
+
+    // Para triggers de player, playerName é obrigatório
+    if ((trigger === 'playerJoin' || trigger === 'playerLeave') && !playerName) {
+      return NextResponse.json({ error: 'playerName is required for player triggers' }, { status: 400 });
     }
 
     // Buscar automações do servidor
@@ -76,7 +84,7 @@ export async function POST(
 
     // Executar a sequência
     const startTime = Date.now();
-    const result = await executeSequence(serverId, sequence);
+    const result = await executeSequence(serverId, sequence, playerName);
     const duration = Date.now() - startTime;
 
     // Registrar log de execução
@@ -116,7 +124,8 @@ export async function POST(
 // Função para executar uma sequência de ações
 async function executeSequence(
   serverId: string,
-  sequence: AutomationSequence
+  sequence: AutomationSequence,
+  playerName?: string
 ): Promise<{ executed: number; failed: number; errors: string[] }> {
   const result = { executed: 0, failed: 0, errors: [] as string[] };
   
@@ -127,7 +136,7 @@ async function executeSequence(
 
   for (const action of sortedActions) {
     try {
-      await executeAction(serverId, action);
+      await executeAction(serverId, action, playerName);
       result.executed++;
     } catch (error: any) {
       result.failed++;
@@ -139,35 +148,48 @@ async function executeSequence(
   return result;
 }
 
+// Função auxiliar para substituir {player} pelo nome do jogador
+function replacePlayerPlaceholder(text: string, playerName?: string): string {
+  if (!playerName) return text;
+  return text.replace(/\{player\}/g, playerName);
+}
+
 // Função para executar uma ação individual
-async function executeAction(serverId: string, action: AutomationAction): Promise<void> {
+async function executeAction(serverId: string, action: AutomationAction, playerName?: string): Promise<void> {
   const { type, config } = action;
-  const target = config.targetSelector || '@a';
+  
+  // Substituir {player} pelo nome do jogador no target
+  let target = config.targetSelector || '@a';
+  if (target === '{player}' && playerName) {
+    target = playerName;
+  }
 
   switch (type) {
     case 'command':
       if (config.command) {
         let cmd = config.command.trim();
         if (cmd.startsWith('/')) cmd = cmd.slice(1);
+        cmd = replacePlayerPlaceholder(cmd, playerName);
         await executeServerCommand(serverId, cmd);
       }
       break;
 
     case 'title':
-      await executeTitle(serverId, 'title', config, target);
+      await executeTitle(serverId, 'title', config, target, playerName);
       break;
 
     case 'subtitle':
-      await executeTitle(serverId, 'subtitle', config, target);
+      await executeTitle(serverId, 'subtitle', config, target, playerName);
       break;
 
     case 'actionbar':
-      await executeTitle(serverId, 'actionbar', config, target);
+      await executeTitle(serverId, 'actionbar', config, target, playerName);
       break;
 
     case 'message':
       if (config.text) {
-        const formattedText = formatMinecraftText(config.text, config);
+        const text = replacePlayerPlaceholder(config.text, playerName);
+        const formattedText = formatMinecraftText(text, config);
         await executeServerCommand(serverId, `tellraw ${target} ${formattedText}`);
       }
       break;
@@ -179,7 +201,7 @@ async function executeAction(serverId: string, action: AutomationAction): Promis
       break;
 
     case 'countdown':
-      await executeCountdown(serverId, config, target);
+      await executeCountdown(serverId, config, target, playerName);
       break;
 
     case 'sound':
@@ -227,7 +249,8 @@ async function executeTitle(
   serverId: string,
   titleType: 'title' | 'subtitle' | 'actionbar',
   config: AutomationAction['config'],
-  target: string
+  target: string,
+  playerName?: string
 ): Promise<void> {
   if (!config.text) return;
 
@@ -239,7 +262,8 @@ async function executeTitle(
     await executeServerCommand(serverId, `title ${target} times ${fadeIn} ${stay} ${fadeOut}`);
   }
 
-  const formattedText = formatMinecraftJson(config.text, config);
+  const text = replacePlayerPlaceholder(config.text, playerName);
+  const formattedText = formatMinecraftJson(text, config);
   await executeServerCommand(serverId, `title ${target} ${titleType} ${formattedText}`);
 }
 
@@ -247,11 +271,13 @@ async function executeTitle(
 async function executeCountdown(
   serverId: string,
   config: AutomationAction['config'],
-  target: string
+  target: string,
+  playerName?: string
 ): Promise<void> {
   const countdownFrom = config.countdownFrom ?? 5;
   const interval = (config.countdownInterval ?? 1) * 1000;
-  const message = config.countdownMessage ?? '{seconds}';
+  let message = config.countdownMessage ?? '{seconds}';
+  message = replacePlayerPlaceholder(message, playerName);
 
   for (let i = countdownFrom; i >= 1; i--) {
     const text = message.replace(/{seconds}/g, i.toString());

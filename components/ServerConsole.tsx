@@ -361,6 +361,52 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
     setLines(prev => [...prev.slice(-500), newLine]);
   }, []);
 
+  // Track executed automations to prevent duplicates
+  const executedAutomationsRef = useRef<Set<string>>(new Set());
+
+  // Execute player automation (join/leave)
+  const executePlayerAutomation = useCallback(async (trigger: 'playerJoin' | 'playerLeave', playerName: string) => {
+    // Create unique key to prevent duplicate executions
+    const automationKey = `${trigger}-${playerName}-${Date.now()}`;
+    
+    // Check if we already processed this event recently (within 5 seconds)
+    const recentKey = `${trigger}-${playerName}`;
+    if (executedAutomationsRef.current.has(recentKey)) {
+      return;
+    }
+    
+    // Mark as executed
+    executedAutomationsRef.current.add(recentKey);
+    
+    // Remove from set after 5 seconds to allow future executions
+    setTimeout(() => {
+      executedAutomationsRef.current.delete(recentKey);
+    }, 5000);
+
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+
+      const response = await fetch(`/api/servers/${serverId}/automations/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ trigger, playerName }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.executed && data.actionsExecuted > 0) {
+          console.log(`[Automation] Executed ${data.actionsExecuted} actions for ${trigger} (${playerName})`);
+        }
+      }
+    } catch (error) {
+      console.error('[Automation] Error executing player automation:', error);
+    }
+  }, [serverId]);
+
   // Add a raw console line with automatic classification
   const addConsoleLine = useCallback((rawLine: string) => {
     const classified = classifyLine(rawLine);
@@ -374,7 +420,16 @@ export function ServerConsole({ serverId, serverName, serverStatus, isAdmin }: S
       message: classified.message,
     };
     setLines(prev => [...prev.slice(-500), newLine]);
-  }, [classifyLine]);
+
+    // Execute player automations if detected
+    if (classified.player) {
+      if (classified.type === 'player_join') {
+        executePlayerAutomation('playerJoin', classified.player);
+      } else if (classified.type === 'player_leave') {
+        executePlayerAutomation('playerLeave', classified.player);
+      }
+    }
+  }, [classifyLine, executePlayerAutomation]);
 
   // Cleanup function for SSE connection
   const cleanupSSE = useCallback(() => {

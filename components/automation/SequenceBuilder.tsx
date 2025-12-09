@@ -431,6 +431,7 @@ export function SequenceBuilder({
                           onUpdate={updateAction}
                           onDelete={() => deleteAction(action.id)}
                           onDuplicate={() => duplicateAction(action.id)}
+                          triggerType={triggerType}
                         />
                       ))}
                   </div>

@@ -22,6 +22,8 @@ import {
   CheckCircle2,
   Loader2,
   Sparkles,
+  UserPlus,
+  UserMinus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -285,10 +287,10 @@ export function AutomationConfig({ serverId, serverName, serverStatus }: Automat
 
       {/* Automation Sequences */}
       <Tabs defaultValue="onStart" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
+        <TabsList className="grid w-full grid-cols-4 mb-4">
           <TabsTrigger value="onStart" className="gap-2">
             <Play className="h-4 w-4" />
-            {t('triggers.onStart')}
+            <span className="hidden sm:inline">{t('triggers.onStart')}</span>
             {automation?.onStart?.actions?.length ? (
               <Badge variant="secondary" className="ml-1">
                 {automation.onStart.actions.length}
@@ -297,10 +299,28 @@ export function AutomationConfig({ serverId, serverName, serverStatus }: Automat
           </TabsTrigger>
           <TabsTrigger value="onStop" className="gap-2">
             <Power className="h-4 w-4" />
-            {t('triggers.onStop')}
+            <span className="hidden sm:inline">{t('triggers.onStop')}</span>
             {automation?.onStop?.actions?.length ? (
               <Badge variant="secondary" className="ml-1">
                 {automation.onStop.actions.length}
+              </Badge>
+            ) : null}
+          </TabsTrigger>
+          <TabsTrigger value="onPlayerJoin" className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('triggers.onPlayerJoin')}</span>
+            {automation?.onPlayerJoin?.actions?.length ? (
+              <Badge variant="secondary" className="ml-1">
+                {automation.onPlayerJoin.actions.length}
+              </Badge>
+            ) : null}
+          </TabsTrigger>
+          <TabsTrigger value="onPlayerLeave" className="gap-2">
+            <UserMinus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('triggers.onPlayerLeave')}</span>
+            {automation?.onPlayerLeave?.actions?.length ? (
+              <Badge variant="secondary" className="ml-1">
+                {automation.onPlayerLeave.actions.length}
               </Badge>
             ) : null}
           </TabsTrigger>
@@ -325,6 +345,24 @@ export function AutomationConfig({ serverId, serverName, serverStatus }: Automat
             serverName={serverName}
             onTest={() => testSequence('stop')}
             isTesting={testing === 'stop'}
+          />
+        </TabsContent>
+
+        <TabsContent value="onPlayerJoin">
+          <SequenceBuilder
+            sequence={automation?.onPlayerJoin}
+            onChange={(seq) => updateSequence('onPlayerJoin', seq)}
+            triggerType="onPlayerJoin"
+            serverName={serverName}
+          />
+        </TabsContent>
+
+        <TabsContent value="onPlayerLeave">
+          <SequenceBuilder
+            sequence={automation?.onPlayerLeave}
+            onChange={(seq) => updateSequence('onPlayerLeave', seq)}
+            triggerType="onPlayerLeave"
+            serverName={serverName}
           />
         </TabsContent>
       </Tabs>
