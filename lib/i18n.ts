@@ -1,20 +1,9 @@
 import { getRequestConfig } from 'next-intl/server';
 import { cookies, headers } from 'next/headers';
 
-export type Locale = 'pt-BR' | 'en';
-
-export const locales: Locale[] = ['pt-BR', 'en'];
-export const defaultLocale: Locale = 'pt-BR';
-
-export const localeNames: Record<Locale, string> = {
-  'pt-BR': 'Português (Brasil)',
-  'en': 'English',
-};
-
-export const localeFlags: Record<Locale, string> = {
-  'pt-BR': '🇧🇷',
-  'en': '🇺🇸',
-};
+// Re-export shared configuration for backwards compatibility
+export { type Locale, locales, defaultLocale, localeNames, localeFlags, localeCountryCodes } from './i18n-config';
+import { type Locale, locales, defaultLocale } from './i18n-config';
 
 async function getLocale(): Promise<Locale> {
   // Try to get from cookie

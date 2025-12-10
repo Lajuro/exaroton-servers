@@ -46,6 +46,12 @@
     "logout": "Logout",
     "endSession": "End session"
   },
+  "language": {
+    "switchLanguage": "Switch language",
+    "selectLanguage": "Select language",
+    "changed": "Language changed",
+    "changedTo": "Language changed to {language}"
+  },
   "common": {
     "loading": "Loading...",
     "loadingServers": "Loading servers...",

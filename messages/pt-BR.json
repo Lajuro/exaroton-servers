@@ -46,6 +46,12 @@
     "logout": "Sair",
     "endSession": "Encerrar sessão"
   },
+  "language": {
+    "switchLanguage": "Alterar idioma",
+    "selectLanguage": "Selecione o idioma",
+    "changed": "Idioma alterado",
+    "changedTo": "Idioma alterado para {language}"
+  },
   "common": {
     "loading": "Carregando...",
     "loadingServers": "Carregando servidores...",
