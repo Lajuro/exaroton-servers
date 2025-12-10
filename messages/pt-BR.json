@@ -769,6 +769,7 @@
       "description": "Este ícone aparece no card do servidor no dashboard (máx. 10MB)",
       "change": "Trocar ícone",
       "upload": "Enviar ícone",
+      "remove": "Remover ícone",
       "formats": "Formatos: JPG, PNG, WebP • Redimensionado para 256x256px"
     },
     "description": {
@@ -1158,5 +1159,66 @@
       "description": "Configuração básica do servidor"
     },
     "comingSoon": "Em breve..."
+  },
+  "markdownEditor": {
+    "placeholder": "Escreva em Markdown...",
+    "ariaLabel": "Editor Markdown",
+    "emptyPreview": "Nada para visualizar",
+    "emptyPreviewHint": "Comece a escrever para ver a prévia",
+    "toolbar": {
+      "headings": "Títulos",
+      "heading1": "Título 1",
+      "heading2": "Título 2",
+      "heading3": "Título 3",
+      "bold": "Negrito",
+      "italic": "Itálico",
+      "strikethrough": "Riscado",
+      "inlineCode": "Código Inline",
+      "quote": "Citação",
+      "bulletList": "Lista com Marcadores",
+      "numberedList": "Lista Numerada",
+      "checklist": "Lista de Tarefas",
+      "link": "Link",
+      "image": "Imagem",
+      "table": "Tabela",
+      "horizontalRule": "Linha Horizontal",
+      "codeBlock": "Bloco de Código"
+    },
+    "modes": {
+      "write": "Escrever",
+      "preview": "Visualizar",
+      "split": "Dividido"
+    },
+    "actions": {
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "copy": "Copiar para área de transferência",
+      "download": "Baixar como .md",
+      "shortcuts": "Atalhos do teclado",
+      "fullscreen": "Tela cheia",
+      "exitFullscreen": "Sair da tela cheia"
+    },
+    "shortcuts": {
+      "title": "Atalhos do Teclado",
+      "description": "Use estes atalhos para acelerar sua edição",
+      "bold": "Texto em negrito",
+      "italic": "Texto em itálico",
+      "link": "Inserir link",
+      "code": "Código inline",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "indent": "Indentar",
+      "exitFullscreen": "Sair da tela cheia"
+    },
+    "status": {
+      "line": "Ln",
+      "column": "Col",
+      "lines": "linhas",
+      "words": "palavras",
+      "chars": "caracteres",
+      "showLineNumbers": "Mostrar números de linha",
+      "hideLineNumbers": "Ocultar números de linha",
+      "syncScroll": "Sincronizar scroll"
+    }
   }
 }
