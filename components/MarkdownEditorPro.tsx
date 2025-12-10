@@ -37,7 +37,10 @@ import {
   Loader2,
   Check,
   FileCode,
+  FileText,
+  X,
 } from 'lucide-react';
+import { ThemeToggle } from './theme-toggle';
 import {
   Tooltip,
   TooltipContent,
@@ -87,6 +90,10 @@ interface MarkdownEditorProProps {
   placeholder?: string;
   minHeight?: string;
   className?: string;
+  /** Name of the server being edited - displayed in fullscreen navbar */
+  serverName?: string;
+  /** Optional label for what's being edited (e.g., "Access Instructions") */
+  editingLabel?: string;
 }
 
 interface CursorPosition {
@@ -171,6 +178,8 @@ export function MarkdownEditorPro({
   onChange,
   minHeight = '500px',
   className,
+  serverName,
+  editingLabel,
 }: MarkdownEditorProProps) {
   const t = useTranslations('markdownEditor');
   const { resolvedTheme } = useTheme();
@@ -552,6 +561,66 @@ export function MarkdownEditorPro({
       )}
       style={{ minHeight: isFullscreen ? '100vh' : minHeight }}
     >
+      {/* Fullscreen Navbar */}
+      {isFullscreen && (
+        <TooltipProvider delayDuration={300}>
+          <div className="flex items-center justify-between px-4 py-2.5 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex items-center gap-3">
+              {/* Logo/Brand */}
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 shadow-sm">
+                  <FileText className="h-4 w-4 text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold tracking-tight">
+                    {serverName || 'Markdown Editor'}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground -mt-0.5">
+                    {editingLabel || 'Exaroton Servers'}
+                  </span>
+                </div>
+              </div>
+
+              <Separator orientation="vertical" className="h-6 mx-2" />
+
+              {/* Document stats */}
+              <div className="hidden md:flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <span className="font-medium text-foreground">{stats.words}</span> {t('status.words')}
+                </span>
+                <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                <span className="flex items-center gap-1.5">
+                  <span className="font-medium text-foreground">{stats.chars}</span> {t('status.chars')}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Theme toggle */}
+              <ThemeToggle />
+
+              {/* Exit fullscreen button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleFullscreen}
+                    className="h-8 gap-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="hidden sm:inline text-xs">ESC</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {t('actions.exitFullscreen')}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+        </TooltipProvider>
+      )}
+
       {/* Toolbar */}
       <div className="flex items-center gap-1 p-2 border-b bg-muted/30 flex-wrap">
         <TooltipProvider delayDuration={300}>

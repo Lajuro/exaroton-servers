@@ -810,6 +810,8 @@ export default function ServerEditPage({ params }: EditPageProps) {
                     onChange={handleAccessInstructionsChange}
                     placeholder={t('accessInstructions.placeholder')}
                     minHeight="450px"
+                    serverName={serverName}
+                    editingLabel={t('accessInstructions.title')}
                   />
                 </CardContent>
               </Card>
