@@ -27,13 +27,15 @@ import { CreditsHoverCard } from '@/components/CreditsHoverCard';
 import { CreditReportDialog } from '@/components/CreditReportDialog';
 import { OnlineStatus } from '@/components/PWAInstallPrompt';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { SettingsDialog } from '@/components/SettingsDialog';
 
 import { 
   LogOut, 
   Shield, 
   Crown,
   LayoutDashboard,
-  BarChart3
+  BarChart3,
+  Settings
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -44,6 +46,7 @@ export default function Navbar() {
   const t = useTranslations('nav');
   const [scrolled, setScrolled] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   // Usuário efetivo: se está impersonando, usa o impersonado
   const effectiveUser = isImpersonating && impersonatedUser ? impersonatedUser : user;
@@ -263,6 +266,19 @@ export default function Navbar() {
                       </DropdownMenuItem>
                     )}
 
+                    <DropdownMenuItem 
+                      onClick={() => setSettingsDialogOpen(true)}
+                      className="gap-3 py-2.5 cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-md bg-slate-500/10">
+                        <Settings className="h-4 w-4 text-slate-500" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{t('settings')}</p>
+                        <p className="text-xs text-muted-foreground">{t('manageSettings')}</p>
+                      </div>
+                    </DropdownMenuItem>
+
                     <DropdownMenuSeparator className="my-2" />
 
                     {/* Logout */}
@@ -291,6 +307,10 @@ export default function Navbar() {
 
       {/* Credit Report Dialog */}
       <CreditReportDialog open={reportDialogOpen} onOpenChange={setReportDialogOpen} />
+      
+      {/* Settings Dialog */}
+      <SettingsDialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen} />
     </TooltipProvider>
   );
 }
+    

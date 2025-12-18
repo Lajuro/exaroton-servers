@@ -27,7 +27,7 @@ export interface ExarotonServer {
   players?: {
     max: number;
     count: number;
-    list: string[];
+    list?: string[];
   };
   software?: {
     id: string;

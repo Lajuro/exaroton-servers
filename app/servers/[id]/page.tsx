@@ -23,6 +23,7 @@ import OnlinePlayers from '@/components/OnlinePlayers';
 import PlayerHistoryCard from '@/components/PlayerHistory';
 import { useToast } from '@/components/ui/use-toast';
 import { useServerCommand } from '@/lib/useServerCommand';
+import { useServerStatus } from '@/lib/useServerStatus';
 import { 
   Users, 
   Settings, 
@@ -62,11 +63,6 @@ const getStatusConfig = (t: (key: string) => string): Record<number, {
   10: { label: t('status.preparing'), variant: 'outline', color: 'bg-violet-500', icon: <div className="h-2 w-2 rounded-full bg-violet-500 animate-pulse" />, gradientFrom: 'from-violet-500', gradientTo: 'to-purple-600', glowColor: 'shadow-violet-500/25' },
 });
 
-// Maximum number of reconnection attempts before giving up
-const MAX_RECONNECT_ATTEMPTS = 5;
-// Base delay between reconnection attempts (will use exponential backoff)
-const BASE_RECONNECT_DELAY = 2000;
-
 export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -79,118 +75,28 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const effectiveIsAdmin = !isImpersonating && user?.isAdmin;
   
   const [serverId, setServerId] = useState<string>('');
-  const [server, setServer] = useState<ExarotonServer | null>(null);
   const [content, setContent] = useState<ServerContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [_fromCache, setFromCache] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const lastActionTimeRef = useRef<number>(0);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef = useRef<number>(0);
-  const isUnmountedRef = useRef<boolean>(false);
+
+  // Use centralized server status hook
+  const { 
+    server, 
+    setServer, 
+    isLive, 
+    error: statusError, 
+    notifyActionTaken 
+  } = useServerStatus({
+    serverId
+  });
 
   // Use centralized command hook
   const { sendCommand: handleSendCommand, isLoading: sendingCommand } = useServerCommand({
     serverId,
     serverName: server?.name,
   });
-
-  // Cleanup function for SSE connection
-  const cleanupSSE = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
-    }
-  }, []);
-
-  // Connect to SSE with proper error handling and reconnection logic
-  const connectSSE = useCallback(async () => {
-    // Don't connect if unmounted or no serverId
-    if (isUnmountedRef.current || !serverId) return;
-    
-    // Clean up existing connection first
-    cleanupSSE();
-
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token || isUnmountedRef.current) return;
-
-      const eventSource = new EventSource(
-        `/api/servers/${serverId}/stream?token=${encodeURIComponent(token)}`
-      );
-
-      eventSource.onmessage = (event) => {
-        // Don't process if unmounted
-        if (isUnmountedRef.current) return;
-        
-        try {
-          const data = JSON.parse(event.data);
-          
-          if (data.type === 'status' && data.server) {
-            // Reset reconnect attempts on successful message
-            reconnectAttemptsRef.current = 0;
-            
-            // Previne que estados de transição sejam sobrescritos por mensagens antigas
-            const timeSinceLastAction = Date.now() - lastActionTimeRef.current;
-            const isTransitioningStatus = [2, 3, 4, 5, 6, 10].includes(data.server.status);
-            
-            // Se acabamos de executar uma ação (< 2s), só aceita estados de transição ou finais
-            if (timeSinceLastAction < 2000 && !isTransitioningStatus && data.server.status !== 0 && data.server.status !== 1) {
-              return;
-            }
-            
-            setServer(prev => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                status: data.server.status,
-                players: data.server.players || prev.players,
-              };
-            });
-          }
-        } catch (err) {
-          console.error('Error parsing SSE message:', err);
-        }
-      };
-
-      eventSource.onerror = () => {
-        // Don't reconnect if unmounted
-        if (isUnmountedRef.current) {
-          eventSource.close();
-          return;
-        }
-        
-        eventSource.close();
-        eventSourceRef.current = null;
-        
-        // Check if we should attempt to reconnect
-        if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-          reconnectAttemptsRef.current++;
-          // Use exponential backoff
-          const delay = BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttemptsRef.current - 1);
-          console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
-          
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (!isUnmountedRef.current && serverId) {
-              connectSSE();
-            }
-          }, delay);
-        } else {
-          console.log('[SSE] Max reconnection attempts reached, stopping reconnection');
-        }
-      };
-
-      eventSourceRef.current = eventSource;
-    } catch (error) {
-      console.error('Error connecting to SSE:', error);
-    }
-  }, [serverId, cleanupSSE]);
 
   useEffect(() => {
     params.then(p => setServerId(p.id));
@@ -202,21 +108,12 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
     }
   }, [user, authLoading, router]);
 
-  // Main effect for fetching data and connecting SSE
+  // Main effect for fetching data
   useEffect(() => {
     if (user && serverId) {
-      isUnmountedRef.current = false;
-      reconnectAttemptsRef.current = 0;
-      
       fetchServerData();
       fetchServerContent();
-      connectSSE();
     }
-
-    return () => {
-      isUnmountedRef.current = true;
-      cleanupSSE();
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, serverId]);
 
@@ -271,6 +168,7 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
   const handleAction = async (action: 'start' | 'stop' | 'restart') => {
     try {
       setActionLoading(action);
+      notifyActionTaken(); // Notify hook that action was taken
       const token = await auth.currentUser?.getIdToken();
       
       const response = await fetch(`/api/servers/${serverId}/${action}`, {
@@ -293,9 +191,6 @@ export default function ServerDetailPage({ params }: ServerDetailPageProps) {
         title: t('toast.commandSent'),
         description: actionLabels[action],
       });
-
-      // Marcar tempo da ação para evitar race conditions com SSE
-      lastActionTimeRef.current = Date.now();
       
       // Atualizar o estado local imediatamente
       if (action === 'start') {

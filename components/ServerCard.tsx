@@ -46,6 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useTranslations, useLocale } from 'next-intl';
 import { useServerCommand } from '@/lib/useServerCommand';
+import { useServerStatus } from '@/lib/useServerStatus';
 import { OnlinePlayersCompact } from '@/components/OnlinePlayers';
 import { LastOnlineBadge } from '@/components/PlayerHistory';
 
@@ -77,10 +78,21 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
   const tCommon = useTranslations('common');
   const locale = useLocale();
   
-  const [server, setServer] = useState(initialServer);
+  // Use centralized server status hook
+  const { 
+    server, 
+    isLive, 
+    error: statusError, 
+    notifyActionTaken 
+  } = useServerStatus({
+    serverId: initialServer.id,
+    initialServer: initialServer
+  });
+
+  const displayServer = server || initialServer;
+
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLive, setIsLive] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; action: 'start' | 'stop' | 'restart' | null }>({ open: false, action: null });
   const [commandDialog, setCommandDialog] = useState(false);
   const [commandType, setCommandType] = useState<CommandType>('custom');
@@ -88,15 +100,12 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
   const [commandOption, setCommandOption] = useState('');
   const [addressCopied, setAddressCopied] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const lastActionTimeRef = useRef<number>(0);
   const { toast } = useToast();
 
   // Use centralized command hook
   const { sendCommand: sendServerCmd, isLoading: sendingCommand } = useServerCommand({
-    serverId: server.id,
-    serverName: server.name,
+    serverId: displayServer.id,
+    serverName: displayServer.name,
     onSuccess: () => {
       setCommand('');
       setCommandOption('');
@@ -120,6 +129,8 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
     };
     return statusMap[status] || t('status.unknown');
   };
+
+  const currentStatus = displayServer.status;
 
   const STATUS_CONFIG: Record<number, { 
     color: string; 
@@ -203,88 +214,23 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
     },
   };
 
-  const statusInfo = STATUS_CONFIG[server.status] || STATUS_CONFIG[0];
-  const statusLabel = getStatusLabel(server.status);
-  const isOnline = server.status === 1;
-  const isOffline = server.status === 0;
-  const isTransitioning = [2, 3, 4, 5, 6, 10].includes(server.status);
-  const playerPercentage = server.players ? (server.players.count / server.players.max) * 100 : 0;
-
-  useEffect(() => {
-    setServer(initialServer);
-  }, [initialServer]);
-
-  // SSE Connection
-  useEffect(() => {
-    const connectSSE = async () => {
-      try {
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) return;
-
-        if (eventSourceRef.current) {
-          eventSourceRef.current.close();
-        }
-
-        const eventSource = new EventSource(
-          `/api/servers/${server.id}/stream?token=${encodeURIComponent(token)}`
-        );
-
-        eventSource.onopen = () => {
-          setIsLive(true);
-          setError(null);
-        };
-
-        eventSource.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'status' && data.server) {
-              const timeSinceLastAction = Date.now() - lastActionTimeRef.current;
-              const isTransitioningStatus = [2, 3, 4, 5, 6, 10].includes(data.server.status);
-              
-              if (timeSinceLastAction < 2000 && !isTransitioningStatus && data.server.status !== 0 && data.server.status !== 1) {
-                return;
-              }
-              
-              setServer(prev => ({
-                ...prev,
-                status: data.server.status,
-                players: data.server.players || prev.players,
-              }));
-            }
-          } catch (err) {
-            console.error('Failed to parse SSE message:', err);
-          }
-        };
-
-        eventSource.onerror = () => {
-          setIsLive(false);
-          eventSource.close();
-          reconnectTimeoutRef.current = setTimeout(connectSSE, 5000);
-        };
-
-        eventSourceRef.current = eventSource;
-      } catch (err) {
-        console.error('SSE connection error:', err);
-      }
-    };
-
-    connectSSE();
-
-    return () => {
-      if (eventSourceRef.current) eventSourceRef.current.close();
-      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
-    };
-  }, [server.id]);
+  const statusInfo = STATUS_CONFIG[currentStatus] || STATUS_CONFIG[0];
+  const statusLabel = getStatusLabel(currentStatus);
+  const isOnline = currentStatus === 1;
+  const isOffline = currentStatus === 0;
+  const isTransitioning = [2, 3, 4, 5, 6, 10].includes(currentStatus);
+  const playerPercentage = displayServer.players ? (displayServer.players.count / displayServer.players.max) * 100 : 0;
 
   const handleAction = async (action: 'start' | 'stop' | 'restart') => {
     setLoading(action);
     setError(null);
+    notifyActionTaken(); // Notify hook that action was taken
 
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
 
-      const response = await fetch(`/api/servers/${server.id}/${action}`, {
+      const response = await fetch(`/api/servers/${displayServer.id}/${action}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -300,15 +246,11 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
         stop: t('actions.stopping'), 
         restart: t('actions.restarting') 
       };
+      
       toast({
         title: t('actions.commandSent'),
-        description: `${server.name} ${actionNames[action]}...`,
+        description: `${displayServer.name} ${actionNames[action]}...`,
       });
-
-      lastActionTimeRef.current = Date.now();
-      
-      const newStatus = action === 'start' ? 2 : action === 'stop' ? 3 : 4;
-      setServer(prev => ({ ...prev, status: newStatus }));
       
       onUpdate();
     } catch (err) {
@@ -323,7 +265,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
   const handleCopyAddress = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText(server.address);
+      await navigator.clipboard.writeText(displayServer.address);
       setAddressCopied(true);
       toast({
         title: tCommon('copied'),
@@ -361,7 +303,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
   };
 
   const handleCardClick = () => {
-    router.push(`/servers/${server.id}`);
+    router.push(`/servers/${displayServer.id}`);
   };
 
   return (
@@ -418,7 +360,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                 {iconUrl ? (
                   <img 
                     src={iconUrl} 
-                    alt={server.name}
+                    alt={displayServer.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -460,7 +402,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                   "font-bold text-lg truncate transition-colors duration-300",
                   isHovered && "text-primary"
                 )}>
-                  {server.name}
+                  {displayServer.name}
                 </h3>
                 
                 {/* Live badge */}
@@ -491,7 +433,7 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
                 )}
               >
                 <Globe className="h-3.5 w-3.5 flex-shrink-0" />
-                <code className="truncate max-w-[160px] font-mono text-xs">{server.address}</code>
+                <code className="truncate max-w-[160px] font-mono text-xs">{displayServer.address}</code>
                 <span className={cn(
                   "transition-all duration-200",
                   addressCopied ? "opacity-100" : "opacity-0 group-hover/addr:opacity-100"
@@ -523,25 +465,25 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
               {statusLabel}
             </Badge>
 
-            {server.players && (
+            {displayServer.players && (
               <div className={cn(
                 "flex items-center gap-2 px-3 py-1 rounded-full",
                 "bg-muted/50 border border-border/50"
               )}>
                 <Users className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="font-bold tabular-nums text-sm">
-                  {server.players.count}
-                  <span className="text-muted-foreground font-normal">/{server.players.max}</span>
+                  {displayServer.players.count}
+                  <span className="text-muted-foreground font-normal">/{displayServer.players.max}</span>
                 </span>
               </div>
             )}
           </div>
 
           {/* Online players preview */}
-          {isOnline && server.players && server.players.list && server.players.list.length > 0 && (
+          {isOnline && displayServer.players && displayServer.players.list && displayServer.players.list.length > 0 && (
             <div className="mb-4">
               <OnlinePlayersCompact 
-                players={server.players.list} 
+                players={displayServer.players.list} 
                 maxShow={4}
                 className="justify-start"
               />
@@ -553,13 +495,13 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
             <div className="mb-4">
               <LastOnlineBadge 
                 lastOnlineAt={lastOnlineAt}
-                serverStatus={server.status}
+                serverStatus={displayServer.status}
               />
             </div>
           )}
 
           {/* Player capacity bar */}
-          {server.players && (
+          {displayServer.players && (
             <div className="mb-5">
               <div className="h-2 bg-muted/50 rounded-full overflow-hidden backdrop-blur-sm">
                 <div 
@@ -717,13 +659,13 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
             <DialogDescription className="pt-2">
               {confirmDialog.action === 'stop' && (
                 locale === 'pt-BR' 
-                  ? <>Tem certeza que deseja <strong className="text-destructive">parar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados.</>
-                  : <>Are you sure you want to <strong className="text-destructive">stop</strong> the server <strong>{server.name}</strong>? Online players will be disconnected.</>
+                  ? <>Tem certeza que deseja <strong className="text-destructive">parar</strong> o servidor <strong>{displayServer.name}</strong>? Os jogadores online serão desconectados.</>
+                  : <>Are you sure you want to <strong className="text-destructive">stop</strong> the server <strong>{displayServer.name}</strong>? Online players will be disconnected.</>
               )}
               {confirmDialog.action === 'restart' && (
                 locale === 'pt-BR'
-                  ? <>Tem certeza que deseja <strong className="text-blue-500">reiniciar</strong> o servidor <strong>{server.name}</strong>? Os jogadores online serão desconectados temporariamente.</>
-                  : <>Are you sure you want to <strong className="text-blue-500">restart</strong> the server <strong>{server.name}</strong>? Online players will be temporarily disconnected.</>
+                  ? <>Tem certeza que deseja <strong className="text-blue-500">reiniciar</strong> o servidor <strong>{displayServer.name}</strong>? Os jogadores online serão desconectados temporariamente.</>
+                  : <>Are you sure you want to <strong className="text-blue-500">restart</strong> the server <strong>{displayServer.name}</strong>? Online players will be temporarily disconnected.</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -765,8 +707,8 @@ export default function ServerCard({ server: initialServer, isAdmin, onUpdate, i
             </DialogTitle>
             <DialogDescription>
               {locale === 'pt-BR' 
-                ? <>Execute comandos no servidor <strong>{server.name}</strong></>
-                : <>Execute commands on server <strong>{server.name}</strong></>
+                ? <>Execute comandos no servidor <strong>{displayServer.name}</strong></>
+                : <>Execute commands on server <strong>{displayServer.name}</strong></>
               }
             </DialogDescription>
           </DialogHeader>

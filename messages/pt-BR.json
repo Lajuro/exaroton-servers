@@ -37,6 +37,8 @@
     "dashboard": "Dashboard",
     "admin": "Admin",
     "stats": "Estatísticas",
+    "settings": "Configurações",
+    "manageSettings": "Gerenciar preferências",
     "viewStats": "Ver estatísticas de uso",
     "controlPanel": "Painel de Controle",
     "adminPrivileges": "Você tem privilégios de administrador",
@@ -45,6 +47,15 @@
     "manageUsers": "Gerenciar usuários",
     "logout": "Sair",
     "endSession": "Encerrar sessão"
+  },
+  "settings": {
+    "title": "Configurações",
+    "description": "Gerencie suas preferências pessoais.",
+    "sound": {
+      "label": "Sons de Notificação",
+      "description": "Tocar um som quando o servidor iniciar com sucesso.",
+      "volume": "Volume"
+    }
   },
   "language": {
     "switchLanguage": "Alterar idioma",
